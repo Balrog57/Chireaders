@@ -1,50 +1,63 @@
-# Welcome to your Expo app 👋
+# ChiReaders 📱
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Application Android simple pour lire des romans (novels) depuis le site **chireads.com**.
 
-## Get started
+Cette application utilise **React Native** (Expo) et **Cheerio** pour récupérer et parser le contenu du site en temps réel.
 
-1. Install dependencies
+## ✨ Fonctionnalités
 
-   ```bash
-   npm install
-   ```
+- **Catalogue** : Accès aux romans "En Vedette" et "Populaires" depuis la page d'accueil.
+- **Lecture** : Affichage clair des chapitres.
+- **Mode Lecture** :
+    - Mode Jour / Nuit 🌙
+    - Ajustement de la taille de la police A+ / A-
+    - Fluidité de navigation entre les chapitres.
+- **Favoris** ❤️ : Sauvegarde de vos romans préférés localement.
+- **Historique** 🕒 : Reprenez votre lecture exactement là où vous l'avez laissée (dernier chapitre lu, position dans la page).
 
-2. Start the app
+## 🛠 Installation et Lancement
 
-   ```bash
-   npx expo start
-   ```
+### Prérequis
+- Node.js installé.
+- Un téléphone Android avec l'application **Expo Go** installée (disponible sur le Play Store).
+- OU Android Studio pour utiliser l'émulateur.
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### Installation des dépendances
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Lancement du serveur de développement
+```bash
+npx expo start --clear
+```
 
-## Learn more
+### Tester l'application
+1. Une fois la commande lancée, un QR Code s'affiche dans le terminal.
+2. Scannez-le avec l'application **Expo Go** sur Android.
+3. OU appuyez sur la touche `a` pour lancer sur un émulateur Android connecté.
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🐛 Problèmes connus & Solutions
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Erreur `Unable to resolve module node:stream` ou `node:net`
+Cheerio (le parser HTML) utilise des modules Node.js standards qui ne sont pas présents dans React Native.
+Nous avons corrigé cela en :
+1. Installant des polyfills : `stream-browserify`, `events`, `buffer`, etc.
+2. Configurant `metro.config.js` pour rediriger les imports `node:` vers ces polyfills.
+3. Injectant `global.Buffer` et `global.process` dans `App.js`.
 
-## Join the community
+### Contenu non chargé (Page blanche)
+Si vous testez sur un **navigateur web**, cela ne fonctionnera pas à cause des sécurités **CORS** du site chireads.com qui bloquent les requêtes directes.
+-> **Testez impérativement sur Android (Physique ou Émulateur).**
 
-Join our community of developers creating universal apps.
+## 📦 Génération de l'APK (Android)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Pour générer un fichier `.apk` installable :
+1. Créez un compte sur [expo.dev](https://expo.dev).
+2. Installez EAS CLI : `npm install -g eas-cli`.
+3. Connectez-vous : `eas login`.
+4. Configurez le projet : `eas build:configure`.
+5. Lancez le build : `eas build -p android --profile preview`.
+
+---
+*Développé avec ❤️ pour les lecteurs de ChiReads.*
