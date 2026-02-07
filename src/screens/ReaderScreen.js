@@ -134,7 +134,12 @@ const ReaderScreen = () => {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
                 <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color="#e91e63" />
+                    <ActivityIndicator
+                        size="large"
+                        color="#e91e63"
+                        accessibilityLabel="Chargement du chapitre en cours"
+                        accessibilityRole="progressbar"
+                    />
                 </View>
             </SafeAreaView>
         );
@@ -157,13 +162,25 @@ const ReaderScreen = () => {
             {/* Header / Navbar */}
             {headerVisible && (
                 <View style={[styles.header, { backgroundColor: currentTheme.bar, borderBottomColor: currentTheme.text + '20' }]}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navButton}>
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        style={styles.navButton}
+                        accessibilityLabel="Retour"
+                        accessibilityRole="button"
+                        accessibilityHint="Retourner à la page précédente"
+                    >
                         <Ionicons name="arrow-back" size={24} color={currentTheme.icon} />
                     </TouchableOpacity>
                     <Text style={[styles.headerTitle, { color: currentTheme.text }]} numberOfLines={1}>
                         {chapter.title}
                     </Text>
-                    <TouchableOpacity onPress={() => setShowSettings(true)} style={styles.navButton}>
+                    <TouchableOpacity
+                        onPress={() => setShowSettings(true)}
+                        style={styles.navButton}
+                        accessibilityLabel="Paramètres de lecture"
+                        accessibilityRole="button"
+                        accessibilityHint="Ouvrir les paramètres de police et de thème"
+                    >
                         <Ionicons name="text" size={24} color={currentTheme.icon} />
                     </TouchableOpacity>
                 </View>
@@ -209,6 +226,9 @@ const ReaderScreen = () => {
                             ]}
                             disabled={!chapter.prevUrl}
                             onPress={() => navigateChapter(chapter.prevUrl)}
+                            accessibilityLabel="Chapitre précédent"
+                            accessibilityRole="button"
+                            accessibilityState={{ disabled: !chapter.prevUrl }}
                         >
                             <Text style={styles.navBtnText}>Précédent</Text>
                         </TouchableOpacity>
@@ -221,6 +241,9 @@ const ReaderScreen = () => {
                             ]}
                             disabled={!chapter.nextUrl}
                             onPress={() => navigateChapter(chapter.nextUrl)}
+                            accessibilityLabel="Chapitre suivant"
+                            accessibilityRole="button"
+                            accessibilityState={{ disabled: !chapter.nextUrl }}
                         >
                             <Text style={styles.navBtnText}>Suivant</Text>
                         </TouchableOpacity>
@@ -242,7 +265,18 @@ const ReaderScreen = () => {
                     onPress={() => setShowSettings(false)}
                 >
                     <View style={[styles.settingsContainer, { backgroundColor: currentTheme.bar }]}>
-                        <Text style={[styles.settingLabel, { color: currentTheme.text }]}>Thème</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                            <Text style={[styles.settingLabel, { color: currentTheme.text, marginBottom: 0 }]}>Thème</Text>
+                            <TouchableOpacity
+                                onPress={() => setShowSettings(false)}
+                                accessibilityLabel="Fermer les paramètres"
+                                accessibilityRole="button"
+                                style={{ padding: 5 }}
+                            >
+                                <Ionicons name="close" size={24} color={currentTheme.text} />
+                            </TouchableOpacity>
+                        </View>
+
                         <View style={styles.themeOptions}>
                             {Object.keys(THEMES).map(t => (
                                 <TouchableOpacity
@@ -252,18 +286,31 @@ const ReaderScreen = () => {
                                         { backgroundColor: THEMES[t].background, borderWidth: theme === t ? 2 : 1, borderColor: theme === t ? '#e91e63' : '#ccc' }
                                     ]}
                                     onPress={() => saveSettings(null, t)}
+                                    accessibilityLabel={`Thème ${t === 'light' ? 'Clair' : t === 'dark' ? 'Sombre' : 'Sépia'}`}
+                                    accessibilityRole="radio"
+                                    accessibilityState={{ checked: theme === t }}
                                 >
-                                    <Text style={{ color: THEMES[t].text }}>{t === 'light' ? 'A' : t === 'dark' ? 'A' : 'A'}</Text>
+                                    <Text style={{ color: THEMES[t].text }}>A</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
 
                         <Text style={[styles.settingLabel, { color: currentTheme.text, marginTop: 20 }]}>Taille du texte: {fontSize}</Text>
                         <View style={styles.fontOptions}>
-                            <TouchableOpacity onPress={() => saveSettings(Math.max(10, fontSize - 2), null)} style={styles.fontBtn}>
+                            <TouchableOpacity
+                                onPress={() => saveSettings(Math.max(10, fontSize - 2), null)}
+                                style={styles.fontBtn}
+                                accessibilityLabel="Diminuer la taille du texte"
+                                accessibilityRole="button"
+                            >
                                 <Ionicons name="remove" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => saveSettings(Math.min(40, fontSize + 2), null)} style={styles.fontBtn}>
+                            <TouchableOpacity
+                                onPress={() => saveSettings(Math.min(40, fontSize + 2), null)}
+                                style={styles.fontBtn}
+                                accessibilityLabel="Augmenter la taille du texte"
+                                accessibilityRole="button"
+                            >
                                 <Ionicons name="add" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
                         </View>
