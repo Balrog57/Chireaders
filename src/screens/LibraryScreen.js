@@ -5,17 +5,19 @@ import {
     ActivityIndicator,
     FlatList,
     Image,
-    SafeAreaView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext';
 import ChiReadsScraper from '../services/ChiReadsScraper';
 
 const LibraryScreen = () => {
     const navigation = useNavigation();
+    const { theme } = useTheme();
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [data, setData] = useState([]);
@@ -44,11 +46,13 @@ const LibraryScreen = () => {
                 setHasMore(false);
             } else {
                 setData(prev => {
-                    if (pageNum === 1) return combined;
+                    if (pageNum === 1) return combined.sort((a, b) => a.title.localeCompare(b.title));
                     // Filter out duplicates based on URL
                     const existingUrls = new Set(prev.map(b => b.url));
                     const newBooks = combined.filter(b => !existingUrls.has(b.url));
-                    return [...prev, ...newBooks];
+                    const finalData = [...prev, ...newBooks];
+                    // Sort alphabetically by title
+                    return finalData.sort((a, b) => a.title.localeCompare(b.title));
                 });
             }
         } catch (error) {
@@ -107,7 +111,7 @@ const LibraryScreen = () => {
         >
             <Image source={{ uri: item.image }} style={styles.itemImage} />
             <View style={styles.itemContent}>
-                <Text style={styles.itemTitle} numberOfLines={2}>{item.title}</Text>
+                <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -116,34 +120,35 @@ const LibraryScreen = () => {
         if (!loadingMore) return null;
         return (
             <View style={styles.footerLoader}>
-                <ActivityIndicator size="small" color="#e91e63" />
+                <ActivityIndicator size="small" color={theme.tint} />
             </View>
         );
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Bibliothèque</Text>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Bibliothèque</Text>
                 {/* Search Bar */}
-                <View style={styles.searchBar}>
+                <View style={[styles.searchBar, { backgroundColor: theme.border }]}>
                     <TextInput
-                        style={styles.searchInput}
+                        style={[styles.searchInput, { color: theme.text }]}
                         placeholder="Rechercher..."
+                        placeholderTextColor={theme.text + '80'}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         onSubmitEditing={handleSearchSubmit}
                         returnKeyType="search"
                     />
                     <TouchableOpacity onPress={handleSearchSubmit} style={styles.searchButton}>
-                        <Ionicons name="search" size={20} color="#666" />
+                        <Ionicons name="search" size={20} color={theme.text} />
                     </TouchableOpacity>
                 </View>
             </View>
 
             {loading && page === 1 ? (
                 <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color="#e91e63" />
+                    <ActivityIndicator size="large" color={theme.tint} />
                 </View>
             ) : (
                 <FlatList
@@ -157,7 +162,7 @@ const LibraryScreen = () => {
                     contentContainerStyle={styles.listContent}
                     ListEmptyComponent={
                         <View style={styles.centerContainer}>
-                            <Text>Aucun résultat.</Text>
+                            <Text style={{ color: theme.text }}>Aucun résultat.</Text>
                         </View>
                     }
                 />

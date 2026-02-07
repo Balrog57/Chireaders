@@ -259,10 +259,10 @@ const ReaderScreen = () => {
 
                         <Text style={[styles.settingLabel, { color: currentTheme.text, marginTop: 20 }]}>Taille du texte: {fontSize}</Text>
                         <View style={styles.fontOptions}>
-                            <TouchableOpacity onPress={() => saveSettings(Math.max(12, fontSize - 2), null)} style={styles.fontBtn}>
+                            <TouchableOpacity onPress={() => saveSettings(Math.max(10, fontSize - 2), null)} style={styles.fontBtn}>
                                 <Ionicons name="remove" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => saveSettings(Math.min(30, fontSize + 2), null)} style={styles.fontBtn}>
+                            <TouchableOpacity onPress={() => saveSettings(Math.min(40, fontSize + 2), null)} style={styles.fontBtn}>
                                 <Ionicons name="add" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
                         </View>

@@ -95,6 +95,21 @@ export const StorageProvider = ({ children }) => {
         }
     }, [isFavorite, removeFavorite, addFavorite]);
 
+    /**
+     * Toggle notifications for a favorite series
+     * @param {string} url - URL de la série
+     */
+    const toggleFavoriteNotification = useCallback(async (url) => {
+        const newFavorites = favorites.map(f => {
+            if (f.url === url) {
+                return { ...f, notificationsEnabled: !f.notificationsEnabled };
+            }
+            return f;
+        });
+        setFavorites(newFavorites);
+        await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+    }, [favorites]);
+
     // ===== CHAPITRES LUS =====
 
     /**
@@ -278,6 +293,7 @@ export const StorageProvider = ({ children }) => {
             removeFavorite,
             isFavorite,
             toggleFavorite, // compatibilité
+            toggleFavoriteNotification,
 
             // Chapitres
             markChapterAsRead,

@@ -10,16 +10,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
+import { useTheme } from '../context/ThemeContext';
 
 const FavoritesScreen = ({ navigation }) => {
+    const { theme } = useTheme();
     const {
         favorites,
         removeFavorite,
         getSeriesProgress,
+        toggleFavoriteNotification,
         settings
     } = useContext(StorageContext);
 
-    const theme = settings.darkMode ? styles.dark : styles.light;
+    // const theme = settings.darkMode ? styles.dark : styles.light; // Replaced by global theme context
 
     const handleFavoritePress = (favorite) => {
         // Naviguer vers le Détail Natif
@@ -50,27 +53,39 @@ const FavoritesScreen = ({ navigation }) => {
 
         return (
             <TouchableOpacity
-                style={[styles.favoriteCard, settings.darkMode && styles.favoriteCardDark]}
+                style={[styles.favoriteCard, { backgroundColor: theme.card }]}
                 onPress={() => handleFavoritePress(item)}
             >
                 {/* En-tête avec titre et bouton supprimer */}
                 <View style={styles.favoriteHeader}>
-                    <Text style={[styles.favoriteTitle, settings.darkMode && styles.textDark]} numberOfLines={2}>
+                    <Text style={[styles.favoriteTitle, { color: theme.text }]} numberOfLines={2}>
                         {item.title}
                     </Text>
-                    <TouchableOpacity
-                        onPress={() => handleDeletePress(item)}
-                        style={styles.deleteButton}
-                    >
-                        <Ionicons name="trash-outline" size={22} color="#e91e63" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row' }}>
+                        <TouchableOpacity
+                            onPress={() => toggleFavoriteNotification(item.url)}
+                            style={[styles.deleteButton, { marginRight: 5 }]}
+                        >
+                            <Ionicons
+                                name={item.notificationsEnabled ? "notifications" : "notifications-off-outline"}
+                                size={22}
+                                color={item.notificationsEnabled ? theme.tint : theme.text}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => handleDeletePress(item)}
+                            style={styles.deleteButton}
+                        >
+                            <Ionicons name="trash-outline" size={22} color="#e91e63" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Dernier chapitre lu */}
                 {lastChapter && (
                     <View style={styles.lastChapterContainer}>
                         <Ionicons name="bookmark" size={14} color="#4caf50" />
-                        <Text style={[styles.lastChapterText, settings.darkMode && styles.textDark]} numberOfLines={1}>
+                        <Text style={[styles.lastChapterText, { color: theme.text }]} numberOfLines={1}>
                             {lastChapter.title}
                         </Text>
                     </View>
@@ -78,14 +93,14 @@ const FavoritesScreen = ({ navigation }) => {
 
                 {/* Progression */}
                 <View style={styles.progressContainer}>
-                    <Ionicons name="book-outline" size={14} color={settings.darkMode ? '#999' : '#666'} />
-                    <Text style={[styles.progressText, settings.darkMode && styles.subtitleDark]}>
+                    <Ionicons name="book-outline" size={14} color={theme.text} />
+                    <Text style={[styles.progressText, { color: theme.text }]}>
                         {progress.length} chapitre{progress.length > 1 ? 's' : ''} lu{progress.length > 1 ? 's' : ''}
                     </Text>
                 </View>
 
                 {/* Date d'ajout */}
-                <Text style={[styles.dateText, settings.darkMode && styles.subtitleDark]}>
+                <Text style={[styles.dateText, { color: theme.text }]}>
                     Ajouté le {new Date(item.dateAdded).toLocaleDateString('fr-FR')}
                 </Text>
             </TouchableOpacity>
@@ -93,11 +108,11 @@ const FavoritesScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={[styles.container, theme]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
-            <View style={[styles.header, settings.darkMode && styles.headerDark]}>
+            <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
                 <Text style={styles.headerTitle}>Favoris</Text>
-                <View style={styles.badge}>
+                <View style={[styles.badge, { backgroundColor: theme.tint }]}>
                     <Text style={styles.badgeText}>{favorites.length}</Text>
                 </View>
             </View>
@@ -111,10 +126,10 @@ const FavoritesScreen = ({ navigation }) => {
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="heart-outline" size={64} color="#ccc" />
-                        <Text style={[styles.emptyText, settings.darkMode && styles.textDark]}>
+                        <Text style={[styles.emptyText, { color: theme.text }]}>
                             Aucune série favorite
                         </Text>
-                        <Text style={[styles.emptySubtext, settings.darkMode && styles.subtitleDark]}>
+                        <Text style={[styles.emptySubtext, { color: theme.text }]}>
                             Appuyez sur le coeur sur une page série pour l'ajouter
                         </Text>
                     </View>

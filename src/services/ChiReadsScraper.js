@@ -163,16 +163,35 @@ const ChiReadsScraper = {
             // Chapter List Logic
             // Based on debug analysis, chapters are often in .chapitre li, or .volume-content li, or .segment-content li (accordions)
             // We combine them all.
-            let chapterItems = $('.chapitre li, .volume-content li, .chapitre-table li, .segment-content li');
+            // Chapter List Logic
+            // Fix for missing chapters: Select all 'a' tags inside the list items directly.
+            // The site often puts multiple <a> tags in a single <li> for column layout.
+            let chapterLinks = $('.chapitre li a, .volume-content li a, .chapitre-table li a, .segment-content li a');
 
             // Remove debug logs (or keep minimal if needed)
-            // console.log('Scraper DBG: Items found:', chapterItems.length);
+            // console.log('Scraper DBG: Items found:', chapterLinks.length);
 
-            // Deduplicate logic might be needed if selectors overlap, but usually they are distinct containers from different themes.
-            // We'll rely on the fact that usually only one type exists, or if multiple exist, they are distinct segments.
+            // Fix sorting: The site often lists chapters in columns (1, 4, 7... 2, 5, 8...)
+            const extractChapterNumber = (title) => {
+                // Modified regex to be stricter and avoid matching "6 nouveaux chapitres..." as chapter 6
 
-            chapterItems.each((i, elem) => {
-                const link = $(elem).find('a').first();
+                // 1. Keyword match (Chapitre 1, Ch.1, etc.)
+                const keywordMatch = title.match(/(?:chapitre|ch|chapter|no|épisode|volume)\.?\s*(\d+(\.\d+)?)/i);
+                if (keywordMatch) return parseFloat(keywordMatch[1]);
+
+                // 2. Starts with specific digits followed by separator (e.g. "1 - Intro", "1. Intro", "1: Intro")
+                const startMatch = title.match(/^\s*(\d+(\.\d+)?)\s*(?:-|:|–|\.)\s+/);
+                if (startMatch) return parseFloat(startMatch[1]);
+
+                // 3. Is exactly a number (e.g. "123")
+                const exactNumMatch = title.match(/^\s*(\d+(\.\d+)?)\s*$/);
+                if (exactNumMatch) return parseFloat(exactNumMatch[1]);
+
+                return -1;
+            };
+
+            chapterLinks.each((i, elem) => {
+                const link = $(elem);
                 const chapterTitle = link.text().trim();
                 const chapterUrl = link.attr('href');
 
@@ -180,7 +199,8 @@ const ChiReadsScraper = {
                     chapters.push({
                         title: chapterTitle,
                         url: chapterUrl,
-                        date: '' // Date often not available in this list view
+                        date: '', // Date often not available in this list view
+                        number: extractChapterNumber(chapterTitle)
                     });
                 }
             });
@@ -195,22 +215,10 @@ const ChiReadsScraper = {
                 ...ch,
                 url: ch.url.startsWith('http') ? ch.url : `${BASE_URL}${ch.url}`
             }));
-            // Fix sorting: The site often lists chapters in columns (1, 4, 7... 2, 5, 8...)
-            const extractChapterNumber = (title) => {
-                // More robust extraction: find ANY number in the title
-                // Prioritize "Chapitre X" format, but fall back to just finding the first number
-                const exactMatch = title.match(/(?:chapitre|ch|chapter|no|épisode)\.?\s*(\d+(\.\d+)?)/i);
-                if (exactMatch) return parseFloat(exactMatch[1]);
-
-                const looseMatch = title.match(/(\d+(\.\d+)?)/);
-                if (looseMatch) return parseFloat(looseMatch[1]);
-
-                return -1;
-            };
 
             chapters.sort((a, b) => {
-                const numA = extractChapterNumber(a.title);
-                const numB = extractChapterNumber(b.title);
+                const numA = a.number;
+                const numB = b.number;
                 if (numA !== -1 && numB !== -1) return numA - numB;
                 return 0; // Keep original order if no numbers found
             });
@@ -297,7 +305,14 @@ const ChiReadsScraper = {
                 }
             });
 
-            return books;
+            // Filter results to strictly match the title as requested by user
+            const filteredBooks = books.filter(book =>
+                book.title.toLowerCase().includes(query.toLowerCase())
+            );
+
+
+
+            return filteredBooks;
         } catch (error) {
             console.error('Error searching:', error);
             return [];

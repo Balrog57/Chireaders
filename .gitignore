@@ -41,3 +41,15 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Debug scripts
+debug_*.js
+test_*.js
+verify_*.js
+analyze_*.js
+
+# Temp files
+*.bak
+*.tmp
+*.log
+nul

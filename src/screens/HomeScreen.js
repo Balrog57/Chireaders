@@ -21,7 +21,7 @@ import ChiReadsScraper from '../services/ChiReadsScraper';
 
 const HomeScreen = () => {
     const navigation = useNavigation();
-    const { isDarkMode, toggleTheme, theme } = useTheme();
+    const { themeMode, toggleTheme, theme } = useTheme();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [homeData, setHomeData] = useState({
@@ -120,6 +120,12 @@ const HomeScreen = () => {
         );
     }
 
+    const getThemeIcon = () => {
+        if (themeMode === 'light') return "moon";
+        if (themeMode === 'dark') return "book"; // Sepia trigger
+        return "sunny"; // Sepia -> Light
+    };
+
     return (
         <SafeAreaView style={containerStyle}>
             <StatusBar barStyle={theme.statusBarStyle} />
@@ -129,7 +135,7 @@ const HomeScreen = () => {
                 <View style={styles.headerIcons}>
                     {/* Discord Icon */}
                     <TouchableOpacity onPress={() => openLink('https://discordapp.com/invite/mMDsVAa')} style={styles.iconButton}>
-                        <FontAwesome5 name="discord" size={24} color={isDarkMode ? "#7289da" : "#5865F2"} />
+                        <FontAwesome5 name="discord" size={24} color={themeMode === 'dark' ? "#7289da" : "#5865F2"} />
                     </TouchableOpacity>
 
                     {/* Website Icon */}
@@ -139,7 +145,7 @@ const HomeScreen = () => {
 
                     {/* Theme Toggle */}
                     <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
-                        <Ionicons name={isDarkMode ? "sunny" : "moon"} size={24} color={theme.text} />
+                        <Ionicons name={getThemeIcon()} size={24} color={theme.text} />
                     </TouchableOpacity>
                 </View>
             </View>

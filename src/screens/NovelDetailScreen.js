@@ -9,23 +9,13 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    ToastAndroid // For feedback
-    ,
-
-
-
-
-
-
-
-
-
-
-
-    TouchableOpacity,
+    ToastAndroid,
+    TouchableOpacity, // For feedback
     View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context'; // New import
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+
 import { StorageContext } from '../context/StorageContext';
 import { useTheme } from '../context/ThemeContext'; // Import ThemeContext
 import ChiReadsScraper from '../services/ChiReadsScraper';
@@ -221,73 +211,114 @@ const NovelDetailScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Accordion List */}
+                {/* Main Chapter List */}
                 <View style={styles.chapterList}>
-                    {/* Helper to chunk logic */}
                     {(() => {
-                        const total = details.chapters.length;
-                        const validChapters = reversed ? [...details.chapters].reverse() : details.chapters;
-                        const CHUNK_SIZE = 50;
-                        const chunks = [];
+                        // 1. Separate Unnumbered (Bonus) and Numbered Chapters
+                        const unnumbered = details.chapters.filter(c => c.number === -1);
+                        const numbered = details.chapters.filter(c => c.number !== -1);
 
-                        for (let i = 0; i < total; i += CHUNK_SIZE) {
-                            chunks.push(validChapters.slice(i, i + CHUNK_SIZE));
+                        // 2. Sort numbered chapters ensures strict order before grouping
+                        // (Scraper already sorts, but safety check)
+                        numbered.sort((a, b) => a.number - b.number);
+
+                        // 3. Group Numbered Chapters into Buckets of 50
+                        const CHUNK_SIZE = 50;
+                        const buckets = [];
+
+                        if (numbered.length > 0) {
+                            const maxNum = numbered[numbered.length - 1].number;
+                            const totalBuckets = Math.ceil(maxNum / CHUNK_SIZE);
+
+                            for (let i = 0; i < totalBuckets; i++) {
+                                const startRange = i * CHUNK_SIZE + 1;
+                                const endRange = (i + 1) * CHUNK_SIZE;
+
+                                // Find chapters that fall into this range (by Number, not Index)
+                                const chunkChapters = numbered.filter(c => c.number >= startRange && c.number <= endRange);
+
+                                if (chunkChapters.length > 0) {
+                                    buckets.push({
+                                        start: startRange,
+                                        end: endRange,
+                                        chapters: chunkChapters
+                                    });
+                                }
+                            }
                         }
 
-                        return chunks.map((chunk, chunkIndex) => {
-                            // Calculate labels based on ACTUAL content if possible, or just index
-                            // If reversed, the range labels might look weird (High to Low).
-                            // Let's use the first and last chapter title or index for label?
-                            // Or just "Partie X"
-                            const start = chunkIndex * CHUNK_SIZE + 1;
-                            const end = Math.min((chunkIndex + 1) * CHUNK_SIZE, total);
+                        // 4. Handle Reversal
+                        // If reversed, show unnumbered at bottom? Or top? 
+                        // User said "before the list", implying top. Let's keep Unnumbered at TOP always.
+                        // But buckets should be reversed (Latest ranges first).
+                        const displayBuckets = reversed ? [...buckets].reverse() : buckets;
 
-                            // State for this accordion
-                            const isExpanded = currentTab === chunkIndex; // Reusing currentTab as expanded index
-
-                            // Note: If we want multiple expandable, we need array state. 
-                            // User said "open and close", usually implies one at a time or toggle.
-                            // Let's use toggle logic: if clicked, set currentTab. If same, null?
-                            // For simplicity, let's keep one open at a time (Accordion style).
-
+                        const renderChapter = (chapter, idx) => {
+                            const isRead = isChapterRead(url, chapter.url);
                             return (
-                                <View key={chunkIndex} style={styles.accordionContainer}>
-                                    <TouchableOpacity
-                                        style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
-                                        onPress={() => setCurrentTab(isExpanded ? -1 : chunkIndex)}
-                                    >
-                                        <Text style={[styles.accordionTitle, { color: theme.text }]}>
-                                            {reversed ? `Chapitres ${total - start + 1} - ${total - end + 1}` : `Chapitres ${start} - ${end}`}
-                                        </Text>
-                                        <Ionicons
-                                            name={isExpanded ? "chevron-up" : "chevron-down"}
-                                            size={20}
-                                            color={theme.text}
-                                        />
-                                    </TouchableOpacity>
-
-                                    {isExpanded && chunk.map((chapter, index) => {
-                                        const isRead = isChapterRead(url, chapter.url);
-                                        return (
-                                            <TouchableOpacity
-                                                key={chapter.url + index}
-                                                style={[styles.chapterItem, { borderBottomColor: theme.border }]}
-                                                onPress={() => handleChapterPress(chapter)}
-                                                onLongPress={() => handleChapterLongPress(chapter)}
-                                            >
-                                                <Text style={[
-                                                    styles.chapterTitle,
-                                                    { color: isRead ? '#888' : theme.text } // Grey out read chapters
-                                                ]}>
-                                                    {chapter.title}
-                                                </Text>
-                                                {isRead && <Ionicons name="checkmark" size={16} color={theme.tint} />}
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </View>
+                                <TouchableOpacity
+                                    key={chapter.url + idx}
+                                    style={[styles.chapterItem, { borderBottomColor: theme.border }]}
+                                    onPress={() => handleChapterPress(chapter)}
+                                    onLongPress={() => handleChapterLongPress(chapter)}
+                                >
+                                    <Text style={[
+                                        styles.chapterTitle,
+                                        { color: isRead ? '#888' : theme.text }
+                                    ]}>
+                                        {chapter.title}
+                                    </Text>
+                                    {isRead && <Ionicons name="checkmark" size={16} color={theme.tint} />}
+                                </TouchableOpacity>
                             );
-                        });
+                        };
+
+                        return (
+                            <>
+                                {/* Unnumbered / Bonus Chapters */}
+                                {unnumbered.length > 0 && (
+                                    <View style={styles.accordionContainer}>
+                                        <View style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+                                            <Text style={[styles.accordionTitle, { color: theme.text }]}>
+                                                Hors-Série ({unnumbered.length})
+                                            </Text>
+                                        </View>
+                                        {unnumbered.map((c, i) => renderChapter(c, i))}
+                                    </View>
+                                )}
+
+                                {/* Numbered Buckets */}
+                                {displayBuckets.map((bucket, bucketIdx) => {
+                                    const isExpanded = currentTab === bucketIdx;
+
+                                    // If reversed, chapters inside bucket should also be reversed?
+                                    // Usually "Latest First" means logical order is reversed.
+                                    // e.g. Bucket 201-250: Display 250, 249... 
+                                    // Let's reverse content if 'reversed' is true.
+                                    const content = reversed ? [...bucket.chapters].reverse() : bucket.chapters;
+
+                                    return (
+                                        <View key={bucket.start} style={styles.accordionContainer}>
+                                            <TouchableOpacity
+                                                style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
+                                                onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
+                                            >
+                                                <Text style={[styles.accordionTitle, { color: theme.text }]}>
+                                                    Chapitres {bucket.start} - {bucket.end}
+                                                </Text>
+                                                <Ionicons
+                                                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                                                    size={20}
+                                                    color={theme.text}
+                                                />
+                                            </TouchableOpacity>
+
+                                            {isExpanded && content.map((chapter, index) => renderChapter(chapter, index))}
+                                        </View>
+                                    );
+                                })}
+                            </>
+                        );
                     })()}
                 </View>
             </ScrollView>
