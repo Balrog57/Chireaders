@@ -6,15 +6,15 @@ import {
     ActivityIndicator,
     FlatList,
     Modal,
-    ScrollView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    TouchableWithoutFeedback,
     View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import ReaderFooter from '../components/ReaderFooter';
 import ReaderHeader from '../components/ReaderHeader';
 import { StorageContext } from '../context/StorageContext';
@@ -44,6 +44,7 @@ const THEMES = {
 const ReaderScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const { url: initialUrl, title: initialTitle, novelUrl } = route.params;
 
     const { markChapterAsRead } = useContext(StorageContext);
@@ -148,10 +149,18 @@ const ReaderScreen = () => {
     };
 
     const toggleHeader = () => {
+        console.log('Toggling header visibility:', !headerVisible);
         setHeaderVisible(!headerVisible);
     };
 
     const currentTheme = THEMES[theme];
+
+    // Tap gesture to toggle header visibility
+    const tapGesture = Gesture.Tap()
+        .runOnJS(true)
+        .onEnd(() => {
+            toggleHeader();
+        });
 
     if (loading) {
         return (
@@ -190,43 +199,40 @@ const ReaderScreen = () => {
                 theme={currentTheme}
             />
 
-            <TouchableWithoutFeedback onPress={toggleHeader}>
-                <View style={styles.contentContainer}>
-                    <ScrollView
-                        ref={scrollViewRef}
-                        contentContainerStyle={styles.scrollContent}
-                        style={{ flex: 1 }}
-                    >
-                        {/* Adding top padding to compensate for header overlap when visible? 
-                            Actually no, immersive mode usually overlays content. 
-                            But let's add some padding so title isn't cut off by notch. */}
-                        <View style={{ height: 60 }} />
+            <GestureDetector gesture={tapGesture}>
+                <Animated.ScrollView
+                    ref={scrollViewRef}
+                    contentContainerStyle={[
+                        styles.scrollContent,
+                        {
+                            paddingTop: 80, // Space for header + extra
+                            paddingBottom: insets.bottom + 80 // Space for footer + safe area + extra
+                        }
+                    ]}
+                    style={{ flex: 1 }}
+                >
+                    <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
+                        {chapter.title}
+                    </Text>
 
-                        <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
-                            {chapter.title}
+                    {chapter.content && chapter.content.map((para, index) => (
+                        <Text
+                            key={index}
+                            style={[
+                                styles.paragraph,
+                                {
+                                    color: currentTheme.text,
+                                    fontSize: fontSize,
+                                    lineHeight: fontSize * 1.5
+                                }
+                            ]}
+                            selectable={true}
+                        >
+                            {para}
                         </Text>
-
-                        {chapter.content && chapter.content.map((para, index) => (
-                            <Text
-                                key={index}
-                                style={[
-                                    styles.paragraph,
-                                    {
-                                        color: currentTheme.text,
-                                        fontSize: fontSize,
-                                        lineHeight: fontSize * 1.5
-                                    }
-                                ]}
-                                selectable={true}
-                            >
-                                {para}
-                            </Text>
-                        ))}
-
-                        <View style={{ height: 100 }} />
-                    </ScrollView>
-                </View>
-            </TouchableWithoutFeedback>
+                    ))}
+                </Animated.ScrollView>
+            </GestureDetector>
 
             <ReaderFooter
                 visible={headerVisible}
