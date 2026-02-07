@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "chireaders",
+    "name": "ChiReaders",
     "slug": "chireaders",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "chireaders",
@@ -37,7 +37,14 @@
           }
         }
       ],
-      "expo-background-task"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,
