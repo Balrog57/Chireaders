@@ -12,7 +12,6 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import ReaderFooter from '../components/ReaderFooter';
@@ -155,13 +154,6 @@ const ReaderScreen = () => {
 
     const currentTheme = THEMES[theme];
 
-    // Tap gesture to toggle header visibility
-    const tapGesture = Gesture.Tap()
-        .runOnJS(true)
-        .onEnd(() => {
-            toggleHeader();
-        });
-
     if (loading) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -199,40 +191,44 @@ const ReaderScreen = () => {
                 theme={currentTheme}
             />
 
-            <GestureDetector gesture={tapGesture}>
-                <Animated.ScrollView
-                    ref={scrollViewRef}
-                    contentContainerStyle={[
-                        styles.scrollContent,
-                        {
-                            paddingTop: 80, // Space for header + extra
-                            paddingBottom: insets.bottom + 80 // Space for footer + safe area + extra
-                        }
-                    ]}
-                    style={{ flex: 1 }}
-                >
-                    <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
-                        {chapter.title}
-                    </Text>
-
-                    {chapter.content && chapter.content.map((para, index) => (
-                        <Text
-                            key={index}
-                            style={[
-                                styles.paragraph,
-                                {
-                                    color: currentTheme.text,
-                                    fontSize: fontSize,
-                                    lineHeight: fontSize * 1.5
-                                }
-                            ]}
-                            selectable={true}
-                        >
-                            {para}
+            <Animated.ScrollView
+                ref={scrollViewRef}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    {
+                        paddingTop: 80, // Space for header + extra
+                        paddingBottom: insets.bottom + 80 // Space for footer + safe area + extra
+                    }
+                ]}
+                style={{ flex: 1 }}
+            >
+                <TouchableWithoutFeedback onPress={toggleHeader}>
+                    <View>
+                        <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
+                            {chapter.title}
                         </Text>
-                    ))}
-                </Animated.ScrollView>
-            </GestureDetector>
+
+                        {chapter.content && chapter.content.map((para, index) => (
+                            <Text
+                                key={index}
+                                style={[
+                                    styles.paragraph,
+                                    {
+                                        color: currentTheme.text,
+                                        fontSize: fontSize,
+                                        lineHeight: fontSize * 1.5
+                                    }
+                                ]}
+                                selectable={true}
+                            >
+                                {para}
+                            </Text>
+                        ))}
+
+                        <View style={{ height: 100 }} />
+                    </View>
+                </TouchableWithoutFeedback>
+            </Animated.ScrollView>
 
             <ReaderFooter
                 visible={headerVisible}
@@ -256,7 +252,14 @@ const ReaderScreen = () => {
                     activeOpacity={1}
                     onPress={() => setShowChapterList(false)}
                 >
-                    <View style={[styles.settingsContainer, { backgroundColor: currentTheme.bar, height: '70%' }]}>
+                    <View style={[
+                        styles.settingsContainer,
+                        {
+                            backgroundColor: currentTheme.bar,
+                            height: '70%',
+                            paddingBottom: insets.bottom + 20
+                        }
+                    ]}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                             <Text style={[styles.settingLabel, { color: currentTheme.text, marginBottom: 0 }]}>Chapitres</Text>
                             <TouchableOpacity
@@ -302,7 +305,13 @@ const ReaderScreen = () => {
                     activeOpacity={1}
                     onPress={() => setShowSettings(false)}
                 >
-                    <View style={[styles.settingsContainer, { backgroundColor: currentTheme.bar }]}>
+                    <View style={[
+                        styles.settingsContainer,
+                        {
+                            backgroundColor: currentTheme.bar,
+                            paddingBottom: insets.bottom + 20
+                        }
+                    ]}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                             <Text style={[styles.settingLabel, { color: currentTheme.text, marginBottom: 0 }]}>Thème</Text>
                             <TouchableOpacity
