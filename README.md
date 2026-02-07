@@ -2,6 +2,8 @@
 
 Application Android pour lire des romans (web novels) depuis le site **chireads.com** directement sur votre tablette ou smartphone Android.
 
+![Aperçu de l'application](assets/preview.png)
+
 ## ✨ Fonctionnalités
 
 - **📚 Catalogue complet** : Accès aux romans "En Vedette" et "Dernières Mises à Jour"
