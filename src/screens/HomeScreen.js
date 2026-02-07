@@ -1,167 +1,283 @@
-import { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Button, FlatList, Image, Platform, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    FlatList,
+    Image,
+    Linking,
+    RefreshControl,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StorageContext } from '../context/StorageContext';
+import { useTheme } from '../context/ThemeContext';
 import ChiReadsScraper from '../services/ChiReadsScraper';
 
-const HomeScreen = ({ navigation }) => {
-    const { favorites, settings } = useContext(StorageContext);
+const HomeScreen = () => {
+    const navigation = useNavigation();
+    const { isDarkMode, toggleTheme, theme } = useTheme();
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState({ featured: [], popular: [] });
     const [refreshing, setRefreshing] = useState(false);
-    const [error, setError] = useState(null);
+    const [homeData, setHomeData] = useState({
+        featured: [],
+        latest: [],
+        newReleases: [],
+        popular: [],
+        recommended: []
+    });
 
-    const loadData = async () => {
-        setError(null);
+    const loadData = useCallback(async () => {
         try {
-            const result = await ChiReadsScraper.getHome();
-            // Si le résultat est vide malgré le succès apparent (cas du scraper qui catch l'erreur interne)
-            if (result.featured.length === 0 && result.popular.length === 0) {
-                // On vérifie si on est sur le web, car c'est souvent CORS
-                if (Platform.OS === 'web') {
-                    throw new Error("Sur navigateur Web, le scraping est bloqué par la sécurité (CORS). Veuillez tester sur un émulateur Android ou via Expo Go sur votre téléphone.");
-                } else {
-                    throw new Error("Aucune donnée récupérée. Le site a peut-être changé ou est inaccessible.");
-                }
-            }
-            setData(result);
-        } catch (err) {
-            setError(err.message);
+            const data = await ChiReadsScraper.getHome();
+            setHomeData(data);
+        } catch (error) {
+            console.error('Failed to load home data', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [loadData]);
 
-    const onRefresh = () => {
+    const onRefresh = useCallback(() => {
         setRefreshing(true);
         loadData();
+    }, [loadData]);
+
+    const openLink = (url) => {
+        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
     };
 
-    const theme = settings.darkMode ? styles.dark : styles.light;
-    const textTheme = settings.darkMode ? styles.textDark : styles.textLight;
+    // Style Helpers
+    const containerStyle = [styles.container, { backgroundColor: theme.background }];
+    const headerStyle = [styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }];
+    const textStyle = { color: theme.text };
 
-    const renderNovelItem = ({ item }) => (
+    const renderBookItem = ({ item }) => (
         <TouchableOpacity
-            style={[styles.novelItem, settings.darkMode ? styles.novelItemDark : styles.novelItemLight]}
-            onPress={() => navigation.navigate('NovelDetail', { novelUrl: item.url, title: item.title })}
+            style={styles.bookItem}
+            onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
         >
-            <Image source={{ uri: item.cover }} style={styles.cover} />
-            <View style={styles.info}>
-                <Text style={[styles.title, textTheme]} numberOfLines={2}>{item.title}</Text>
-            </View>
+            <Image source={{ uri: item.image }} style={styles.bookImage} />
+            <Text style={[styles.bookTitle, textStyle]} numberOfLines={2}>{item.title}</Text>
         </TouchableOpacity>
     );
 
-    const renderHeader = () => (
-        <View>
-            {error && (
-                <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>{error}</Text>
-                    <Button title="Réessayer" onPress={loadData} color="#e91e63" />
-                </View>
-            )}
-
-            {favorites.length > 0 && (
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, textTheme]}>Favoris</Text>
-                    <FlatList
-                        horizontal
-                        data={favorites}
-                        renderItem={renderNovelItem}
-                        keyExtractor={item => item.url}
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.horizontalList}
-                    />
-                </View>
-            )}
-
+    const renderSection = (title, data) => {
+        if (!data || data.length === 0) return null;
+        return (
             <View style={styles.section}>
-                <Text style={[styles.sectionTitle, textTheme]}>En Vedette</Text>
-                {data.featured.length > 0 ? (
-                    <FlatList
-                        horizontal
-                        data={data.featured}
-                        renderItem={renderNovelItem}
-                        keyExtractor={item => item.url}
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.horizontalList}
-                    />
-                ) : (
-                    !loading && !error && <Text style={[styles.emptyText, textTheme]}>Aucun roman en vedette trouvé.</Text>
-                )}
+                <View style={[styles.sectionHeader, { backgroundColor: theme.sectionHeaderUser, borderLeftColor: theme.tint }]}>
+                    <Text style={[styles.sectionTitle, textStyle]}>{title}</Text>
+                </View>
+                <FlatList
+                    horizontal
+                    data={data}
+                    renderItem={renderBookItem}
+                    keyExtractor={(item, index) => item.url + index}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.horizontalList}
+                />
             </View>
+        );
+    };
 
-            <View style={styles.section}>
-                <Text style={[styles.sectionTitle, textTheme]}>Populaires / Récents</Text>
-            </View>
+    const renderLatestItem = ({ item }) => (
+        <View style={[styles.latestItem, { borderBottomColor: theme.border }]}>
+            <TouchableOpacity
+                style={styles.latestInfo}
+                onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
+            >
+                <Text style={[styles.latestTitle, textStyle]} numberOfLines={1}>{item.title}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.latestChapter}
+                onPress={() => navigation.navigate('Reader', { url: item.latestChapter.url, title: item.latestChapter.title, novelUrl: item.url })}
+            >
+                <Text style={[styles.chapterText, { color: theme.tint }]} numberOfLines={1}>{item.latestChapter.title}</Text>
+                <Text style={styles.dateText}>{item.latestChapter.date}</Text>
+            </TouchableOpacity>
         </View>
     );
 
     if (loading) {
         return (
-            <View style={[styles.container, styles.centered, theme]}>
-                <ActivityIndicator size="large" color="#e91e63" />
-            </View>
+            <SafeAreaView style={containerStyle}>
+                <StatusBar barStyle={theme.statusBarStyle} />
+                <View style={styles.centerContainer}>
+                    <ActivityIndicator size="large" color={theme.tint} />
+                </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={[styles.container, theme]}>
-            <View style={styles.header}>
-                <Text style={[styles.headerTitle, textTheme]}>ChiReader</Text>
+        <SafeAreaView style={containerStyle}>
+            <StatusBar barStyle={theme.statusBarStyle} />
+            <View style={headerStyle}>
+                <Text style={[styles.headerTitle, { color: theme.tint }]}>ChiReaders</Text>
+
+                <View style={styles.headerIcons}>
+                    {/* Discord Icon */}
+                    <TouchableOpacity onPress={() => openLink('https://discordapp.com/invite/mMDsVAa')} style={styles.iconButton}>
+                        <FontAwesome5 name="discord" size={24} color={isDarkMode ? "#7289da" : "#5865F2"} />
+                    </TouchableOpacity>
+
+                    {/* Website Icon */}
+                    <TouchableOpacity onPress={() => openLink('https://chireads.com/')} style={styles.iconButton}>
+                        <FontAwesome5 name="globe" size={22} color={theme.text} />
+                    </TouchableOpacity>
+
+                    {/* Theme Toggle */}
+                    <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+                        <Ionicons name={isDarkMode ? "sunny" : "moon"} size={24} color={theme.text} />
+                    </TouchableOpacity>
+                </View>
             </View>
-            <FlatList
-                data={data.popular}
-                renderItem={renderNovelItem}
-                keyExtractor={item => item.url}
-                ListHeaderComponent={renderHeader}
-                contentContainerStyle={styles.listContent}
+            <ScrollView
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={settings.darkMode ? '#fff' : '#000'} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.tint]} tintColor={theme.tint} />
                 }
-            />
+            >
+                {/* En Vedette */}
+                {renderSection('En Vedette', homeData.featured)}
+
+                {/* Nouvelle Parution */}
+                {renderSection('Nouvelle Parution', homeData.newReleases)}
+
+                {/* Populaire */}
+                {renderSection('Populaire', homeData.popular)}
+
+                {/* Recommandé */}
+                {renderSection('Recommandé', homeData.recommended)}
+
+                {/* Dernières Mises à Jour */}
+                {homeData.latest.length > 0 && (
+                    <View style={styles.section}>
+                        <View style={[styles.sectionHeader, { backgroundColor: theme.sectionHeaderUser, borderLeftColor: theme.tint }]}>
+                            <Text style={[styles.sectionTitle, textStyle]}>Dernières Mises à Jour</Text>
+                        </View>
+                        <View style={styles.latestList}>
+                            {homeData.latest.map((item, index) => (
+                                <View key={index + item.url}>
+                                    {renderLatestItem({ item })}
+                                    {index < homeData.latest.length - 1 && <View style={[styles.separator, { backgroundColor: theme.border }]} />}
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+                <View style={{ height: 20 }} />
+            </ScrollView>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    centered: { justifyContent: 'center', alignItems: 'center' },
-    light: { backgroundColor: '#f5f5f5' },
-    dark: { backgroundColor: '#121212' },
-    textLight: { color: '#000' },
-    textDark: { color: '#ecf0f1' },
-
-    header: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#ddd' },
-    headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#e91e63' },
-
-    section: { marginTop: 20, marginBottom: 10 },
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 15, marginBottom: 10 },
-
-    horizontalList: { paddingHorizontal: 15 },
-
-    novelItem: { marginRight: 15, width: 100, marginBottom: 15 },
-    novelItemLight: {},
-    novelItemDark: {},
-
-    // Pour la liste verticale populaire (reusing same component visually but logic might differ if wanted)
-    // Ici on use le même item style pour simplicité, mais dans FlatList vertical on peut vouloir row.
-    // Pour l'instant on garde le style "carte" simple.
-
-    cover: { width: 100, height: 150, borderRadius: 5, backgroundColor: '#ccc' },
-    info: { marginTop: 5 },
-    title: { fontSize: 12, fontWeight: '600' },
-
-    listContent: { paddingBottom: 20 },
-
-    errorContainer: { margin: 20, padding: 15, backgroundColor: '#ffebee', borderRadius: 8, alignItems: 'center' },
-    errorText: { color: '#c62828', textAlign: 'center', marginBottom: 10 },
-    emptyText: { marginHorizontal: 15, fontStyle: 'italic', opacity: 0.7 }
+    container: {
+        flex: 1,
+    },
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    header: {
+        height: 60,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        elevation: 2,
+        paddingHorizontal: 15,
+    },
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    headerIcons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconButton: {
+        padding: 8,
+        marginLeft: 5,
+    },
+    // Sections
+    section: {
+        marginBottom: 20,
+    },
+    sectionHeader: {
+        paddingHorizontal: 15,
+        marginBottom: 10,
+        marginTop: 10,
+        borderLeftWidth: 4,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        paddingLeft: 10,
+    },
+    horizontalList: {
+        paddingHorizontal: 10,
+    },
+    bookItem: {
+        width: 120,
+        marginHorizontal: 5,
+    },
+    bookImage: {
+        width: 120,
+        height: 180,
+        borderRadius: 8,
+        backgroundColor: '#eee',
+        marginBottom: 5,
+    },
+    bookTitle: {
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    // Latest
+    latestList: {
+        paddingHorizontal: 15,
+    },
+    latestItem: {
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: 'transparent', // Handled by inline style
+    },
+    latestInfo: {
+        marginBottom: 5,
+    },
+    latestTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    latestChapter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    chapterText: {
+        fontSize: 14,
+        flex: 1,
+    },
+    dateText: {
+        fontSize: 12,
+        color: '#999',
+    },
+    separator: {
+        height: 1,
+    },
 });
 
 export default HomeScreen;
