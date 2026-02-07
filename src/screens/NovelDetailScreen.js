@@ -20,6 +20,8 @@ import {
 
 
 
+
+
     TouchableOpacity,
     View
 } from 'react-native';
@@ -219,50 +221,71 @@ const NovelDetailScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Chapter Tabs / Pagination */}
-                {details.chapters.length > 50 && (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabContainer}>
-                        {Array.from({ length: Math.ceil(details.chapters.length / 50) }).map((_, i) => {
-                            const start = i * 50 + 1;
-                            const end = Math.min((i + 1) * 50, details.chapters.length);
-                            const isActive = currentTab === i;
-                            return (
-                                <TouchableOpacity
-                                    key={i}
-                                    style={[styles.tabButton, isActive && { backgroundColor: theme.tint, borderColor: theme.tint }, { borderColor: theme.border }]}
-                                    onPress={() => setCurrentTab(i)}
-                                >
-                                    <Text style={[styles.tabText, { color: isActive ? '#fff' : theme.text }]}>
-                                        {start}-{end}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </ScrollView>
-                )}
-
+                {/* Accordion List */}
                 <View style={styles.chapterList}>
-                    {/* Slice from source, then reverse if needed */}
+                    {/* Helper to chunk logic */}
                     {(() => {
-                        const chunk = details.chapters.slice(currentTab * 50, (currentTab + 1) * 50);
-                        const displayed = reversed ? [...chunk].reverse() : chunk;
-                        return displayed.map((chapter, index) => {
-                            const isRead = isChapterRead(url, chapter.url);
+                        const total = details.chapters.length;
+                        const validChapters = reversed ? [...details.chapters].reverse() : details.chapters;
+                        const CHUNK_SIZE = 50;
+                        const chunks = [];
+
+                        for (let i = 0; i < total; i += CHUNK_SIZE) {
+                            chunks.push(validChapters.slice(i, i + CHUNK_SIZE));
+                        }
+
+                        return chunks.map((chunk, chunkIndex) => {
+                            // Calculate labels based on ACTUAL content if possible, or just index
+                            // If reversed, the range labels might look weird (High to Low).
+                            // Let's use the first and last chapter title or index for label?
+                            // Or just "Partie X"
+                            const start = chunkIndex * CHUNK_SIZE + 1;
+                            const end = Math.min((chunkIndex + 1) * CHUNK_SIZE, total);
+
+                            // State for this accordion
+                            const isExpanded = currentTab === chunkIndex; // Reusing currentTab as expanded index
+
+                            // Note: If we want multiple expandable, we need array state. 
+                            // User said "open and close", usually implies one at a time or toggle.
+                            // Let's use toggle logic: if clicked, set currentTab. If same, null?
+                            // For simplicity, let's keep one open at a time (Accordion style).
+
                             return (
-                                <TouchableOpacity
-                                    key={chapter.url + index}
-                                    style={[styles.chapterItem, { borderBottomColor: theme.border }]}
-                                    onPress={() => handleChapterPress(chapter)}
-                                    onLongPress={() => handleChapterLongPress(chapter)}
-                                >
-                                    <Text style={[
-                                        styles.chapterTitle,
-                                        { color: isRead ? '#888' : theme.text } // Grey out read chapters
-                                    ]}>
-                                        {chapter.title}
-                                    </Text>
-                                    {isRead && <Ionicons name="checkmark" size={16} color={theme.tint} />}
-                                </TouchableOpacity>
+                                <View key={chunkIndex} style={styles.accordionContainer}>
+                                    <TouchableOpacity
+                                        style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
+                                        onPress={() => setCurrentTab(isExpanded ? -1 : chunkIndex)}
+                                    >
+                                        <Text style={[styles.accordionTitle, { color: theme.text }]}>
+                                            {reversed ? `Chapitres ${total - start + 1} - ${total - end + 1}` : `Chapitres ${start} - ${end}`}
+                                        </Text>
+                                        <Ionicons
+                                            name={isExpanded ? "chevron-up" : "chevron-down"}
+                                            size={20}
+                                            color={theme.text}
+                                        />
+                                    </TouchableOpacity>
+
+                                    {isExpanded && chunk.map((chapter, index) => {
+                                        const isRead = isChapterRead(url, chapter.url);
+                                        return (
+                                            <TouchableOpacity
+                                                key={chapter.url + index}
+                                                style={[styles.chapterItem, { borderBottomColor: theme.border }]}
+                                                onPress={() => handleChapterPress(chapter)}
+                                                onLongPress={() => handleChapterLongPress(chapter)}
+                                            >
+                                                <Text style={[
+                                                    styles.chapterTitle,
+                                                    { color: isRead ? '#888' : theme.text } // Grey out read chapters
+                                                ]}>
+                                                    {chapter.title}
+                                                </Text>
+                                                {isRead && <Ionicons name="checkmark" size={16} color={theme.tint} />}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
                             );
                         });
                     })()}
@@ -378,23 +401,21 @@ const styles = StyleSheet.create({
         padding: 15,
     },
     chapterList: {
-
+        paddingBottom: 20,
     },
-    tabContainer: {
+    accordionContainer: {
+        marginBottom: 5,
+    },
+    accordionHeader: {
         flexDirection: 'row',
-        paddingHorizontal: 15,
-        marginBottom: 10,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 15,
+        borderBottomWidth: 1,
     },
-    tabButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 20,
-        marginRight: 10,
-        borderWidth: 1,
-    },
-    tabText: {
-        fontSize: 14,
-        fontWeight: '600',
+    accordionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     chapterItem: {
         padding: 15,

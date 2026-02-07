@@ -195,36 +195,24 @@ const ChiReadsScraper = {
                 ...ch,
                 url: ch.url.startsWith('http') ? ch.url : `${BASE_URL}${ch.url}`
             }));
-            // Fix sorting: The site often lists chapters in columns (1, 4, 7... 2, 5, 8...), 
-            // so scraping in DOM order results in interleaved chapters.
-            // We must sort by chapter number.
+            // Fix sorting: The site often lists chapters in columns (1, 4, 7... 2, 5, 8...)
             const extractChapterNumber = (title) => {
-                // Match "Chapitre 123" or "Ch. 123" or "123" at start
-                const match = title.match(/(?:chapitre|ch|chapter|no)\.?\s*(\d+(\.\d+)?)/i);
-                if (match) return parseFloat(match[1]);
-                return -1; // Fallback for prologues etc
+                // More robust extraction: find ANY number in the title
+                // Prioritize "Chapitre X" format, but fall back to just finding the first number
+                const exactMatch = title.match(/(?:chapitre|ch|chapter|no|épisode)\.?\s*(\d+(\.\d+)?)/i);
+                if (exactMatch) return parseFloat(exactMatch[1]);
+
+                const looseMatch = title.match(/(\d+(\.\d+)?)/);
+                if (looseMatch) return parseFloat(looseMatch[1]);
+
+                return -1;
             };
 
             chapters.sort((a, b) => {
                 const numA = extractChapterNumber(a.title);
                 const numB = extractChapterNumber(b.title);
-
-                // If both have numbers, sort by number
-                if (numA !== -1 && numB !== -1) {
-                    return numA - numB;
-                }
-                // If only one, prioritize number? Or keep order?
-                // Usually prologue (no number) comes before Chap 1.
-                // So -1 should be considered smaller? 
-                // Let's assume -1 means "Prologue" or "Intro", likely smaller.
-                // But if "Epilogue", it should be larger.
-                // Complex. Let's just sort known numbers and leave others stable-ish relative to them?
-                // Actually, if we just subtract, -1 - 1 = -2 (Prologue first).
-                // 1 - (-1) = 2 (Prologue first).
-
-                // However, let's look at "Chapitre 1".
-                // If we have mixed content, maybe just rely on numbers if available.
-                return numA - numB;
+                if (numA !== -1 && numB !== -1) return numA - numB;
+                return 0; // Keep original order if no numbers found
             });
 
             return {
@@ -281,9 +269,41 @@ const ChiReadsScraper = {
     },
 
     /**
-     * Récupère tous les livres (pour la bibliothèque)
-     * Peut nécessiter une pagination
+     * Recherche de livres
+     * @param {string} query
      */
+    search: async (query) => {
+        try {
+            const searchUrl = `${BASE_URL}/?s=${encodeURIComponent(query)}`;
+            const response = await axios.get(searchUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+            });
+            const $ = cheerio.load(response.data);
+            const books = [];
+
+            // Architecture de recherche souvent similaire aux catégories
+            $('.news-list li, .search-list li, .main-col li').each((i, elem) => {
+                const titleElem = $(elem).find('.news-list-tit h5 a, h2 a, h3 a, .entry-title a').first();
+                const title = titleElem.text().trim();
+                const url = titleElem.attr('href') || $(elem).find('a').first().attr('href');
+                const image = $(elem).find('img').first().attr('src');
+                const description = $(elem).find('.news-list-txt, .entry-content').text().trim();
+
+                // Filtrage basique pour éviter les résultats vides
+                if (title && url && !url.includes('/chapitre-')) { // Exclure les chapitres individuels si possible
+                    books.push({ title, url, image, description });
+                }
+            });
+
+            return books;
+        } catch (error) {
+            console.error('Error searching:', error);
+            return [];
+        }
+    },
+
     /**
      * Récupère tous les livres (pour la bibliothèque)
      * @param {number} page
