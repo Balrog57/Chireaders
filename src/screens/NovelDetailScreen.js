@@ -245,7 +245,7 @@ const NovelDetailScreen = () => {
                 <Text style={[styles.navTitle, { color: theme.text }]} numberOfLines={1}>{details.title}</Text>
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView contentContainerStyle={styles.scrollContent} style={{ flex: 1 }}>
                 {renderHeader()}
 
                 <View style={[styles.section, { borderBottomColor: theme.border }]}>

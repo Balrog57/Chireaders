@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerBackgroundFetchAsync } from './src/services/BackgroundNotificationTask';
 
 import { StorageProvider } from './src/context/StorageContext';
@@ -21,6 +21,7 @@ const Stack = createStackNavigator();
 
 function MainTabs() {
     const { theme, isDarkMode } = useTheme();
+    const insets = useSafeAreaInsets();
 
     return (
         <Tab.Navigator
@@ -42,9 +43,9 @@ function MainTabs() {
                 tabBarInactiveTintColor: 'gray',
                 headerShown: false,
                 tabBarStyle: {
-                    paddingBottom: 25,
+                    paddingBottom: insets.bottom + 5, // Dynamic padding
                     paddingTop: 10,
-                    height: 85,
+                    height: 60 + insets.bottom, // Dynamic height
                     backgroundColor: theme.tabBar,
                     borderTopWidth: 1,
                     borderTopColor: theme.tabBarBorder,
