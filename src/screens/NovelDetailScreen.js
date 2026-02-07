@@ -3,7 +3,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
-    Dimensions,
     Image,
     // SafeAreaView, // Removed deprecated
     ScrollView,
@@ -20,11 +19,12 @@ import { StorageContext } from '../context/StorageContext';
 import { useTheme } from '../context/ThemeContext'; // Import ThemeContext
 import ChiReadsScraper from '../services/ChiReadsScraper';
 
-const { width } = Dimensions.get('window');
+
 
 const NovelDetailScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
+
     const { url, title: initialTitle } = route.params;
 
     // Theme
@@ -39,6 +39,8 @@ const NovelDetailScreen = () => {
         getLastChapterRead,
         markChapterAsRead,
         markChapterAsUnread,
+        markChaptersAsRead,
+        markChaptersAsUnread,
         readChapters // to trigger re-renders
     } = useContext(StorageContext);
 
@@ -113,6 +115,23 @@ const NovelDetailScreen = () => {
         } else {
             markChapterAsRead(url, chapter);
             ToastAndroid.show('Marqué comme lu', ToastAndroid.SHORT);
+        }
+    };
+
+    const handleGroupLongPress = (bucket) => {
+        const chapters = bucket.chapters;
+        // Check if ALL chapters in this bucket are read
+        const allRead = chapters.every(ch => isChapterRead(url, ch.url));
+
+        if (allRead) {
+            // Mark all as Unread
+            const urls = chapters.map(ch => ch.url);
+            markChaptersAsUnread(url, urls);
+            ToastAndroid.show(`${chapters.length} chapitres marqués comme non lus`, ToastAndroid.SHORT);
+        } else {
+            // Mark all as Read (even if some are already read, just mark the rest)
+            markChaptersAsRead(url, chapters);
+            ToastAndroid.show(`${chapters.length} chapitres marqués comme lus`, ToastAndroid.SHORT);
         }
     };
 
@@ -302,6 +321,8 @@ const NovelDetailScreen = () => {
                                             <TouchableOpacity
                                                 style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
                                                 onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
+                                                onLongPress={() => handleGroupLongPress(bucket)}
+                                                delayLongPress={500}
                                             >
                                                 <Text style={[styles.accordionTitle, { color: theme.text }]}>
                                                     Chapitres {bucket.start} - {bucket.end}

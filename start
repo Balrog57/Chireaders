@@ -1,0 +1,2 @@
+ npm start --clean
+ npx expo start -c

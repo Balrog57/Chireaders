@@ -196,6 +196,112 @@ export const StorageProvider = ({ children }) => {
     }, [readChapters, favorites]);
 
     /**
+     * Marquer plusieurs chapitres comme lus
+     * @param {string} seriesUrl - URL de la série
+     * @param {Array} chaptersArray - Liste d'objets chapitre { url, title }
+     */
+    const markChaptersAsRead = useCallback(async (seriesUrl, chaptersArray) => {
+        const newReadChapters = { ...readChapters };
+
+        if (!newReadChapters[seriesUrl]) {
+            newReadChapters[seriesUrl] = [];
+        }
+
+        let hasChanges = false;
+        const currentReadUrls = new Set(newReadChapters[seriesUrl].map(ch => ch.url));
+
+        chaptersArray.forEach(chapter => {
+            if (!currentReadUrls.has(chapter.url)) {
+                newReadChapters[seriesUrl].push({
+                    url: chapter.url,
+                    title: chapter.title,
+                    dateRead: Date.now()
+                });
+                currentReadUrls.add(chapter.url);
+                hasChanges = true;
+            }
+        });
+
+        if (hasChanges) {
+            setReadChapters(newReadChapters);
+            await AsyncStorage.setItem('readChapters', JSON.stringify(newReadChapters));
+
+            // Update favorites if needed
+            const favIndex = favorites.findIndex(f => f.url === seriesUrl);
+            if (favIndex !== -1) {
+                // Find the last read chapter among the newly added ones + existing ones
+                // Ideally we sort by dateRead or trust the existing order + new ones at end?
+                // Actually the chaptersArray might not be in order.
+                // Let's just find the last one from the new list as "most recent interaction"
+                // or simpler: just take the last element of the updated list
+                const seriesChapters = newReadChapters[seriesUrl];
+                const lastChapter = seriesChapters[seriesChapters.length - 1];
+
+                const newFavorites = [...favorites];
+                newFavorites[favIndex] = {
+                    ...newFavorites[favIndex],
+                    lastVisited: Date.now(),
+                    lastChapterRead: {
+                        url: lastChapter.url,
+                        title: lastChapter.title,
+                        date: lastChapter.dateRead
+                    }
+                };
+                setFavorites(newFavorites);
+                await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+            }
+        }
+    }, [readChapters, favorites]);
+
+
+    /**
+     * Marquer plusieurs chapitres comme non lus
+     * @param {string} seriesUrl - URL de la série
+     * @param {Array} chapterUrlsArray - Liste d'URLs de chapitres
+     */
+    const markChaptersAsUnread = useCallback(async (seriesUrl, chapterUrlsArray) => {
+        const newReadChapters = { ...readChapters };
+
+        if (newReadChapters[seriesUrl]) {
+            const urlsToRemove = new Set(chapterUrlsArray);
+            const originalLength = newReadChapters[seriesUrl].length;
+
+            newReadChapters[seriesUrl] = newReadChapters[seriesUrl].filter(
+                ch => !urlsToRemove.has(ch.url)
+            );
+
+            if (newReadChapters[seriesUrl].length !== originalLength) {
+                if (newReadChapters[seriesUrl].length === 0) {
+                    delete newReadChapters[seriesUrl];
+                }
+
+                setReadChapters(newReadChapters);
+                await AsyncStorage.setItem('readChapters', JSON.stringify(newReadChapters));
+
+                // Update favorites last chapter
+                const favIndex = favorites.findIndex(f => f.url === seriesUrl);
+                if (favIndex !== -1) {
+                    const newFavorites = [...favorites];
+                    const seriesChapters = newReadChapters[seriesUrl] || [];
+                    const lastChapter = seriesChapters.length > 0 ? seriesChapters[seriesChapters.length - 1] : null;
+
+                    newFavorites[favIndex] = {
+                        ...newFavorites[favIndex],
+                        lastVisited: Date.now(),
+                        lastChapterRead: lastChapter ? {
+                            url: lastChapter.url,
+                            title: lastChapter.title,
+                            date: lastChapter.dateRead
+                        } : null
+                    };
+                    setFavorites(newFavorites);
+                    await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+                }
+            }
+        }
+    }, [readChapters, favorites]);
+
+    /**
      * Obtenir la progression d'une série (liste des chapitres lus)
      * @param {string} seriesUrl - URL de la série
      * @returns {Array} Liste des chapitres lus
@@ -298,6 +404,8 @@ export const StorageProvider = ({ children }) => {
             // Chapitres
             markChapterAsRead,
             markChapterAsUnread,
+            markChaptersAsRead,
+            markChaptersAsUnread,
             getSeriesProgress,
             getLastChapterRead,
             isChapterRead,

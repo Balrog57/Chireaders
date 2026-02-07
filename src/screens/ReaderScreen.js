@@ -194,6 +194,7 @@ const ReaderScreen = () => {
                                     lineHeight: fontSize * 1.5
                                 }
                             ]}
+                            selectable={true}
                         >
                             {para}
                         </Text>

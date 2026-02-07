@@ -125,16 +125,10 @@ npm run web
 
 ### 🚧 En Cours / Améliorations Futures
 
-- [ ] **Cache offline** des chapitres lus
-- [ ] **Téléchargement** de chapitres pour lecture hors ligne
 - [ ] **Mode paysage** optimisé pour tablettes
-- [ ] **Signets** dans les chapitres
-- [ ] **Historique** de navigation complet
-- [ ] **Partage** de chapitres
 - [ ] **Notifications** de nouveaux chapitres
-- [ ] **Mode lecture sans distraction** (plein écran)
-- [ ] **Sélection de texte** et copie
-- [ ] **Dictionnaire** intégré
+- [ ] **Sélection de texte** et copie (comme sur navigateur)
+- [x] **Historique** (via suivi des chapitres lus)
 
 ### 🐛 Problèmes Connus
 
