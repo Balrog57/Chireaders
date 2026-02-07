@@ -4,16 +4,19 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
+    FlatList,
     Modal,
-    // SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ReaderFooter from '../components/ReaderFooter';
+import ReaderHeader from '../components/ReaderHeader';
 import { StorageContext } from '../context/StorageContext';
 import ChiReadsScraper from '../services/ChiReadsScraper';
 
@@ -43,7 +46,6 @@ const ReaderScreen = () => {
     const navigation = useNavigation();
     const { url: initialUrl, title: initialTitle, novelUrl } = route.params;
 
-    // Add StorageContext
     const { markChapterAsRead } = useContext(StorageContext);
 
     const [loading, setLoading] = useState(true);
@@ -94,13 +96,34 @@ const ReaderScreen = () => {
         }
     };
 
+    // Chapter List functionality
+    const [chapterList, setChapterList] = useState([]);
+    const [showChapterList, setShowChapterList] = useState(false);
+
+    useEffect(() => {
+        if (novelUrl) {
+            fetchChapterList();
+        }
+    }, [novelUrl]);
+
+    const fetchChapterList = async () => {
+        try {
+            const details = await ChiReadsScraper.getNovelDetails(novelUrl);
+            if (details && details.chapters) {
+                setChapterList(details.chapters);
+            }
+        } catch (e) {
+            console.error('Failed to fetch chapter list', e);
+        }
+    };
+
     const loadChapter = async (url) => {
         setLoading(true);
+        setShowChapterList(false); // Close modal if open
         try {
             const data = await ChiReadsScraper.getChapterContent(url);
             setChapter(data);
 
-            // Mark as read immediately when loaded
             if (novelUrl) {
                 markChapterAsRead(novelUrl, {
                     url: url,
@@ -134,12 +157,7 @@ const ReaderScreen = () => {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
                 <View style={styles.centerContainer}>
-                    <ActivityIndicator
-                        size="large"
-                        color="#e91e63"
-                        accessibilityLabel="Chargement du chapitre en cours"
-                        accessibilityRole="progressbar"
-                    />
+                    <ActivityIndicator size="large" color="#e91e63" />
                 </View>
             </SafeAreaView>
         );
@@ -156,104 +174,117 @@ const ReaderScreen = () => {
     }
 
     return (
-        <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: currentTheme.background }]}>
-            <StatusBar hidden={!headerVisible} />
+        <View style={[styles.container, { backgroundColor: currentTheme.background }]}>
+            <StatusBar
+                hidden={!headerVisible}
+                barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+                backgroundColor={headerVisible ? currentTheme.bar : 'transparent'}
+                translucent={true}
+            />
 
-            {/* Header / Navbar */}
-            {headerVisible && (
-                <View style={[styles.header, { backgroundColor: currentTheme.bar, borderBottomColor: currentTheme.text + '20' }]}>
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        style={styles.navButton}
-                        accessibilityLabel="Retour"
-                        accessibilityRole="button"
-                        accessibilityHint="Retourner à la page précédente"
+            <ReaderHeader
+                visible={headerVisible}
+                title={chapter.title}
+                onBack={() => navigation.goBack()}
+                onSettings={() => setShowSettings(true)}
+                theme={currentTheme}
+            />
+
+            <TouchableWithoutFeedback onPress={toggleHeader}>
+                <View style={styles.contentContainer}>
+                    <ScrollView
+                        ref={scrollViewRef}
+                        contentContainerStyle={styles.scrollContent}
+                        style={{ flex: 1 }}
                     >
-                        <Ionicons name="arrow-back" size={24} color={currentTheme.icon} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: currentTheme.text }]} numberOfLines={1}>
-                        {chapter.title}
-                    </Text>
-                    <TouchableOpacity
-                        onPress={() => setShowSettings(true)}
-                        style={styles.navButton}
-                        accessibilityLabel="Paramètres de lecture"
-                        accessibilityRole="button"
-                        accessibilityHint="Ouvrir les paramètres de police et de thème"
-                    >
-                        <Ionicons name="text" size={24} color={currentTheme.icon} />
-                    </TouchableOpacity>
-                </View>
-            )}
+                        {/* Adding top padding to compensate for header overlap when visible? 
+                            Actually no, immersive mode usually overlays content. 
+                            But let's add some padding so title isn't cut off by notch. */}
+                        <View style={{ height: 60 }} />
 
-            {/* Content */}
-            <TouchableOpacity
-                activeOpacity={1}
-                onPress={toggleHeader}
-                style={styles.contentContainer}
-            >
-                <ScrollView
-                    ref={scrollViewRef}
-                    contentContainerStyle={styles.scrollContent}
-                    style={{ flex: 1 }}
-                >
-                    <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
-                        {chapter.title}
-                    </Text>
-
-                    {chapter.content && chapter.content.map((para, index) => (
-                        <Text
-                            key={index}
-                            style={[
-                                styles.paragraph,
-                                {
-                                    color: currentTheme.text,
-                                    fontSize: fontSize,
-                                    lineHeight: fontSize * 1.5
-                                }
-                            ]}
-                            selectable={true}
-                        >
-                            {para}
+                        <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
+                            {chapter.title}
                         </Text>
-                    ))}
 
-                    <View style={styles.navigationButtons}>
-                        <TouchableOpacity
-                            style={[
-                                styles.navBtn,
-                                styles.prevBtn,
-                                !chapter.prevUrl && styles.disabledBtn
-                            ]}
-                            disabled={!chapter.prevUrl}
-                            onPress={() => navigateChapter(chapter.prevUrl)}
-                            accessibilityLabel="Chapitre précédent"
-                            accessibilityRole="button"
-                            accessibilityState={{ disabled: !chapter.prevUrl }}
-                        >
-                            <Text style={styles.navBtnText}>Précédent</Text>
-                        </TouchableOpacity>
+                        {chapter.content && chapter.content.map((para, index) => (
+                            <Text
+                                key={index}
+                                style={[
+                                    styles.paragraph,
+                                    {
+                                        color: currentTheme.text,
+                                        fontSize: fontSize,
+                                        lineHeight: fontSize * 1.5
+                                    }
+                                ]}
+                                selectable={true}
+                            >
+                                {para}
+                            </Text>
+                        ))}
 
-                        <TouchableOpacity
-                            style={[
-                                styles.navBtn,
-                                styles.nextBtn,
-                                !chapter.nextUrl && styles.disabledBtn
-                            ]}
-                            disabled={!chapter.nextUrl}
-                            onPress={() => navigateChapter(chapter.nextUrl)}
-                            accessibilityLabel="Chapitre suivant"
-                            accessibilityRole="button"
-                            accessibilityState={{ disabled: !chapter.nextUrl }}
-                        >
-                            <Text style={styles.navBtnText}>Suivant</Text>
-                        </TouchableOpacity>
+                        <View style={{ height: 100 }} />
+                    </ScrollView>
+                </View>
+            </TouchableWithoutFeedback>
+
+            <ReaderFooter
+                visible={headerVisible}
+                onNext={() => navigateChapter(chapter.nextUrl)}
+                onPrev={() => navigateChapter(chapter.prevUrl)}
+                hasNext={!!chapter.nextUrl}
+                hasPrev={!!chapter.prevUrl}
+                theme={currentTheme}
+                onChapters={() => setShowChapterList(true)}
+            />
+
+            {/* Chapter List Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showChapterList}
+                onRequestClose={() => setShowChapterList(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowChapterList(false)}
+                >
+                    <View style={[styles.settingsContainer, { backgroundColor: currentTheme.bar, height: '70%' }]}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                            <Text style={[styles.settingLabel, { color: currentTheme.text, marginBottom: 0 }]}>Chapitres</Text>
+                            <TouchableOpacity
+                                onPress={() => setShowChapterList(false)}
+                                style={{ padding: 5 }}
+                            >
+                                <Ionicons name="close" size={24} color={currentTheme.text} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {chapterList.length > 0 ? (
+                            <FlatList
+                                data={chapterList}
+                                keyExtractor={(item) => item.url}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: currentTheme.text + '20' }}
+                                        onPress={() => loadChapter(item.url)}
+                                    >
+                                        <Text style={{ color: item.url === currentUrl ? '#e91e63' : currentTheme.text, fontWeight: item.url === currentUrl ? 'bold' : 'normal' }}>
+                                            {item.title}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                                initialNumToRender={20}
+                            />
+                        ) : (
+                            <ActivityIndicator size="large" color="#e91e63" style={{ marginTop: 20 }} />
+                        )}
                     </View>
-                    <View style={{ height: 40 }} />
-                </ScrollView>
-            </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
 
-            {/* Settings Modal */}
+            {/* Settings Modal - Kept same as before but styled a bit cleaner if needed */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -270,8 +301,6 @@ const ReaderScreen = () => {
                             <Text style={[styles.settingLabel, { color: currentTheme.text, marginBottom: 0 }]}>Thème</Text>
                             <TouchableOpacity
                                 onPress={() => setShowSettings(false)}
-                                accessibilityLabel="Fermer les paramètres"
-                                accessibilityRole="button"
                                 style={{ padding: 5 }}
                             >
                                 <Ionicons name="close" size={24} color={currentTheme.text} />
@@ -287,9 +316,6 @@ const ReaderScreen = () => {
                                         { backgroundColor: THEMES[t].background, borderWidth: theme === t ? 2 : 1, borderColor: theme === t ? '#e91e63' : '#ccc' }
                                     ]}
                                     onPress={() => saveSettings(null, t)}
-                                    accessibilityLabel={`Thème ${t === 'light' ? 'Clair' : t === 'dark' ? 'Sombre' : 'Sépia'}`}
-                                    accessibilityRole="radio"
-                                    accessibilityState={{ checked: theme === t }}
                                 >
                                     <Text style={{ color: THEMES[t].text }}>A</Text>
                                 </TouchableOpacity>
@@ -301,16 +327,12 @@ const ReaderScreen = () => {
                             <TouchableOpacity
                                 onPress={() => saveSettings(Math.max(10, fontSize - 2), null)}
                                 style={styles.fontBtn}
-                                accessibilityLabel="Diminuer la taille du texte"
-                                accessibilityRole="button"
                             >
                                 <Ionicons name="remove" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => saveSettings(Math.min(40, fontSize + 2), null)}
                                 style={styles.fontBtn}
-                                accessibilityLabel="Augmenter la taille du texte"
-                                accessibilityRole="button"
                             >
                                 <Ionicons name="add" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
@@ -318,7 +340,7 @@ const ReaderScreen = () => {
                     </View>
                 </TouchableOpacity>
             </Modal>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -331,32 +353,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        elevation: 2,
-        zIndex: 10,
-    },
-    headerTitle: {
-        fontWeight: 'bold',
-        fontSize: 16,
-        flex: 1,
-        textAlign: 'center',
-        marginHorizontal: 10,
-    },
-    navButton: {
-        padding: 5,
-    },
     contentContainer: {
         flex: 1,
     },
     scrollContent: {
         paddingHorizontal: 20,
-        paddingTop: 20,
     },
     chapterTitle: {
         fontSize: 22,
@@ -368,33 +369,6 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: 'justify',
     },
-    navigationButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 30,
-        marginBottom: 20,
-    },
-    navBtn: {
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 25,
-        minWidth: 120,
-        alignItems: 'center',
-    },
-    prevBtn: {
-        backgroundColor: '#ddd',
-    },
-    nextBtn: {
-        backgroundColor: '#e91e63',
-    },
-    disabledBtn: {
-        opacity: 0.5,
-    },
-    navBtnText: {
-        fontWeight: 'bold',
-        color: '#333',
-    },
-
     // Modal
     modalOverlay: {
         flex: 1,
@@ -439,3 +413,4 @@ const styles = StyleSheet.create({
 });
 
 export default ReaderScreen;
+
