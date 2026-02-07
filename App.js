@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerBackgroundFetchAsync } from './src/services/BackgroundNotificationTask';
 
@@ -117,12 +118,14 @@ export default function App() {
     }, []);
 
     return (
-        <StorageProvider>
-            <ThemeProvider>
-                <SafeAreaProvider>
-                    <AppContent />
-                </SafeAreaProvider>
-            </ThemeProvider>
-        </StorageProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <StorageProvider>
+                <ThemeProvider>
+                    <SafeAreaProvider>
+                        <AppContent />
+                    </SafeAreaProvider>
+                </ThemeProvider>
+            </StorageProvider>
+        </GestureHandlerRootView>
     );
 }
