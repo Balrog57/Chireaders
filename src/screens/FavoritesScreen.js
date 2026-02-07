@@ -119,6 +119,7 @@ const FavoritesScreen = ({ navigation }) => {
 
             {/* Liste des favoris */}
             <FlatList
+                style={{ flex: 1 }}
                 data={favorites}
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}

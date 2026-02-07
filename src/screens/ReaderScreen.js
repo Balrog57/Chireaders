@@ -195,6 +195,7 @@ const ReaderScreen = () => {
                 <ScrollView
                     ref={scrollViewRef}
                     contentContainerStyle={styles.scrollContent}
+                    style={{ flex: 1 }}
                 >
                     <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
                         {chapter.title}
