@@ -35,6 +35,9 @@ const NovelDetailScreen = () => {
         isFavorite,
         addFavorite,
         removeFavorite,
+        favorites, // Add favorites to context
+        updateFavoriteLatestChapter,
+        toggleFavoriteNotification,
         isChapterRead,
         getLastChapterRead,
         markChapterAsRead,
@@ -50,20 +53,36 @@ const NovelDetailScreen = () => {
     const [reversed, setReversed] = useState(false);
     const [currentTab, setCurrentTab] = useState(0);
 
+    // State for notification (local only for UI, synced with context)
+    const [notifyEnabled, setNotifyEnabled] = useState(true);
+
     useEffect(() => {
         checkFavorite();
         loadDetails();
-    }, []);
+    }, [favorites]); // Add favorites dependency to react to changes
 
     const checkFavorite = async () => {
-        const fav = await isFavorite(url);
-        setIsFav(fav);
+        const fav = favorites.find(f => f.url === url);
+        if (fav) {
+            setIsFav(true);
+            setNotifyEnabled(fav.notificationsEnabled !== false);
+        } else {
+            setIsFav(false);
+            setNotifyEnabled(true); // Default for new
+        }
     };
 
     const loadDetails = async () => {
         try {
             const data = await ChiReadsScraper.getNovelDetails(url);
             setDetails(data);
+
+            // If favorite, update latest known chapter silently
+            if (isFavorite(url) && data.chapters.length > 0) {
+                const latest = data.chapters[data.chapters.length - 1];
+                updateFavoriteLatestChapter(url, latest.url);
+            }
+
         } catch (error) {
             console.error('Error loading details:', error);
         } finally {
@@ -76,17 +95,28 @@ const NovelDetailScreen = () => {
             await removeFavorite(url);
             setIsFav(false);
         } else {
+            const latestChapter = details?.chapters?.length > 0 ? details.chapters[details.chapters.length - 1] : null;
+
             const novelData = {
                 title: details?.title || initialTitle,
                 url: url,
                 cover: details?.image,
-                author: details?.author
+                author: details?.author,
+                latestChapterUrl: latestChapter ? latestChapter.url : null
             };
             await addFavorite(novelData);
             setIsFav(true);
         }
     };
 
+    const handleNotifyToggle = async () => {
+        if (isFav) {
+            await toggleFavoriteNotification(url);
+            // State will update via useEffect -> checkFavorite
+        }
+    };
+
+    // ... handleResume, handleChapterPress ...
     const handleResume = () => {
         const lastRead = getLastChapterRead(url);
         if (lastRead) {
@@ -161,7 +191,7 @@ const NovelDetailScreen = () => {
 
                         {getLastChapterRead(url) && (
                             <TouchableOpacity
-                                style={[styles.resumeButton, { backgroundColor: theme.tint }]}
+                                style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
                                 onPress={handleResume}
                             >
                                 <Ionicons name="play" size={20} color="#fff" />
@@ -418,6 +448,12 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         fontSize: 12,
         fontWeight: '600',
+    },
+    iconButton: {
+        padding: 8,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     resumeButton: {
         flexDirection: 'row',

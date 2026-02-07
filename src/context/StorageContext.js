@@ -45,7 +45,7 @@ export const StorageProvider = ({ children }) => {
 
     /**
      * Ajouter une série aux favoris
-     * @param {Object} seriesData - { url, title, slug }
+     * @param {Object} seriesData - { url, title, slug, latestChapterUrl }
      */
     const addFavorite = useCallback(async (seriesData) => {
         const newFav = {
@@ -56,7 +56,9 @@ export const StorageProvider = ({ children }) => {
             author: seriesData.author,
             dateAdded: Date.now(),
             lastVisited: Date.now(),
-            lastChapterRead: null
+            lastChapterRead: null,
+            notificationsEnabled: true, // Par défaut activé
+            latestKnownChapterUrl: seriesData.latestChapterUrl || null
         };
 
         // Retirer si existe déjà, puis ajouter en premier
@@ -108,6 +110,28 @@ export const StorageProvider = ({ children }) => {
         });
         setFavorites(newFavorites);
         await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+    }, [favorites]);
+
+    /**
+     * Update the latest known chapter for a favorite (sync without notifying)
+     * Used when opening the details screen
+     * @param {string} url - Novel URL
+     * @param {string} latestChapterUrl - URL of the latest chapter found
+     */
+    const updateFavoriteLatestChapter = useCallback(async (url, latestChapterUrl) => {
+        const favIndex = favorites.findIndex(f => f.url === url);
+        if (favIndex !== -1 && latestChapterUrl) {
+            // Only update if changed
+            if (favorites[favIndex].latestKnownChapterUrl !== latestChapterUrl) {
+                const newFavorites = [...favorites];
+                newFavorites[favIndex] = {
+                    ...newFavorites[favIndex],
+                    latestKnownChapterUrl: latestChapterUrl
+                };
+                setFavorites(newFavorites);
+                await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+            }
+        }
     }, [favorites]);
 
     // ===== CHAPITRES LUS =====
@@ -400,6 +424,7 @@ export const StorageProvider = ({ children }) => {
             isFavorite,
             toggleFavorite, // compatibilité
             toggleFavoriteNotification,
+            updateFavoriteLatestChapter,
 
             // Chapitres
             markChapterAsRead,

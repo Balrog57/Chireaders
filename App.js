@@ -2,9 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { registerBackgroundFetchAsync } from './src/services/BackgroundNotificationTask';
 
 import { StorageProvider } from './src/context/StorageContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -98,7 +100,19 @@ function AppContent() {
 
 export default function App() {
     useEffect(() => {
-        // requestNotificationPermissions();
+        const initNotifications = async () => {
+            // 1. Request permissions
+            const { status } = await Notifications.requestPermissionsAsync();
+            if (status === 'granted') {
+                console.log('Notification permissions granted');
+                // 2. Register background task
+                await registerBackgroundFetchAsync();
+            } else {
+                console.log('Notification permissions denied');
+            }
+        };
+
+        initNotifications();
     }, []);
 
     return (
