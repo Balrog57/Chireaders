@@ -127,9 +127,9 @@ npm run web
 
 ### 🚧 En Cours / Améliorations Futures
 
-- [ ] **Mode paysage** optimisé pour tablettes
-- [ ] **Notifications** de nouveaux chapitres
-- [ ] **Sélection de texte** et copie (comme sur navigateur)
+- [x] **Mode paysage** optimisé pour tablettes
+- [x] **Notifications** de nouveaux chapitres
+- [x] **Sélection de texte** et copie (comme sur navigateur)
 - [x] **Historique** (via suivi des chapitres lus)
 
 ### 🐛 Problèmes Connus
@@ -201,11 +201,13 @@ chireaders/
 │   │   ├── ReaderScreen.js        # Lecteur de chapitre
 │   │   └── FavoritesScreen.js     # Liste des favoris
 │   ├── services/
-│   │   └── ChiReadsScraper.js     # Scraper du site
+│   │   ├── ChiReadsScraper.js     # Scraper du site
+│   │   └── BackgroundNotificationTask.js # Tâche de fond pour notifications
 │   └── context/
 │       └── StorageContext.js      # Gestion des données locales
 ├── App.js                         # Point d'entrée
 ├── metro.config.js               # Configuration Metro
+├── app.json                      # Configuration Expo (+ plugins)
 └── package.json
 ```
 
@@ -263,7 +265,7 @@ Ce projet est personnel mais les suggestions sont les bienvenues !
 ## 📝 Notes de développement
 
 - **Dernière mise à jour** : Février 2026
-- **Version** : 1.0.0
+- **Version** : 1.2.0
 - **Stack** : React Native + Expo + Cheerio
 
 ---
