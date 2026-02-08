@@ -53,3 +53,7 @@ analyze_*.js
 *.tmp
 *.log
 nul
+
+# IDEs
+.idea/
+.vscode/
