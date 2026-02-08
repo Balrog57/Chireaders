@@ -330,17 +330,23 @@ const ChiReadsScraper = {
             if (items.length === 0) {
                 items = $('.main-col li');
             }
+            if (items.length === 0) {
+                items = $('.search-list li');
+            }
+            if (items.length === 0) {
+                items = $('.archive-list li');
+            }
 
             items.each((i, elem) => {
-                const titleElem = $(elem).find('.news-list-tit h5 a, h2 a, h3 a, .entry-title a').first();
+                const titleElem = $(elem).find('.news-list-tit h5 a, h2 a, h3 a, .entry-title a, .archive-list-tit h5 a').first();
                 const title = titleElem.text().trim();
                 const rawUrl = titleElem.attr('href') || $(elem).find('a').first().attr('href');
-                const image = $(elem).find('.news-list-img img, img').first().attr('src');
-                const description = $(elem).find('.news-list-txt, .entry-content').text().trim();
+                const image = $(elem).find('.news-list-img img, .archive-list-img img, img').first().attr('src');
+                const description = $(elem).find('.news-list-txt, .entry-content, .archive-list-txt').text().trim();
 
                 const safeUrl = getSafeUrl(rawUrl);
 
-                if (title && safeUrl) {
+                if (title && safeUrl && !safeUrl.includes('/chapitre-')) {
                     books.push({ title, url: safeUrl, image, description });
                 }
             });
@@ -349,6 +355,32 @@ const ChiReadsScraper = {
         } catch (error) {
             console.error(`Error scraping library (${category}):`, error.message);
             return [];
+        }
+    },
+
+    /**
+     * Récupère le nombre total de pages pour une catégorie
+     * @param {string} category 
+     */
+    getLibraryCount: async (category = 'translatedtales') => {
+        try {
+            const url = `/category/${category}/`;
+            const response = await client.get(url);
+            const $ = cheerio.load(response.data);
+
+            let lastPage = 1;
+            $('.pagination a, .page-numbers a, .nav-links a').each((i, elem) => {
+                const text = $(elem).text().trim();
+                const num = parseInt(text);
+                if (!isNaN(num) && num > lastPage) {
+                    lastPage = num;
+                }
+            });
+
+            return lastPage;
+        } catch (error) {
+            console.error(`Error getting library count (${category}):`, error.message);
+            return 1;
         }
     }
 };

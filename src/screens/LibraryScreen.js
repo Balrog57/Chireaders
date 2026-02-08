@@ -26,35 +26,47 @@ const LibraryScreen = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false); // Mode recherche vs Mode navigation par défaut
 
-    const loadBooks = useCallback(async (pageNum) => {
+    const loadBooks = useCallback(async () => {
         try {
-            if (pageNum === 1) setLoading(true);
-            else setLoadingMore(true);
+            setLoading(true);
+            setData([]);
+            setHasMore(false); // No more demand-paging needed
 
-            // Fetch both categories in parallel for merged view
-            const [translated, original] = await Promise.all([
-                ChiReadsScraper.getAllBooks(pageNum, 'translatedtales'),
-                ChiReadsScraper.getAllBooks(pageNum, 'original')
+            // 1. Get counts for both categories
+            const [translatedCount, originalCount] = await Promise.all([
+                ChiReadsScraper.getLibraryCount('translatedtales'),
+                ChiReadsScraper.getLibraryCount('original')
             ]);
 
-            // Simple merge: Interleave or concat. 
-            // Since original might be smaller, concat might result in blocks.
-            // Let's concat for now, or mix.
-            const combined = [...translated, ...original];
+            const allBooks = [];
+            const fetchCategory = async (category, totalPages) => {
+                // Limit to a reasonable number to avoid long hangs if site structure changes
+                const maxPages = Math.min(totalPages, 20);
+                const pagePromises = [];
+                for (let p = 1; p <= maxPages; p++) {
+                    pagePromises.push(ChiReadsScraper.getAllBooks(p, category));
+                }
+                const results = await Promise.all(pagePromises);
+                results.forEach(pageBooks => allBooks.push(...pageBooks));
+            };
 
-            if (combined.length === 0) {
-                setHasMore(false);
-            } else {
-                setData(prev => {
-                    if (pageNum === 1) return combined.sort((a, b) => a.title.localeCompare(b.title));
-                    // Filter out duplicates based on URL
-                    const existingUrls = new Set(prev.map(b => b.url));
-                    const newBooks = combined.filter(b => !existingUrls.has(b.url));
-                    const finalData = [...prev, ...newBooks];
-                    // Sort alphabetically by title
-                    return finalData.sort((a, b) => a.title.localeCompare(b.title));
-                });
-            }
+            // Fetch everything in parallel
+            await Promise.all([
+                fetchCategory('translatedtales', translatedCount),
+                fetchCategory('original', originalCount)
+            ]);
+
+            // Deduplicate and Sort Globably
+            const existingUrls = new Set();
+            const uniqueBooks = allBooks.filter(book => {
+                if (existingUrls.has(book.url)) return false;
+                existingUrls.add(book.url);
+                return true;
+            });
+
+            const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title));
+            setData(sortedBooks);
+
         } catch (error) {
             console.error('Failed to load library', error);
         } finally {
@@ -66,7 +78,7 @@ const LibraryScreen = () => {
     const performSearch = useCallback(async (query) => {
         if (!query.trim()) {
             setIsSearching(false);
-            loadBooks(1);
+            loadBooks();
             return;
         }
 
@@ -75,7 +87,7 @@ const LibraryScreen = () => {
             setIsSearching(true);
             const results = await ChiReadsScraper.search(query);
             setData(results);
-            setHasMore(false); // Search results usually not paginated in this simple implementation
+            setHasMore(false);
         } catch (error) {
             console.error('Search failed', error);
         } finally {
@@ -85,11 +97,9 @@ const LibraryScreen = () => {
 
     useEffect(() => {
         if (!isSearching) {
-            setPage(1);
-            setHasMore(true);
-            loadBooks(1);
+            loadBooks();
         }
-    }, []); // Only on mount/mode switch, but loadBooks dependency handled by logic
+    }, []);
 
     // Handle search input submission
     const handleSearchSubmit = () => {
@@ -97,11 +107,7 @@ const LibraryScreen = () => {
     };
 
     const handleLoadMore = () => {
-        if (!isSearching && !loadingMore && hasMore && !loading) {
-            const nextPage = page + 1;
-            setPage(nextPage);
-            loadBooks(nextPage);
-        }
+        // Disabled since we load everything at once
     };
 
     const renderItem = ({ item }) => (
