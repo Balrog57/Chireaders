@@ -10,9 +10,9 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    TouchableWithoutFeedback,
     View
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import ReaderFooter from '../components/ReaderFooter';
@@ -153,6 +153,12 @@ const ReaderScreen = () => {
         setHeaderVisible(!headerVisible);
     };
 
+    const tapGesture = Gesture.Tap()
+        .onEnd(() => {
+            toggleHeader();
+        })
+        .runOnJS(true);
+
     const currentTheme = THEMES[theme];
 
     if (loading) {
@@ -192,18 +198,18 @@ const ReaderScreen = () => {
                 theme={currentTheme}
             />
 
-            <Animated.ScrollView
-                ref={scrollViewRef}
-                contentContainerStyle={[
-                    styles.scrollContent,
-                    {
-                        paddingTop: 80, // Space for header + extra
-                        paddingBottom: insets.bottom + 80 // Space for footer + safe area + extra
-                    }
-                ]}
-                style={{ flex: 1 }}
-            >
-                <TouchableWithoutFeedback onPress={toggleHeader}>
+            <GestureDetector gesture={tapGesture}>
+                <Animated.ScrollView
+                    ref={scrollViewRef}
+                    contentContainerStyle={[
+                        styles.scrollContent,
+                        {
+                            paddingTop: 80, // Space for header + extra
+                            paddingBottom: insets.bottom + 80 // Space for footer + safe area + extra
+                        }
+                    ]}
+                    style={{ flex: 1 }}
+                >
                     <View>
                         <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
                             {chapter.title}
@@ -228,8 +234,8 @@ const ReaderScreen = () => {
 
                         <View style={{ height: 100 }} />
                     </View>
-                </TouchableWithoutFeedback>
-            </Animated.ScrollView>
+                </Animated.ScrollView>
+            </GestureDetector>
 
             <ReaderFooter
                 visible={headerVisible}
