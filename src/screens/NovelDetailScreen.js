@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { Image } from 'expo-image'; // Optimized image component for better caching and performance
 import React, { useContext, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
-    Image,
+    // Image, // Replaced by expo-image
     // SafeAreaView, // Removed deprecated
     ScrollView,
     StyleSheet,
@@ -172,7 +173,8 @@ const NovelDetailScreen = () => {
                 <Image
                     source={{ uri: details.image }}
                     style={styles.coverImage}
-                    resizeMode="cover"
+                    contentFit="cover"
+                    transition={500}
                 />
                 <View style={styles.infoContainer}>
                     <Text style={[styles.title, { color: theme.text }]}>{details.title}</Text>
