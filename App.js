@@ -116,7 +116,8 @@ export default function App() {
             }
         };
 
-        initNotifications();
+        const timer = setTimeout(initNotifications, 3000);
+        return () => clearTimeout(timer);
     }, []);
 
     return (

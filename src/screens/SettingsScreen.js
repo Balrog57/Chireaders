@@ -32,13 +32,21 @@ const SettingsScreen = ({ navigation }) => {
     };
 
     const handleConfigureBackup = async () => {
+        console.log("handleConfigureBackup: Button clicked");
         try {
+            if (!BackupService) {
+                Alert.alert("Erreur", "Le service de sauvegarde n'est pas chargé.");
+                return;
+            }
             const uri = await BackupService.requestBackupFolder();
             if (uri) {
                 setBackupFolder(uri);
                 Alert.alert("Succès", "Dossier de sauvegarde configuré. Vos données seront sauvegardées automatiquement.");
+            } else {
+                Alert.alert("Information", "Aucun dossier n'a été sélectionné.");
             }
         } catch (e) {
+            console.error("SettingsScreen: Backup config error", e);
             Alert.alert("Erreur", "Impossible de configurer le dossier.");
         }
     };
@@ -156,7 +164,7 @@ const SettingsScreen = ({ navigation }) => {
                 </View>
 
                 <Text style={[styles.version, { color: theme.textSecondary }]}>
-                    Version 1.2.9
+                    Version 1.3.3
                 </Text>
 
             </ScrollView>

@@ -2,7 +2,7 @@
   "expo": {
     "name": "ChiReaders",
     "slug": "chireaders",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "chireaders",
@@ -18,6 +18,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "com.balrog57.chireaders",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
       "allowBackup": true,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -48,7 +52,8 @@
         }
       ],
       "expo-notifications",
-      "expo-task-manager"
+      "expo-task-manager",
+      "expo-file-system"
     ],
     "experiments": {
       "typedRoutes": false,
