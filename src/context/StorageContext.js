@@ -14,7 +14,8 @@ export const StorageProvider = ({ children }) => {
     const [readChapters, setReadChapters] = useState({});
     const [settings, setSettings] = useState({
         darkMode: false,
-        fontSize: 18,
+        themeMode: 'light',
+        readerFontSize: 18,
         notifications: {
             enabled: true,
             checkInterval: 3600000 // 1 heure en ms
@@ -32,7 +33,17 @@ export const StorageProvider = ({ children }) => {
 
                 if (favs) setFavorites(JSON.parse(favs));
                 if (read) setReadChapters(JSON.parse(read));
-                if (sett) setSettings(JSON.parse(sett));
+                if (sett) {
+                    const parsedSettings = JSON.parse(sett);
+                    // Migration: si readerFontSize n'existe pas mais fontSize oui
+                    if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
+                        parsedSettings.readerFontSize = parsedSettings.fontSize;
+                    }
+                    if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
+                        parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
+                    }
+                    setSettings(parsedSettings);
+                }
             } catch (e) {
                 console.error("Failed to load local data", e);
             } finally {
