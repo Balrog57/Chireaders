@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -47,15 +46,15 @@ const ReaderScreen = () => {
     const insets = useSafeAreaInsets();
     const { url: initialUrl, title: initialTitle, novelUrl } = route.params;
 
-    const { markChapterAsRead } = useContext(StorageContext);
+    const { markChapterAsRead, settings, updateSettings } = useContext(StorageContext);
 
     const [loading, setLoading] = useState(true);
     const [chapter, setChapter] = useState(null);
     const [currentUrl, setCurrentUrl] = useState(initialUrl);
 
-    // Settings
-    const [fontSize, setFontSize] = useState(18);
-    const [theme, setTheme] = useState('light');
+    // Settings from StorageContext
+    const fontSize = settings?.readerFontSize || 18;
+    const theme = settings?.themeMode || 'light';
     const [showSettings, setShowSettings] = useState(false);
 
     // UI visibility
@@ -64,37 +63,17 @@ const ReaderScreen = () => {
     const scrollViewRef = useRef(null);
 
     useEffect(() => {
-        loadSettings();
-    }, []);
-
-    useEffect(() => {
         loadChapter(currentUrl);
     }, [currentUrl]);
 
-    const loadSettings = async () => {
-        try {
-            const size = await AsyncStorage.getItem('reader_fontsize');
-            const th = await AsyncStorage.getItem('reader_theme');
-            if (size) setFontSize(parseInt(size));
-            if (th) setTheme(th);
-        } catch (e) {
-            console.error('Failed to load settings', e);
-        }
-    };
-
     const saveSettings = async (newSize, newTheme) => {
-        try {
-            if (newSize) {
-                setFontSize(newSize);
-                await AsyncStorage.setItem('reader_fontsize', newSize.toString());
-            }
-            if (newTheme) {
-                setTheme(newTheme);
-                await AsyncStorage.setItem('reader_theme', newTheme);
-            }
-        } catch (e) {
-            console.error('Failed to save settings', e);
+        const updates = {};
+        if (newSize) updates.readerFontSize = newSize;
+        if (newTheme) {
+            updates.themeMode = newTheme;
+            updates.darkMode = newTheme === 'dark'; // Pour compatibilité
         }
+        await updateSettings(updates);
     };
 
     // Chapter List functionality
