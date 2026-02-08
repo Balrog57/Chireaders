@@ -10,6 +10,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View
 } from 'react-native';
 import Animated from 'react-native-reanimated';

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useRef, useState } from 'react';
+import BackupService from '../services/BackupService';
 
 export const StorageContext = createContext();
 
@@ -40,6 +41,74 @@ export const StorageProvider = ({ children }) => {
         };
         loadData();
     }, []);
+
+    // ===== AUTO BACKUP =====
+    // Utiliser un ref pour éviter de sauvegarder au premier rendu ou lors du chargement initial
+    const isFirstRender = useRef(true);
+
+    useEffect(() => {
+        if (isLoading) return;
+
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
+        const saveData = async () => {
+            const dataToSave = {
+                favorites,
+                readChapters,
+                settings,
+                timestamp: Date.now(),
+                version: 1
+            };
+            await BackupService.autoBackup(dataToSave);
+        };
+
+        const timeoutId = setTimeout(saveData, 2000); // Debounce de 2s
+        return () => clearTimeout(timeoutId);
+    }, [favorites, readChapters, settings, isLoading]);
+
+    /**
+     * Reload data from a restored backup object
+     * @param {Object} data - The full backup object
+     */
+    const reloadData = useCallback(async (data) => {
+        if (!data) return;
+
+        try {
+            setIsLoading(true);
+
+            if (data.favorites) {
+                setFavorites(data.favorites);
+                await AsyncStorage.setItem('favorites', JSON.stringify(data.favorites));
+            }
+            if (data.readChapters) {
+                setReadChapters(data.readChapters);
+                await AsyncStorage.setItem('readChapters', JSON.stringify(data.readChapters));
+            }
+            if (data.settings) {
+                setSettings(data.settings);
+                await AsyncStorage.setItem('settings', JSON.stringify(data.settings));
+            }
+
+            // Re-sync backup file immediately to be sure
+            const dataToSave = {
+                favorites: data.favorites || favorites,
+                readChapters: data.readChapters || readChapters,
+                settings: data.settings || settings,
+                timestamp: Date.now(),
+                version: 1
+            };
+            // Force backup ? Maybe not needed if useEffect triggers, but useEffect might depend on state change.
+            // State change above WILL trigger useEffect independently.
+
+        } catch (e) {
+            console.error("Failed to reload data", e);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [favorites, readChapters, settings]);
 
     // ===== FAVORIS =====
 
@@ -438,7 +507,11 @@ export const StorageProvider = ({ children }) => {
             toggleChapterRead, // compatibilité
 
             // Settings
-            updateSettings
+            // Settings
+            updateSettings,
+
+            // Backup
+            reloadData
         }}>
             {children}
         </StorageContext.Provider>

@@ -143,6 +143,10 @@ const HomeScreen = () => {
                         <FontAwesome5 name="globe" size={22} color={theme.text} />
                     </TouchableOpacity>
 
+                    <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.iconButton}>
+                        <Ionicons name="settings-outline" size={24} color={theme.text} />
+                    </TouchableOpacity>
+
                     {/* Theme Toggle */}
                     <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
                         <Ionicons name={getThemeIcon()} size={24} color={theme.text} />

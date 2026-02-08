@@ -16,6 +16,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import LibraryScreen from './src/screens/LibraryScreen';
 import NovelDetailScreen from './src/screens/NovelDetailScreen';
 import ReaderScreen from './src/screens/ReaderScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -94,6 +95,7 @@ function AppContent() {
                 <Stack.Screen name="Main" component={MainTabs} />
                 <Stack.Screen name="NovelDetail" component={NovelDetailScreen} />
                 <Stack.Screen name="Reader" component={ReaderScreen} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
             </Stack.Navigator>
             <StatusBar style={isDarkMode ? "light" : "dark"} />
         </NavigationContainer>
