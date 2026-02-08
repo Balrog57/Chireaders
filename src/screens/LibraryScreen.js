@@ -29,6 +29,15 @@ const LibraryScreen = () => {
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false); // Mode recherche vs Mode navigation par défaut
+    const [fullData, setFullData] = useState([]); // Store all books for local search
+
+    // Helper to normalize text for search (remove accents, lowercase)
+    const normalizeText = (text) => {
+        return text
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    };
 
     const loadBooks = useCallback(async (forceRefresh = false) => {
         try {
@@ -43,9 +52,8 @@ const LibraryScreen = () => {
                 const cachedData = await loadLibraryCache();
                 if (cachedData && cachedData.length > 0) {
                     setData(cachedData);
+                    setFullData(cachedData);
                     setLoading(false);
-                    // We can return here, allowing silent update or just using cache
-                    // If we want to strictly use cache until refresh:
                     return;
                 }
             }
@@ -87,6 +95,7 @@ const LibraryScreen = () => {
 
             const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title));
             setData(sortedBooks);
+            setFullData(sortedBooks);
 
             // Save to cache
             await saveLibraryCache(sortedBooks);
@@ -100,25 +109,25 @@ const LibraryScreen = () => {
         }
     }, [isSearching, loadLibraryCache, saveLibraryCache]);
 
-    const performSearch = useCallback(async (query) => {
-        if (!query.trim()) {
+    const performSearch = useCallback((query) => {
+        if (!query || !query.trim()) {
             setIsSearching(false);
-            loadBooks(false); // Reload from cache or fetch
+            setData(fullData); // Restore full list
             return;
         }
 
-        try {
-            setLoading(true);
-            setIsSearching(true);
-            const results = await ChiReadsScraper.search(query);
-            setData(results);
-            setHasMore(false);
-        } catch (error) {
-            console.error('Search failed', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [loadBooks]);
+        setIsSearching(true);
+        const normalizedQuery = normalizeText(query);
+        const queryTerms = normalizedQuery.split(' ').filter(term => term.length > 0);
+
+        const filtered = fullData.filter(item => {
+            const normalizedTitle = normalizeText(item.title);
+            // Check if ALL terms are present in the title
+            return queryTerms.every(term => normalizedTitle.includes(term));
+        });
+
+        setData(filtered);
+    }, [fullData]);
 
     useEffect(() => {
         if (!isSearching) {
@@ -130,6 +139,11 @@ const LibraryScreen = () => {
     const handleSearchSubmit = () => {
         performSearch(searchQuery);
     };
+
+    // Real-time search update
+    useEffect(() => {
+        performSearch(searchQuery);
+    }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
         // Disabled since we load everything at once
