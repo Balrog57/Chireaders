@@ -97,8 +97,23 @@ export const extractChapterNumber = (chapterSlug) => {
  * @returns {boolean} True si l'URL est valide
  */
 export const isValidChiReadsUrl = (url) => {
-  if (!url) return false;
-  return url.startsWith('https://chireads.com') || url.startsWith('http://chireads.com');
+  if (!url || typeof url !== 'string') return false;
+
+  // Basic sanity check to avoid throwing on invalid URLs
+  if (!url.startsWith('http')) return false;
+
+  try {
+    const parsed = new URL(url);
+
+    // Strict HTTPS
+    if (parsed.protocol !== 'https:') return false;
+
+    // Strict domain check (no subdomains allowed based on current usage)
+    // chireads.com is the only valid domain
+    return parsed.hostname === 'chireads.com';
+  } catch (error) {
+    return false;
+  }
 };
 
 export default {
