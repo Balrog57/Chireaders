@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { StorageAccessFramework } from 'expo-file-system';
+import { Alert } from 'react-native';
 
 const BACKUP_FILE_NAME = 'chireaders_backup.json';
 const BACKUP_FOLDER_KEY = 'backup_folder_uri';
@@ -15,15 +16,26 @@ const BackupService = {
      * Returns the URI of the selected folder or null if cancelled/failed.
      */
     async requestBackupFolder() {
+        console.log("requestBackupFolder: starting");
         try {
+            // Delay to avoid conflict with initial notification prompt
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            console.log("requestBackupFolder: calling SAF");
             const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+            console.log("requestBackupFolder: SAF result:", JSON.stringify(permissions));
+
             if (permissions.granted) {
                 const uri = permissions.directoryUri;
                 await AsyncStorage.setItem(BACKUP_FOLDER_KEY, uri);
+                console.log("Backup folder selected:", uri);
                 return uri;
+            } else {
+                console.log("Directory permissions denied or cancelled");
             }
         } catch (error) {
             console.error("Error requesting backup folder:", error);
+            Alert.alert("Debug Error", error.message);
         }
         return null;
     },
