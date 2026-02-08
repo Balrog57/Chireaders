@@ -10,9 +10,11 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import packageJson from '../../package.json';
 import { StorageContext } from '../context/StorageContext';
 import { useTheme } from '../context/ThemeContext';
 import BackupService from '../services/BackupService';
+import UpdateService from '../services/UpdateService';
 
 const SettingsScreen = ({ navigation }) => {
     const { theme, isDarkMode, toggleTheme } = useTheme();
@@ -22,9 +24,35 @@ const SettingsScreen = ({ navigation }) => {
     const [backupFolder, setBackupFolder] = useState(null);
     const [isRestoring, setIsRestoring] = useState(false);
 
+    // Update State
+    const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+
     useEffect(() => {
         checkBackupStatus();
     }, []);
+
+    const handleCheckUpdate = async () => {
+        setIsCheckingUpdate(true);
+        try {
+            const updateInfo = await UpdateService.checkForUpdates();
+            if (updateInfo.hasUpdate) {
+                Alert.alert(
+                    "Mise à jour disponible",
+                    `Une nouvelle version (${updateInfo.latestVersion}) est disponible sur GitHub.\n\n${updateInfo.body || ""}`,
+                    [
+                        { text: "Plus tard", style: "cancel" },
+                        { text: "Télécharger", onPress: () => UpdateService.openDownloadPage(updateInfo.downloadUrl) }
+                    ]
+                );
+            } else {
+                Alert.alert("À jour", "Vous utilisez déjà la dernière version.");
+            }
+        } catch (e) {
+            Alert.alert("Erreur", "Impossible de vérifier les mises à jour.");
+        } finally {
+            setIsCheckingUpdate(false);
+        }
+    };
 
     const checkBackupStatus = async () => {
         const folder = await BackupService.getBackupFolder();
@@ -112,6 +140,30 @@ const SettingsScreen = ({ navigation }) => {
 
 
 
+                {/* Section Mise à jour */}
+                <Text style={sectionTitleStyle}>Mise à jour</Text>
+                <View style={itemStyle}>
+                    <View style={styles.itemRow}>
+                        <View style={styles.itemInfo}>
+                            <Text style={[styles.itemTitle, textStyle]}>Version du logiciel</Text>
+                            <Text style={[styles.itemSubtitle, { color: theme.textSecondary }]}>
+                                Version actuelle: {packageJson.version}
+                            </Text>
+                        </View>
+                        <TouchableOpacity
+                            style={[styles.button, { backgroundColor: theme.tint }]}
+                            onPress={handleCheckUpdate}
+                            disabled={isCheckingUpdate}
+                        >
+                            {isCheckingUpdate ? (
+                                <ActivityIndicator color="#fff" size="small" />
+                            ) : (
+                                <Text style={styles.buttonText}>Vérifier</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
                 {/* Section Backup */}
                 <Text style={sectionTitleStyle}>Sauvegarde & Synchronisation</Text>
 
@@ -164,7 +216,7 @@ const SettingsScreen = ({ navigation }) => {
                 </View>
 
                 <Text style={[styles.version, { color: theme.textSecondary }]}>
-                    Version 1.3.3
+                    Version 1.3.4
                 </Text>
 
             </ScrollView>
