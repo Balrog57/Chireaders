@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
     Image,
+    RefreshControl,
     StyleSheet,
     Text,
     TextInput,
@@ -12,13 +13,16 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StorageContext } from '../context/StorageContext';
 import { useTheme } from '../context/ThemeContext';
 import ChiReadsScraper from '../services/ChiReadsScraper';
 
 const LibraryScreen = () => {
     const navigation = useNavigation();
     const { theme } = useTheme();
+    const { saveLibraryCache, loadLibraryCache } = useContext(StorageContext);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [data, setData] = useState([]);
     const [page, setPage] = useState(1);
@@ -26,9 +30,26 @@ const LibraryScreen = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false); // Mode recherche vs Mode navigation par défaut
 
-    const loadBooks = useCallback(async () => {
+    const loadBooks = useCallback(async (forceRefresh = false) => {
         try {
-            setLoading(true);
+            if (forceRefresh) {
+                setRefreshing(true);
+            } else {
+                setLoading(true);
+            }
+
+            // Try content from cache first if not forcing refresh
+            if (!forceRefresh && !isSearching) {
+                const cachedData = await loadLibraryCache();
+                if (cachedData && cachedData.length > 0) {
+                    setData(cachedData);
+                    setLoading(false);
+                    // We can return here, allowing silent update or just using cache
+                    // If we want to strictly use cache until refresh:
+                    return;
+                }
+            }
+
             setData([]);
             setHasMore(false); // No more demand-paging needed
 
@@ -40,8 +61,8 @@ const LibraryScreen = () => {
 
             const allBooks = [];
             const fetchCategory = async (category, totalPages) => {
-                // Limit to a reasonable number to avoid long hangs if site structure changes
-                const maxPages = Math.min(totalPages, 20);
+                // Determine actual pages to fetch, with a safety cap for huge anomalies
+                const maxPages = Math.min(totalPages, 100);
                 const pagePromises = [];
                 for (let p = 1; p <= maxPages; p++) {
                     pagePromises.push(ChiReadsScraper.getAllBooks(p, category));
@@ -67,18 +88,22 @@ const LibraryScreen = () => {
             const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title));
             setData(sortedBooks);
 
+            // Save to cache
+            await saveLibraryCache(sortedBooks);
+
         } catch (error) {
             console.error('Failed to load library', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
             setLoadingMore(false);
         }
-    }, []);
+    }, [isSearching, loadLibraryCache, saveLibraryCache]);
 
     const performSearch = useCallback(async (query) => {
         if (!query.trim()) {
             setIsSearching(false);
-            loadBooks();
+            loadBooks(false); // Reload from cache or fetch
             return;
         }
 
@@ -109,6 +134,10 @@ const LibraryScreen = () => {
     const handleLoadMore = () => {
         // Disabled since we load everything at once
     };
+
+    const onRefresh = useCallback(() => {
+        loadBooks(true);
+    }, [loadBooks]);
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
@@ -166,6 +195,14 @@ const LibraryScreen = () => {
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
                     contentContainerStyle={styles.listContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={[theme.tint]}
+                            tintColor={theme.tint}
+                        />
+                    }
                     ListEmptyComponent={
                         <View style={styles.centerContainer}>
                             <Text style={{ color: theme.text }}>Aucun résultat.</Text>

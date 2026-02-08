@@ -369,11 +369,23 @@ const ChiReadsScraper = {
             const $ = cheerio.load(response.data);
 
             let lastPage = 1;
-            $('.pagination a, .page-numbers a, .nav-links a').each((i, elem) => {
+            $('.pagination a, .page-numbers a, .nav-links a, .wp-pagenavi a, .pd55 a').each((i, elem) => {
                 const text = $(elem).text().trim();
                 const num = parseInt(text);
                 if (!isNaN(num) && num > lastPage) {
                     lastPage = num;
+                }
+
+                // Fallback: check href for page number (e.g. /page/5/)
+                const href = $(elem).attr('href');
+                if (href) {
+                    const match = href.match(/\/page\/(\d+)\/?/);
+                    if (match) {
+                        const pNum = parseInt(match[1]);
+                        if (!isNaN(pNum) && pNum > lastPage) {
+                            lastPage = pNum;
+                        }
+                    }
                 }
             });
 
