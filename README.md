@@ -7,7 +7,7 @@ Application Android pour lire des romans (web novels) depuis le site **chireads.
 ## ✨ Fonctionnalités
 
 - **📚 Catalogue complet** : Accès aux romans "En Vedette" et "Dernières Mises à Jour"
-- **🔍 Recherche** : Recherchez vos romans préférés par titre
+- **🔍 Recherche Instantanée** : Recherchez vos romans préférés instantanément (supporte les accents et la recherche floue)
 - **❤️ Favoris** : Sauvegardez vos romans préférés pour un accès rapide
 - **🕐 Suivi de lecture** : Reprenez votre lecture exactement là où vous l'avez laissée
 - **📖 Lecteur optimisé** : 
@@ -265,7 +265,7 @@ Ce projet est personnel mais les suggestions sont les bienvenues !
 ## 📝 Notes de développement
 
 - **Dernière mise à jour** : Février 2026
-- **Version** : 1.2.0
+- **Version** : 1.5.1
 - **Stack** : React Native + Expo + Cheerio
 
 ---
