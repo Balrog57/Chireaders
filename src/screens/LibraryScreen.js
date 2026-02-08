@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
-    Image,
     RefreshControl,
     StyleSheet,
     Text,
@@ -158,7 +158,12 @@ const LibraryScreen = () => {
             style={styles.itemContainer}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
         >
-            <Image source={{ uri: item.image }} style={styles.itemImage} />
+            <Image
+                source={{ uri: item.image }}
+                style={styles.itemImage}
+                contentFit="cover"
+                transition={500}
+            />
             <View style={styles.itemContent}>
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
             </View>
