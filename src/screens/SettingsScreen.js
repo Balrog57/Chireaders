@@ -243,7 +243,7 @@ const SettingsScreen = ({ navigation }) => {
                 </View>
 
                 <Text style={[styles.version, { color: theme.textSecondary }]}>
-                    Version 1.3.4
+                    Version {packageJson.version}
                 </Text>
 
             </ScrollView>
