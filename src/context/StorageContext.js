@@ -490,6 +490,16 @@ export const StorageProvider = ({ children }) => {
         }
     }, [readChapters, isChapterRead, markChapterAsRead]);
 
+
+    // ===== LIBRARY CACHE =====
+    const saveLibraryCache = useCallback(async (data) => {
+        return await BackupService.saveLibraryCache(data);
+    }, []);
+
+    const loadLibraryCache = useCallback(async () => {
+        return await BackupService.loadLibraryCache();
+    }, []);
+
     return (
         <StorageContext.Provider value={{
             // État
@@ -518,11 +528,12 @@ export const StorageProvider = ({ children }) => {
             toggleChapterRead, // compatibilité
 
             // Settings
-            // Settings
             updateSettings,
 
             // Backup
-            reloadData
+            reloadData,
+            saveLibraryCache,
+            loadLibraryCache
         }}>
             {children}
         </StorageContext.Provider>

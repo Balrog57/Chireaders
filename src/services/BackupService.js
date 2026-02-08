@@ -154,6 +154,84 @@ const BackupService = {
             console.error("Restore failed:", error);
         }
         return null;
+    },
+
+    /**
+     * Save content to a specific file in the backup folder.
+     * @param {string} filename - Name of the file.
+     * @param {string} content - Content to save.
+     */
+    async saveFile(filename, content) {
+        try {
+            const folderUri = await this.getBackupFolder();
+            if (!folderUri) return false;
+
+            // Check if file exists
+            const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
+            const existingFile = files.find(uri => decodeURIComponent(uri).includes(filename));
+
+            if (existingFile) {
+                await StorageAccessFramework.writeAsStringAsync(existingFile, content);
+                console.log(`File ${filename} updated successfully.`);
+            } else {
+                const newFileUri = await StorageAccessFramework.createFileAsync(folderUri, filename, 'application/json');
+                await StorageAccessFramework.writeAsStringAsync(newFileUri, content);
+                console.log(`File ${filename} created successfully.`);
+            }
+            return true;
+        } catch (error) {
+            console.error(`Failed to save file ${filename}:`, error);
+            return false;
+        }
+    },
+
+    /**
+     * Read content from a specific file in the backup folder.
+     * @param {string} filename - Name of the file.
+     * @returns {string|null} Content of the file or null if not found/error.
+     */
+    async readFile(filename) {
+        try {
+            const folderUri = await this.getBackupFolder();
+            if (!folderUri) return null;
+
+            const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
+            const fileUri = files.find(uri => decodeURIComponent(uri).includes(filename));
+
+            if (fileUri) {
+                return await StorageAccessFramework.readAsStringAsync(fileUri);
+            }
+            return null;
+        } catch (error) {
+            console.error(`Failed to read file ${filename}:`, error);
+            return null;
+        }
+    },
+
+    /**
+     * Save library cache to file.
+     * @param {Array} data - Library data to save.
+     */
+    async saveLibraryCache(data) {
+        const content = JSON.stringify(data);
+        return await this.saveFile('chireaders_library_cache.json', content);
+    },
+
+    /**
+     * Load library cache from file.
+     * @returns {Array|null} Library data or null.
+     */
+    async loadLibraryCache() {
+        const content = await this.readFile('chireaders_library_cache.json');
+        if (content) {
+            try {
+                return JSON.parse(content);
+            } catch (e) {
+                console.error("Failed to parse library cache", e);
+                return null;
+            }
+        }
+        return null;
     }
 };
 
