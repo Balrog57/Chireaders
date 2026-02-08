@@ -69,7 +69,34 @@ const SettingsScreen = ({ navigation }) => {
             const uri = await BackupService.requestBackupFolder();
             if (uri) {
                 setBackupFolder(uri);
-                Alert.alert("Succès", "Dossier de sauvegarde configuré. Vos données seront sauvegardées automatiquement.");
+
+                // Check if a backup exists in this folder to offer immediate restore
+                const existingData = await BackupService.restoreFromBackup(uri);
+                if (existingData) {
+                    Alert.alert(
+                        "Sauvegarde trouvée",
+                        "Une sauvegarde existante a été trouvée dans ce dossier. Voulez-vous restaurer vos données maintenant ?",
+                        [
+                            { text: "Plus tard", style: "cancel" },
+                            {
+                                text: "Restaurer",
+                                onPress: async () => {
+                                    setIsRestoring(true);
+                                    try {
+                                        await reloadData(existingData);
+                                        Alert.alert("Succès", "Données restaurées !");
+                                    } catch (err) {
+                                        Alert.alert("Erreur", "Échec de la restauration.");
+                                    } finally {
+                                        setIsRestoring(false);
+                                    }
+                                }
+                            }
+                        ]
+                    );
+                } else {
+                    Alert.alert("Succès", "Dossier de sauvegarde configuré. Vos données seront sauvegardées automatiquement.");
+                }
             } else {
                 Alert.alert("Information", "Aucun dossier n'a été sélectionné.");
             }

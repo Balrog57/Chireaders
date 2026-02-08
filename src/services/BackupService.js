@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
 import { StorageAccessFramework } from 'expo-file-system/legacy';
 import { Alert } from 'react-native';
 
@@ -139,10 +138,11 @@ const BackupService = {
             // If we create a file, we get a URI. We should probably store that URI too?
             // But if the user deletes the file, the URI is dead.
 
-            // Let's iterate and check names (decoded).
             for (const fileUri of files) {
-                const info = await FileSystem.getInfoAsync(fileUri);
-                if (info.exists && !info.isDirectory && decodeURIComponent(fileUri).includes(BACKUP_FILE_NAME)) {
+                // SAF URIs usually contain the filename. decodeURIComponent helps handling spaces/special chars.
+                const decodedUri = decodeURIComponent(fileUri);
+                if (decodedUri.includes(BACKUP_FILE_NAME)) {
+                    console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
                     return JSON.parse(content);
                 }
