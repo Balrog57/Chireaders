@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'react-native-cheerio';
+import { isValidChiReadsUrl } from '../utils/URLDetector';
 
 const BASE_URL = 'https://chireads.com';
 const TIMEOUT = 15000; // 15 seconds timeout
@@ -36,8 +37,8 @@ const getSafeUrl = (url) => {
     }
 
     // Domain Check - Ensure we only scrape chireads.com
-    // Robust check: must match BASE_URL exactly OR start with BASE_URL + '/'
-    if (safeUrl !== BASE_URL && !safeUrl.startsWith(`${BASE_URL}/`)) {
+    // Use robust URL validation
+    if (!isValidChiReadsUrl(safeUrl)) {
         return null;
     }
 
