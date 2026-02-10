@@ -55,6 +55,8 @@ const ReaderHeader = ({ visible, title, onBack, onSettings, theme }) => {
                     onPress={onBack}
                     style={styles.button}
                     accessibilityLabel="Retour"
+                    accessibilityRole="button"
+                    accessibilityHint="Retourne à la bibliothèque"
                 >
                     <Ionicons name="arrow-back" size={24} color={theme.icon} />
                 </TouchableOpacity>
@@ -67,6 +69,8 @@ const ReaderHeader = ({ visible, title, onBack, onSettings, theme }) => {
                     onPress={onSettings}
                     style={styles.button}
                     accessibilityLabel="Paramètres"
+                    accessibilityRole="button"
+                    accessibilityHint="Ouvre les paramètres de lecture"
                 >
                     <Ionicons name="text" size={24} color={theme.icon} />
                 </TouchableOpacity>
