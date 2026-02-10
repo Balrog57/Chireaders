@@ -70,7 +70,7 @@ export const detectPageType = (url) => {
  * @returns {string} Le titre formaté
  */
 export const slugToTitle = (slug) => {
-  if (!slug) return '';
+  if (!slug || typeof slug !== 'string') return '';
   
   return slug
     .split('-')
@@ -97,8 +97,15 @@ export const extractChapterNumber = (chapterSlug) => {
  * @returns {boolean} True si l'URL est valide
  */
 export const isValidChiReadsUrl = (url) => {
-  if (!url) return false;
-  return url.startsWith('https://chireads.com') || url.startsWith('http://chireads.com');
+  if (!url || typeof url !== 'string') return false;
+
+  try {
+    const parsedUrl = new URL(url);
+    // Strict domain check: must be exactly chireads.com (no subdomains unless whitelisted)
+    return parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'chireads.com';
+  } catch (e) {
+    return false;
+  }
 };
 
 export default {
