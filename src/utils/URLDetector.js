@@ -97,8 +97,16 @@ export const extractChapterNumber = (chapterSlug) => {
  * @returns {boolean} True si l'URL est valide
  */
 export const isValidChiReadsUrl = (url) => {
-  if (!url) return false;
-  return url.startsWith('https://chireads.com') || url.startsWith('http://chireads.com');
+  if (typeof url !== 'string' || !url) return false;
+
+  try {
+    const parsed = new URL(url);
+    // Allow both HTTP and HTTPS, but strictly validate the domain
+    return (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
+      parsed.hostname === 'chireads.com';
+  } catch {
+    return false;
+  }
 };
 
 export default {
