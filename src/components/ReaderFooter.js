@@ -63,6 +63,10 @@ const ReaderFooter = ({
                     onPress={onPrev}
                     disabled={!hasPrev}
                     style={[styles.button, !hasPrev && styles.disabled]}
+                    accessibilityLabel="Chapitre précédent"
+                    accessibilityHint="Aller au chapitre précédent"
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !hasPrev }}
                 >
                     <Ionicons name="chevron-back" size={28} color={hasPrev ? theme.icon : theme.text + '50'} />
                 </TouchableOpacity>
@@ -70,6 +74,9 @@ const ReaderFooter = ({
                 <TouchableOpacity
                     onPress={onChapters}
                     style={styles.button}
+                    accessibilityLabel="Liste des chapitres"
+                    accessibilityHint="Afficher la liste des chapitres"
+                    accessibilityRole="button"
                 >
                     <Ionicons name="list" size={28} color={theme.icon} />
                 </TouchableOpacity>
@@ -78,6 +85,10 @@ const ReaderFooter = ({
                     onPress={onNext}
                     disabled={!hasNext}
                     style={[styles.button, !hasNext && styles.disabled]}
+                    accessibilityLabel="Chapitre suivant"
+                    accessibilityHint="Aller au chapitre suivant"
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !hasNext }}
                 >
                     <Ionicons name="chevron-forward" size={28} color={hasNext ? theme.icon : theme.text + '50'} />
                 </TouchableOpacity>
