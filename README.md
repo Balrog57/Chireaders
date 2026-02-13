@@ -271,3 +271,7 @@ Ce projet est personnel mais les suggestions sont les bienvenues !
 ---
 
 *Développé avec ❤️ pour les lecteurs de ChiReads.*
+
+
+### ⚠️ Deprecation Notice
+The branch `bolt/optimize-images` is superseded by v1.5.2 integration.
