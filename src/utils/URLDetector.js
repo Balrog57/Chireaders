@@ -7,13 +7,13 @@
 export const URL_PATTERNS = {
   // Page d'une série: https://chireads.com/category/translatedtales/super-gene/
   series: /\/category\/translatedtales\/([^\/]+)\/?$/,
-  
+
   // Page d'un chapitre: https://chireads.com/translatedtales/super-gene/chapitre-1-.../
   chapter: /\/translatedtales\/([^\/]+)\/(chapitre-[^\/]+)/,
-  
+
   // Page d'accueil
   home: /^https:\/\/chireads\.com\/?$/,
-  
+
   // Catégorie (liste des séries)
   category: /\/category\/translatedtales\/?$/
 };
@@ -25,7 +25,7 @@ export const URL_PATTERNS = {
  */
 export const detectPageType = (url) => {
   if (!url) return { type: 'unknown' };
-  
+
   // Test série
   if (URL_PATTERNS.series.test(url)) {
     const match = url.match(URL_PATTERNS.series);
@@ -35,7 +35,7 @@ export const detectPageType = (url) => {
       seriesUrl: url
     };
   }
-  
+
   // Test chapitre
   if (URL_PATTERNS.chapter.test(url)) {
     const match = url.match(URL_PATTERNS.chapter);
@@ -49,17 +49,17 @@ export const detectPageType = (url) => {
       chapterUrl: url
     };
   }
-  
+
   // Test catégorie
   if (URL_PATTERNS.category.test(url)) {
     return { type: 'category' };
   }
-  
+
   // Test accueil
   if (URL_PATTERNS.home.test(url)) {
     return { type: 'home' };
   }
-  
+
   return { type: 'other' };
 };
 
@@ -71,7 +71,7 @@ export const detectPageType = (url) => {
  */
 export const slugToTitle = (slug) => {
   if (!slug) return '';
-  
+
   return slug
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -86,7 +86,7 @@ export const slugToTitle = (slug) => {
  */
 export const extractChapterNumber = (chapterSlug) => {
   if (!chapterSlug) return null;
-  
+
   const match = chapterSlug.match(/chapitre-(\d+)/);
   return match ? match[1] : null;
 };
@@ -98,7 +98,18 @@ export const extractChapterNumber = (chapterSlug) => {
  */
 export const isValidChiReadsUrl = (url) => {
   if (!url) return false;
-  return url.startsWith('https://chireads.com') || url.startsWith('http://chireads.com');
+  try {
+    const parsedUrl = new URL(url);
+    // Strict hostname validation to prevent domain spoofing
+    const validHostnames = ['chireads.com', 'www.chireads.com'];
+    return (
+      validHostnames.includes(parsedUrl.hostname) &&
+      (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:')
+    );
+  } catch (e) {
+    // URL constructor throws if url is invalid
+    return false;
+  }
 };
 
 export default {

@@ -251,6 +251,9 @@ const ReaderScreen = () => {
                             <TouchableOpacity
                                 onPress={() => setShowChapterList(false)}
                                 style={{ padding: 5 }}
+                                accessibilityLabel="Fermer la liste des chapitres"
+                                accessibilityRole="button"
+                                accessibilityHint="Ferme la fenêtre modale"
                             >
                                 <Ionicons name="close" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
@@ -303,6 +306,9 @@ const ReaderScreen = () => {
                             <TouchableOpacity
                                 onPress={() => setShowSettings(false)}
                                 style={{ padding: 5 }}
+                                accessibilityLabel="Fermer les paramètres"
+                                accessibilityRole="button"
+                                accessibilityHint="Ferme la fenêtre modale"
                             >
                                 <Ionicons name="close" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
@@ -328,12 +334,18 @@ const ReaderScreen = () => {
                             <TouchableOpacity
                                 onPress={() => saveSettings(Math.max(10, fontSize - 2), null)}
                                 style={styles.fontBtn}
+                                accessibilityLabel="Diminuer la taille du texte"
+                                accessibilityRole="button"
+                                accessibilityHint="Réduit la taille de la police"
                             >
                                 <Ionicons name="remove" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => saveSettings(Math.min(40, fontSize + 2), null)}
                                 style={styles.fontBtn}
+                                accessibilityLabel="Augmenter la taille du texte"
+                                accessibilityRole="button"
+                                accessibilityHint="Augmente la taille de la police"
                             >
                                 <Ionicons name="add" size={24} color={currentTheme.text} />
                             </TouchableOpacity>

@@ -54,7 +54,7 @@ TaskManager.defineTask(TASK_NAME, async () => {
                                 content: {
                                     title: `Nouveau chapitre : ${fav.title}`,
                                     body: `Le chapitre "${latestChapter.title}" est disponible !`,
-                                    data: { url: fav.url }, // Navigate to detail on tap
+                                    data: { url: fav.url, title: fav.title }, // Navigate to detail on tap
                                 },
                                 trigger: null, // Send immediately
                             });

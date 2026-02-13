@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
@@ -20,6 +20,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+export const navigationRef = createNavigationContainerRef();
 
 function MainTabs() {
     const { theme, isDarkMode } = useTheme();
@@ -90,7 +91,7 @@ function AppContent() {
     const { isDarkMode } = useTheme();
 
     return (
-        <NavigationContainer theme={isDarkMode ? DarkTheme : DefaultTheme}>
+        <NavigationContainer ref={navigationRef} theme={isDarkMode ? DarkTheme : DefaultTheme}>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Main" component={MainTabs} />
                 <Stack.Screen name="NovelDetail" component={NovelDetailScreen} />
@@ -117,7 +118,25 @@ export default function App() {
         };
 
         const timer = setTimeout(initNotifications, 3000);
-        return () => clearTimeout(timer);
+
+        // Listener for notification interaction (tap)
+        const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+            const data = response.notification.request.content.data;
+            if (data && data.url) {
+                console.log('Notification tapped, navigating to:', data.url);
+                if (navigationRef.isReady()) {
+                    navigationRef.navigate('NovelDetail', {
+                        url: data.url,
+                        title: data.title || 'Détails' // Fallback title
+                    });
+                }
+            }
+        });
+
+        return () => {
+            clearTimeout(timer);
+            subscription.remove();
+        };
     }, []);
 
     return (

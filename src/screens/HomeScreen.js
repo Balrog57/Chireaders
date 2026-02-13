@@ -1,11 +1,11 @@
 
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { Image } from 'expo-image';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
-    Image,
     Linking,
     RefreshControl,
     ScrollView,
@@ -58,19 +58,25 @@ const HomeScreen = () => {
     };
 
     // Style Helpers
-    const containerStyle = [styles.container, { backgroundColor: theme.background }];
-    const headerStyle = [styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }];
-    const textStyle = { color: theme.text };
+    const containerStyle = useMemo(() => [styles.container, { backgroundColor: theme.background }], [theme.background]);
+    const headerStyle = useMemo(() => [styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }], [theme.card, theme.border]);
+    const textStyle = useMemo(() => ({ color: theme.text }), [theme.text]);
 
-    const renderBookItem = ({ item }) => (
+    const renderBookItem = useCallback(({ item }) => (
         <TouchableOpacity
             style={styles.bookItem}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
         >
-            <Image source={{ uri: item.image }} style={styles.bookImage} />
+            <Image
+                source={{ uri: item.image }}
+                style={styles.bookImage}
+                contentFit="cover"
+                transition={500}
+                cachePolicy="memory-disk"
+            />
             <Text style={[styles.bookTitle, textStyle]} numberOfLines={2}>{item.title}</Text>
         </TouchableOpacity>
-    );
+    ), [navigation, textStyle]);
 
     const renderSection = (title, data) => {
         if (!data || data.length === 0) return null;
@@ -91,7 +97,7 @@ const HomeScreen = () => {
         );
     };
 
-    const renderLatestItem = ({ item }) => (
+    const renderLatestItem = useCallback(({ item }) => (
         <View style={[styles.latestItem, { borderBottomColor: theme.border }]}>
             <TouchableOpacity
                 style={styles.latestInfo}
@@ -107,7 +113,7 @@ const HomeScreen = () => {
                 <Text style={styles.dateText}>{item.latestChapter.date}</Text>
             </TouchableOpacity>
         </View>
-    );
+    ), [navigation, textStyle, theme.border, theme.tint]);
 
     if (loading) {
         return (
