@@ -98,7 +98,18 @@ export const extractChapterNumber = (chapterSlug) => {
  */
 export const isValidChiReadsUrl = (url) => {
   if (!url) return false;
-  return url.startsWith('https://chireads.com') || url.startsWith('http://chireads.com');
+  try {
+    const parsedUrl = new URL(url);
+    // Strict hostname validation to prevent domain spoofing
+    const validHostnames = ['chireads.com', 'www.chireads.com'];
+    return (
+      validHostnames.includes(parsedUrl.hostname) &&
+      (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:')
+    );
+  } catch (e) {
+    // URL constructor throws if url is invalid
+    return false;
+  }
 };
 
 export default {
