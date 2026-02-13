@@ -1,11 +1,11 @@
 
-import { Image } from 'expo-image';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Image,
     Linking,
     RefreshControl,
     ScrollView,
@@ -67,13 +67,7 @@ const HomeScreen = () => {
             style={styles.bookItem}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
         >
-            <Image
-                source={{ uri: item.image }}
-                style={styles.bookImage}
-                contentFit="cover"
-                transition={500}
-                cachePolicy="memory-disk"
-            />
+            <Image source={{ uri: item.image }} style={styles.bookImage} />
             <Text style={[styles.bookTitle, textStyle]} numberOfLines={2}>{item.title}</Text>
         </TouchableOpacity>
     );
