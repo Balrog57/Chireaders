@@ -5,6 +5,24 @@ import { Alert } from 'react-native';
 const BACKUP_FILE_NAME = 'chireaders_backup.json';
 const BACKUP_FOLDER_KEY = 'backup_folder_uri';
 
+/**
+ * Helper to securely check if a URI matches a specific filename.
+ * Prevents partial suffix matches (e.g., "evil_backup.json" matching "backup.json").
+ */
+const isFileMatch = (uri, filename) => {
+    if (!uri || !filename) return false;
+    try {
+        const decoded = decodeURIComponent(uri);
+        // Check for exact filename match at the end of the path, preceded by a path separator
+        // or check if it is the filename itself (unlikely for a URI but safe to include)
+        return decoded.endsWith('/' + filename) ||
+               decoded.endsWith(':' + filename) ||
+               decoded === filename;
+    } catch (e) {
+        return false;
+    }
+};
+
 /*
  * BackupService handles automatic backup to a user-selected folder using SAF.
  */
@@ -70,7 +88,8 @@ const BackupService = {
             // Best approach: try to find the file first.
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const backupFile = files.find(uri => uri.includes(BACKUP_FILE_NAME)); // Basic check, uri contains filename usually
+            // Secure check ensuring we match the exact filename, not just a substring
+            const backupFile = files.find(uri => isFileMatch(uri, BACKUP_FILE_NAME));
 
             let targetUri = backupFile;
 
@@ -139,9 +158,8 @@ const BackupService = {
             // But if the user deletes the file, the URI is dead.
 
             for (const fileUri of files) {
-                // SAF URIs usually contain the filename. decodeURIComponent helps handling spaces/special chars.
-                const decodedUri = decodeURIComponent(fileUri);
-                if (decodedUri.includes(BACKUP_FILE_NAME)) {
+                // Use secure matching instead of loose substring check
+                if (isFileMatch(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
                     return JSON.parse(content);
@@ -166,9 +184,9 @@ const BackupService = {
             const folderUri = await this.getBackupFolder();
             if (!folderUri) return false;
 
-            // Check if file exists
+            // Check if file exists using secure matching
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const existingFile = files.find(uri => decodeURIComponent(uri).includes(filename));
+            const existingFile = files.find(uri => isFileMatch(uri, filename));
 
             if (existingFile) {
                 await StorageAccessFramework.writeAsStringAsync(existingFile, content);
@@ -196,7 +214,7 @@ const BackupService = {
             if (!folderUri) return null;
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const fileUri = files.find(uri => decodeURIComponent(uri).includes(filename));
+            const fileUri = files.find(uri => isFileMatch(uri, filename));
 
             if (fileUri) {
                 return await StorageAccessFramework.readAsStringAsync(fileUri);
