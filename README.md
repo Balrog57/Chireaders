@@ -124,11 +124,8 @@ npm run web
   - [x] Barre de progression
 - [x] **Écran favoris** complet
 - [x] **Continuer la lecture** depuis l'accueil
-
-### 🚧 En Cours / Améliorations Futures
-
 - [x] **Mode paysage** optimisé pour tablettes
-- [x] **Notifications** de nouveaux chapitres
+- [x] **Notifications** de nouveaux chapitres (avec navigation directe)
 - [x] **Sélection de texte** et copie (comme sur navigateur)
 - [x] **Historique** (via suivi des chapitres lus)
 
@@ -137,8 +134,9 @@ npm run web
 | Problème | Statut | Solution temporaire |
 |----------|--------|---------------------|
 | CORS sur navigateur web | ✅ Normal | Utiliser l'app Android/émulateur |
-| Temps de chargement longs | 🔄 Optimisation en cours | Patienter pendant le chargement |
+| Temps de chargement longs | ⚡ Optimisé (expo-image) | Patienter pendant le chargement |
 | Certains romans sans image | 🔄 Investigation | Placeholder affiché automatiquement |
+| Notifications sur Expo Go | ⚠️ Limitation Expo | Utiliser un build de développement/production |
 
 ---
 
@@ -196,16 +194,17 @@ npx expo prebuild -p android
 chireaders/
 ├── src/
 │   ├── screens/
-│   │   ├── HomeScreen.js          # Page d'accueil
+│   │   ├── HomeScreen.js          # Page d'accueil (optimisée avec expo-image)
 │   │   ├── NovelDetailScreen.js   # Détails d'un roman
-│   │   ├── ReaderScreen.js        # Lecteur de chapitre
+│   │   ├── ReaderScreen.js        # Lecteur de chapitre (accessible)
 │   │   └── FavoritesScreen.js     # Liste des favoris
 │   ├── services/
-│   │   ├── ChiReadsScraper.js     # Scraper du site
+│   │   ├── ChiReadsScraper.js     # Scraper sécurisé
+│   │   ├── NotificationService.js # Gestion des notifications locales
 │   │   └── BackgroundNotificationTask.js # Tâche de fond pour notifications
 │   └── context/
 │       └── StorageContext.js      # Gestion des données locales
-├── App.js                         # Point d'entrée
+├── App.js                         # Point d'entrée (avec navigation globale)
 ├── metro.config.js               # Configuration Metro
 ├── app.json                      # Configuration Expo (+ plugins)
 └── package.json
@@ -265,8 +264,8 @@ Ce projet est personnel mais les suggestions sont les bienvenues !
 ## 📝 Notes de développement
 
 - **Dernière mise à jour** : Février 2026
-- **Version** : 1.5.1
-- **Stack** : React Native + Expo + Cheerio
+- **Version** : 1.5.2
+- **Stack** : React Native + Expo + Cheerio + Expo Image
 
 ---
 
