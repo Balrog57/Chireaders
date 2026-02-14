@@ -140,21 +140,45 @@ const HomeScreen = () => {
 
                 <View style={styles.headerIcons}>
                     {/* Discord Icon */}
-                    <TouchableOpacity onPress={() => openLink('https://discordapp.com/invite/mMDsVAa')} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={() => openLink('https://discordapp.com/invite/mMDsVAa')}
+                        style={styles.iconButton}
+                        accessibilityLabel="Rejoindre notre Discord"
+                        accessibilityRole="button"
+                        accessibilityHint="Ouvre l'application Discord ou le navigateur"
+                    >
                         <FontAwesome5 name="discord" size={24} color={themeMode === 'dark' ? "#7289da" : "#5865F2"} />
                     </TouchableOpacity>
 
                     {/* Website Icon */}
-                    <TouchableOpacity onPress={() => openLink('https://chireads.com/')} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={() => openLink('https://chireads.com/')}
+                        style={styles.iconButton}
+                        accessibilityLabel="Visiter le site ChiReads"
+                        accessibilityRole="button"
+                        accessibilityHint="Ouvre le site web dans le navigateur"
+                    >
                         <FontAwesome5 name="globe" size={22} color={theme.text} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Settings')}
+                        style={styles.iconButton}
+                        accessibilityLabel="Paramètres"
+                        accessibilityRole="button"
+                        accessibilityHint="Ouvre l'écran des paramètres"
+                    >
                         <Ionicons name="settings-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
 
                     {/* Theme Toggle */}
-                    <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={toggleTheme}
+                        style={styles.iconButton}
+                        accessibilityLabel="Changer le mode d'affichage"
+                        accessibilityRole="button"
+                        accessibilityHint="Bascule entre mode clair, sombre et sépia"
+                    >
                         <Ionicons name={getThemeIcon()} size={24} color={theme.text} />
                     </TouchableOpacity>
                 </View>
