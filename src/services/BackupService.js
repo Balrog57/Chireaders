@@ -5,6 +5,18 @@ import { Alert } from 'react-native';
 const BACKUP_FILE_NAME = 'chireaders_backup.json';
 const BACKUP_FOLDER_KEY = 'backup_folder_uri';
 
+/**
+ * Helper to check if a file URI matches a specific filename.
+ * Prevents partial matches (e.g. 'old_backup.json' matching 'backup.json').
+ * This is a security enhancement to avoid ambiguous file matching.
+ */
+const isFileMatch = (uri, filename) => {
+    if (!uri || !filename) return false;
+    const decoded = decodeURIComponent(uri);
+    // SAF URIs usually end with the filename, preceded by '/' or ':'
+    return decoded.endsWith('/' + filename) || decoded.endsWith(':' + filename);
+};
+
 /*
  * BackupService handles automatic backup to a user-selected folder using SAF.
  */
@@ -70,7 +82,7 @@ const BackupService = {
             // Best approach: try to find the file first.
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const backupFile = files.find(uri => uri.includes(BACKUP_FILE_NAME)); // Basic check, uri contains filename usually
+            const backupFile = files.find(uri => isFileMatch(uri, BACKUP_FILE_NAME)); // Secure match
 
             let targetUri = backupFile;
 
@@ -139,9 +151,7 @@ const BackupService = {
             // But if the user deletes the file, the URI is dead.
 
             for (const fileUri of files) {
-                // SAF URIs usually contain the filename. decodeURIComponent helps handling spaces/special chars.
-                const decodedUri = decodeURIComponent(fileUri);
-                if (decodedUri.includes(BACKUP_FILE_NAME)) {
+                if (isFileMatch(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
                     return JSON.parse(content);
@@ -168,7 +178,7 @@ const BackupService = {
 
             // Check if file exists
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const existingFile = files.find(uri => decodeURIComponent(uri).includes(filename));
+            const existingFile = files.find(uri => isFileMatch(uri, filename));
 
             if (existingFile) {
                 await StorageAccessFramework.writeAsStringAsync(existingFile, content);
@@ -196,7 +206,7 @@ const BackupService = {
             if (!folderUri) return null;
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const fileUri = files.find(uri => decodeURIComponent(uri).includes(filename));
+            const fileUri = files.find(uri => isFileMatch(uri, filename));
 
             if (fileUri) {
                 return await StorageAccessFramework.readAsStringAsync(fileUri);
