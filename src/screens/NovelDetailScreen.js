@@ -184,6 +184,10 @@ const NovelDetailScreen = () => {
                         <TouchableOpacity
                             style={[styles.favButton, isFav ? styles.favButtonActive : { backgroundColor: theme.border }]}
                             onPress={toggleFavorite}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isFav }}
+                            accessibilityLabel={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                            accessibilityHint="Double-taper pour modifier"
                         >
                             <Ionicons name={isFav ? "heart" : "heart-outline"} size={20} color={isFav ? "#fff" : theme.text} />
                             <Text style={[styles.favButtonText, { color: isFav ? "#fff" : theme.text }]}>
@@ -195,6 +199,9 @@ const NovelDetailScreen = () => {
                             <TouchableOpacity
                                 style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
                                 onPress={handleResume}
+                                accessibilityRole="button"
+                                accessibilityLabel="Reprendre la lecture"
+                                accessibilityHint="Ouvrir le dernier chapitre lu"
                             >
                                 <Ionicons name="play" size={20} color="#fff" />
                                 <Text style={styles.resumeButtonText}>Reprendre</Text>
@@ -257,7 +264,12 @@ const NovelDetailScreen = () => {
 
                 <View style={[styles.chaptersHeader, { backgroundColor: theme.sectionHeaderUser }]}>
                     <Text style={[styles.sectionTitle, { color: theme.text }]}>Chapitres ({details.chapters.length})</Text>
-                    <TouchableOpacity onPress={() => setReversed(!reversed)}>
+                    <TouchableOpacity
+                        onPress={() => setReversed(!reversed)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Inverser l'ordre des chapitres"
+                        accessibilityHint={reversed ? "Trier du plus ancien au plus récent" : "Trier du plus récent au plus ancien"}
+                    >
                         <Ionicons name="swap-vertical" size={20} color={theme.tint} />
                     </TouchableOpacity>
                 </View>
@@ -355,6 +367,10 @@ const NovelDetailScreen = () => {
                                                 onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
                                                 onLongPress={() => handleGroupLongPress(bucket)}
                                                 delayLongPress={500}
+                                                accessibilityRole="button"
+                                                accessibilityState={{ expanded: isExpanded }}
+                                                accessibilityLabel={`Chapitres ${bucket.start} à ${bucket.end}`}
+                                                accessibilityHint={isExpanded ? "Réduire la liste des chapitres" : "Développer la liste des chapitres"}
                                             >
                                                 <Text style={[styles.accordionTitle, { color: theme.text }]}>
                                                     Chapitres {bucket.start} - {bucket.end}
