@@ -112,7 +112,7 @@ const ReaderScreen = () => {
             }
 
             if (scrollViewRef.current) {
-                scrollViewRef.current.scrollTo({ y: 0, animated: false });
+                scrollViewRef.current.scrollToOffset({ offset: 0, animated: false });
             }
         } catch (error) {
             console.error('Error loading chapter:', error);
@@ -139,6 +139,34 @@ const ReaderScreen = () => {
         .runOnJS(true);
 
     const currentTheme = THEMES[theme];
+
+    const renderItem = React.useCallback(({ item }) => {
+        return (
+            <Text
+                style={[
+                    styles.paragraph,
+                    {
+                        color: currentTheme.text,
+                        fontSize: fontSize,
+                        lineHeight: fontSize * 1.5
+                    }
+                ]}
+                selectable={false}
+            >
+                {item}
+            </Text>
+        );
+    }, [currentTheme, fontSize]);
+
+    const renderHeader = React.useCallback(() => (
+        <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
+            {chapter.title}
+        </Text>
+    ), [currentTheme, chapter.title]);
+
+    const renderFooter = React.useCallback(() => (
+        <View style={{ height: 100 }} />
+    ), []);
 
     if (loading) {
         return (
@@ -178,42 +206,27 @@ const ReaderScreen = () => {
             />
 
             <GestureDetector gesture={tapGesture}>
-                <Animated.ScrollView
+                {/* Optimized: Use FlatList for virtualization of long chapters */}
+                <Animated.FlatList
                     ref={scrollViewRef}
+                    data={chapter.content || []}
+                    renderItem={renderItem}
+                    extraData={[currentTheme, fontSize]}
+                    keyExtractor={(item, index) => index.toString()}
+                    ListHeaderComponent={renderHeader}
+                    ListFooterComponent={renderFooter}
                     contentContainerStyle={[
                         styles.scrollContent,
                         {
-                            paddingTop: 80, // Space for header + extra
-                            paddingBottom: insets.bottom + 80 // Space for footer + safe area + extra
+                            paddingTop: 80,
+                            paddingBottom: insets.bottom + 80
                         }
                     ]}
                     style={{ flex: 1 }}
-                >
-                    <View>
-                        <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
-                            {chapter.title}
-                        </Text>
-
-                        {chapter.content && chapter.content.map((para, index) => (
-                            <Text
-                                key={index}
-                                style={[
-                                    styles.paragraph,
-                                    {
-                                        color: currentTheme.text,
-                                        fontSize: fontSize,
-                                        lineHeight: fontSize * 1.5
-                                    }
-                                ]}
-                                selectable={false}
-                            >
-                                {para}
-                            </Text>
-                        ))}
-
-                        <View style={{ height: 100 }} />
-                    </View>
-                </Animated.ScrollView>
+                    initialNumToRender={15}
+                    maxToRenderPerBatch={10}
+                    windowSize={5}
+                />
             </GestureDetector>
 
             <ReaderFooter
