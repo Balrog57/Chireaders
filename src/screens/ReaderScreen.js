@@ -24,19 +24,22 @@ const THEMES = {
         background: '#ffffff',
         text: '#333333',
         bar: '#f9f9f9',
-        icon: '#333'
+        icon: '#333',
+        label: "Thème clair"
     },
     dark: {
         background: '#1a1a1a',
         text: '#cccccc',
         bar: '#222222',
-        icon: '#aaa'
+        icon: '#aaa',
+        label: "Thème sombre"
     },
     sepia: {
         background: '#f4ecd8',
         text: '#5b4636',
         bar: '#efdec2',
-        icon: '#5b4636'
+        icon: '#5b4636',
+        label: "Thème sépia"
     }
 };
 
@@ -323,6 +326,10 @@ const ReaderScreen = () => {
                                         { backgroundColor: THEMES[t].background, borderWidth: theme === t ? 2 : 1, borderColor: theme === t ? '#e91e63' : '#ccc' }
                                     ]}
                                     onPress={() => saveSettings(null, t)}
+                                    accessibilityLabel={THEMES[t].label}
+                                    accessibilityRole="radio"
+                                    accessibilityState={{ selected: theme === t }}
+                                    accessibilityHint="Change l'apparence du lecteur"
                                 >
                                     <Text style={{ color: THEMES[t].text }}>A</Text>
                                 </TouchableOpacity>
