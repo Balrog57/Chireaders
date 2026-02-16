@@ -5,6 +5,27 @@ import { Alert } from 'react-native';
 const BACKUP_FILE_NAME = 'chireaders_backup.json';
 const BACKUP_FOLDER_KEY = 'backup_folder_uri';
 
+/**
+ * Helper to find a file with exact name match in SAF URIs.
+ * Prevents partial matching vulnerabilities (e.g. "fake_backup.json" matching "backup.json").
+ * @param {string[]} fileUris - Array of file URIs from SAF.
+ * @param {string} filename - The exact filename to look for.
+ * @returns {string|undefined} The matching URI or undefined.
+ */
+const findFileByExactName = (fileUris, filename) => {
+    return fileUris.find(uri => {
+        try {
+            const decoded = decodeURIComponent(uri);
+            // Check for strict suffix match with path separators
+            return decoded.endsWith('/' + filename) ||
+                   decoded.endsWith(':' + filename) ||
+                   decoded === filename;
+        } catch (e) {
+            return false;
+        }
+    });
+};
+
 /*
  * BackupService handles automatic backup to a user-selected folder using SAF.
  */
@@ -70,7 +91,8 @@ const BackupService = {
             // Best approach: try to find the file first.
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const backupFile = files.find(uri => uri.includes(BACKUP_FILE_NAME)); // Basic check, uri contains filename usually
+            // SECURITY FIX: Use strict matching to prevent overwriting wrong files
+            const backupFile = findFileByExactName(files, BACKUP_FILE_NAME);
 
             let targetUri = backupFile;
 
@@ -102,50 +124,14 @@ const BackupService = {
             if (!uri) return null;
 
             const files = await StorageAccessFramework.readDirectoryAsync(uri);
-            // Needs robust finding method. SAF URIs are opaque but often end with filename encoded.
-            // However, we can just look for any file? No, we should look specifically for our backup.
-            // We can iterate and check content? Too slow.
-            // Let's assume file creation resulted in a consistent name if possible, 
-            // but SAF might name it `chireaders_backup (1).json`. 
-            // We should look for the file we created. 
-            // A simple strategy: Look for a file that typically matches our name.
-            // Implementation detail: `createFileAsync` returns a URI. We *could* store that URI,
-            // but the file might be deleted and recreated.
 
-            // Let's filter by name assuming typical SAF behavior or just content type?
-            // SAF doesn't give names easily in `readDirectoryAsync` result (it's just an array of strings).
-            // We might need to keep track of the file URI too, or just Try to read the most recent one?
-            // Wait, standard SAF usage involves parsing the URIs or using `getInfoAsync`.
+            // SECURITY FIX: Use strict matching to prevent reading wrong/malicious files
+            const fileUri = findFileByExactName(files, BACKUP_FILE_NAME);
 
-            // Refined strategy:
-            // 1. Get all files in directory.
-            // 2. We can't easily know the name without `getInfoAsync` on each, which is slow.
-            // 3. BUT, `BACKUP_FILE_NAME` was used to create it. 
-            //    On Android, the URI might usually contain the name.
-            //    Let's try to just find a file that matches our criteria.
-
-            // Actually, for a *User Selected Folder*, we expect it to contain our backup.
-            // Let's try to find our specific file if we can.
-
-            // Workaround: We will just try to read "chireaders_backup.json" if possible? No, SAF doesn't work by path.
-            // We really have to search.
-
-            // Optimization: If we have many files, this is bad. 
-            // But usually this folder is specific or user knows.
-
-            // Let's defer to a simple check:
-            // If we stored the *File URI*, we could try that. But "Auto Backup" implies we write to the same file.
-            // If we create a file, we get a URI. We should probably store that URI too?
-            // But if the user deletes the file, the URI is dead.
-
-            for (const fileUri of files) {
-                // SAF URIs usually contain the filename. decodeURIComponent helps handling spaces/special chars.
-                const decodedUri = decodeURIComponent(fileUri);
-                if (decodedUri.includes(BACKUP_FILE_NAME)) {
-                    console.log("Backup file found:", fileUri);
-                    const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
-                }
+            if (fileUri) {
+                console.log("Backup file found:", fileUri);
+                const content = await StorageAccessFramework.readAsStringAsync(fileUri);
+                return JSON.parse(content);
             }
 
             console.log("No backup file found in folder.");
@@ -168,7 +154,8 @@ const BackupService = {
 
             // Check if file exists
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const existingFile = files.find(uri => decodeURIComponent(uri).includes(filename));
+            // SECURITY FIX: Use strict matching
+            const existingFile = findFileByExactName(files, filename);
 
             if (existingFile) {
                 await StorageAccessFramework.writeAsStringAsync(existingFile, content);
@@ -196,7 +183,8 @@ const BackupService = {
             if (!folderUri) return null;
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const fileUri = files.find(uri => decodeURIComponent(uri).includes(filename));
+            // SECURITY FIX: Use strict matching
+            const fileUri = findFileByExactName(files, filename);
 
             if (fileUri) {
                 return await StorageAccessFramework.readAsStringAsync(fileUri);
