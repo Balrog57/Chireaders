@@ -184,6 +184,8 @@ const NovelDetailScreen = () => {
                         <TouchableOpacity
                             style={[styles.favButton, isFav ? styles.favButtonActive : { backgroundColor: theme.border }]}
                             onPress={toggleFavorite}
+                            accessibilityLabel={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                            accessibilityRole="button"
                         >
                             <Ionicons name={isFav ? "heart" : "heart-outline"} size={20} color={isFav ? "#fff" : theme.text} />
                             <Text style={[styles.favButtonText, { color: isFav ? "#fff" : theme.text }]}>
@@ -195,6 +197,8 @@ const NovelDetailScreen = () => {
                             <TouchableOpacity
                                 style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
                                 onPress={handleResume}
+                                accessibilityLabel="Reprendre la lecture"
+                                accessibilityRole="button"
                             >
                                 <Ionicons name="play" size={20} color="#fff" />
                                 <Text style={styles.resumeButtonText}>Reprendre</Text>
@@ -241,7 +245,12 @@ const NovelDetailScreen = () => {
     return (
         <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={[styles.navBar, { borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                    accessibilityLabel="Retour"
+                    accessibilityRole="button"
+                >
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.navTitle, { color: theme.text }]} numberOfLines={1}>{details.title}</Text>
@@ -257,7 +266,12 @@ const NovelDetailScreen = () => {
 
                 <View style={[styles.chaptersHeader, { backgroundColor: theme.sectionHeaderUser }]}>
                     <Text style={[styles.sectionTitle, { color: theme.text }]}>Chapitres ({details.chapters.length})</Text>
-                    <TouchableOpacity onPress={() => setReversed(!reversed)}>
+                    <TouchableOpacity
+                        onPress={() => setReversed(!reversed)}
+                        accessibilityLabel={reversed ? "Trier du plus ancien au plus récent" : "Trier du plus récent au plus ancien"}
+                        accessibilityRole="button"
+                        accessibilityHint="Change l'ordre d'affichage des chapitres"
+                    >
                         <Ionicons name="swap-vertical" size={20} color={theme.tint} />
                     </TouchableOpacity>
                 </View>
@@ -355,6 +369,9 @@ const NovelDetailScreen = () => {
                                                 onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
                                                 onLongPress={() => handleGroupLongPress(bucket)}
                                                 delayLongPress={500}
+                                                accessibilityRole="button"
+                                                accessibilityState={{ expanded: isExpanded }}
+                                                accessibilityHint={isExpanded ? "Réduire la liste" : "Développer la liste"}
                                             >
                                                 <Text style={[styles.accordionTitle, { color: theme.text }]}>
                                                     Chapitres {bucket.start} - {bucket.end}
