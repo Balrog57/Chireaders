@@ -86,7 +86,7 @@ const SettingsScreen = ({ navigation }) => {
                                         await reloadData(existingData);
                                         Alert.alert("Succès", "Données restaurées !");
                                     } catch (err) {
-                                        Alert.alert("Erreur", "Échec de la restauration.");
+                                        Alert.alert("Erreur", err.message || "Échec de la restauration.");
                                     } finally {
                                         setIsRestoring(false);
                                     }
@@ -137,7 +137,7 @@ const SettingsScreen = ({ navigation }) => {
                             }
                         } catch (e) {
                             console.error(e);
-                            Alert.alert("Erreur", "La restauration a échoué.");
+                            Alert.alert("Erreur", e.message || "La restauration a échoué.");
                         } finally {
                             setIsRestoring(false);
                         }
