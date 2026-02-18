@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import BackupService from '../services/BackupService';
+import { validateBackupData } from '../utils/Validation.mjs';
 
 export const StorageContext = createContext();
 
@@ -86,6 +87,11 @@ export const StorageProvider = ({ children }) => {
      */
     const reloadData = useCallback(async (data) => {
         if (!data) return;
+
+        const validation = validateBackupData(data);
+        if (!validation.isValid) {
+            throw new Error(validation.error || "Données invalides");
+        }
 
         try {
             setIsLoading(true);
