@@ -175,6 +175,7 @@ const NovelDetailScreen = () => {
                     style={styles.coverImage}
                     contentFit="cover"
                     transition={500}
+                    accessibilityLabel={`Couverture de ${details.title}`}
                 />
                 <View style={styles.infoContainer}>
                     <Text style={[styles.title, { color: theme.text }]}>{details.title}</Text>
@@ -241,7 +242,13 @@ const NovelDetailScreen = () => {
     return (
         <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={[styles.navBar, { borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                    accessibilityLabel="Retour"
+                    accessibilityRole="button"
+                    accessibilityHint="Retourner à l'écran précédent"
+                >
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.navTitle, { color: theme.text }]} numberOfLines={1}>{details.title}</Text>
@@ -257,7 +264,12 @@ const NovelDetailScreen = () => {
 
                 <View style={[styles.chaptersHeader, { backgroundColor: theme.sectionHeaderUser }]}>
                     <Text style={[styles.sectionTitle, { color: theme.text }]}>Chapitres ({details.chapters.length})</Text>
-                    <TouchableOpacity onPress={() => setReversed(!reversed)}>
+                    <TouchableOpacity
+                        onPress={() => setReversed(!reversed)}
+                        accessibilityLabel={reversed ? "Trier par ordre croissant" : "Trier par ordre décroissant"}
+                        accessibilityRole="button"
+                        accessibilityHint="Change l'ordre d'affichage des chapitres"
+                    >
                         <Ionicons name="swap-vertical" size={20} color={theme.tint} />
                     </TouchableOpacity>
                 </View>
@@ -355,6 +367,9 @@ const NovelDetailScreen = () => {
                                                 onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
                                                 onLongPress={() => handleGroupLongPress(bucket)}
                                                 delayLongPress={500}
+                                                accessibilityRole="button"
+                                                accessibilityState={{ expanded: isExpanded }}
+                                                accessibilityHint="Appuyez deux fois pour développer ou réduire la liste des chapitres"
                                             >
                                                 <Text style={[styles.accordionTitle, { color: theme.text }]}>
                                                     Chapitres {bucket.start} - {bucket.end}
