@@ -112,7 +112,8 @@ const ReaderScreen = () => {
             }
 
             if (scrollViewRef.current) {
-                scrollViewRef.current.scrollTo({ y: 0, animated: false });
+                // Bolt: Use scrollToOffset for FlatList to reset scroll position efficiently
+                scrollViewRef.current.scrollToOffset({ offset: 0, animated: false });
             }
         } catch (error) {
             console.error('Error loading chapter:', error);
@@ -178,8 +179,26 @@ const ReaderScreen = () => {
             />
 
             <GestureDetector gesture={tapGesture}>
-                <Animated.ScrollView
+                {/* Bolt: Optimized with Animated.FlatList for virtualization of long chapters */}
+                <Animated.FlatList
                     ref={scrollViewRef}
+                    data={chapter.content || []}
+                    renderItem={({ item }) => (
+                        <Text
+                            style={[
+                                styles.paragraph,
+                                {
+                                    color: currentTheme.text,
+                                    fontSize: fontSize,
+                                    lineHeight: fontSize * 1.5
+                                }
+                            ]}
+                            selectable={false}
+                        >
+                            {item}
+                        </Text>
+                    )}
+                    keyExtractor={(item, index) => index.toString()}
                     contentContainerStyle={[
                         styles.scrollContent,
                         {
@@ -188,32 +207,14 @@ const ReaderScreen = () => {
                         }
                     ]}
                     style={{ flex: 1 }}
-                >
-                    <View>
+                    ListHeaderComponent={
                         <Text style={[styles.chapterTitle, { color: currentTheme.text }]}>
                             {chapter.title}
                         </Text>
-
-                        {chapter.content && chapter.content.map((para, index) => (
-                            <Text
-                                key={index}
-                                style={[
-                                    styles.paragraph,
-                                    {
-                                        color: currentTheme.text,
-                                        fontSize: fontSize,
-                                        lineHeight: fontSize * 1.5
-                                    }
-                                ]}
-                                selectable={false}
-                            >
-                                {para}
-                            </Text>
-                        ))}
-
-                        <View style={{ height: 100 }} />
-                    </View>
-                </Animated.ScrollView>
+                    }
+                    ListFooterComponent={<View style={{ height: 100 }} />}
+                    extraData={{ fontSize, theme: currentTheme }}
+                />
             </GestureDetector>
 
             <ReaderFooter
