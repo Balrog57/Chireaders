@@ -14,6 +14,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 
 
 import { StorageContext } from '../context/StorageContext';
@@ -92,6 +93,8 @@ const NovelDetailScreen = () => {
     };
 
     const toggleFavorite = async () => {
+        // Haptic feedback for better UX
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         if (isFav) {
             await removeFavorite(url);
             setIsFav(false);
@@ -241,7 +244,13 @@ const NovelDetailScreen = () => {
     return (
         <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={[styles.navBar, { borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                    accessibilityLabel="Retour"
+                    accessibilityRole="button"
+                    accessibilityHint="Retourner à l'écran précédent"
+                >
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.navTitle, { color: theme.text }]} numberOfLines={1}>{details.title}</Text>
@@ -257,7 +266,12 @@ const NovelDetailScreen = () => {
 
                 <View style={[styles.chaptersHeader, { backgroundColor: theme.sectionHeaderUser }]}>
                     <Text style={[styles.sectionTitle, { color: theme.text }]}>Chapitres ({details.chapters.length})</Text>
-                    <TouchableOpacity onPress={() => setReversed(!reversed)}>
+                    <TouchableOpacity
+                        onPress={() => setReversed(!reversed)}
+                        accessibilityLabel={reversed ? "Trier du plus ancien au plus récent" : "Trier du plus récent au plus ancien"}
+                        accessibilityRole="button"
+                        accessibilityHint="Double-tap pour changer l'ordre de tri des chapitres"
+                    >
                         <Ionicons name="swap-vertical" size={20} color={theme.tint} />
                     </TouchableOpacity>
                 </View>
@@ -355,6 +369,9 @@ const NovelDetailScreen = () => {
                                                 onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
                                                 onLongPress={() => handleGroupLongPress(bucket)}
                                                 delayLongPress={500}
+                                                accessibilityRole="button"
+                                                accessibilityState={{ expanded: isExpanded }}
+                                                accessibilityHint="Double-tap pour afficher ou masquer les chapitres de ce groupe"
                                             >
                                                 <Text style={[styles.accordionTitle, { color: theme.text }]}>
                                                     Chapitres {bucket.start} - {bucket.end}
