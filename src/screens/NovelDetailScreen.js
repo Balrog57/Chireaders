@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image'; // Optimized image component for better caching and performance
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     // Image, // Replaced by expo-image
@@ -169,6 +169,69 @@ const NovelDetailScreen = () => {
         }
     };
 
+    // Memoize chapter grouping to prevent expensive recalculations on every render
+    const processedChapters = useMemo(() => {
+        if (!details || !details.chapters) return { unnumbered: [], buckets: [] };
+
+        const unnumbered = [];
+        const numbered = [];
+
+        // 1. Separate Unnumbered (Bonus) and Numbered Chapters
+        for (const chapter of details.chapters) {
+            if (chapter.number === -1) {
+                unnumbered.push(chapter);
+            } else {
+                numbered.push(chapter);
+            }
+        }
+
+        // 2. Sort numbered chapters ensures strict order before grouping
+        numbered.sort((a, b) => a.number - b.number);
+
+        // 3. Group Numbered Chapters into Buckets of 50 (Optimized O(N))
+        const CHUNK_SIZE = 50;
+        const buckets = [];
+
+        if (numbered.length > 0) {
+            const maxNum = numbered[numbered.length - 1].number;
+            let currentStart = 1;
+            let currentIndex = 0;
+
+            // Iterate through ranges until we cover the max chapter number
+            while (currentStart <= maxNum) {
+                const currentEnd = currentStart + CHUNK_SIZE - 1;
+                const chunk = [];
+
+                // Collect chapters for this bucket
+                while (currentIndex < numbered.length) {
+                    const ch = numbered[currentIndex];
+                    if (ch.number < currentStart) {
+                        // Skip chapters that are somehow below current start (shouldn't happen if sorted and >=1)
+                        currentIndex++;
+                        continue;
+                    }
+                    if (ch.number > currentEnd) {
+                        // Belongs to next bucket
+                        break;
+                    }
+                    chunk.push(ch);
+                    currentIndex++;
+                }
+
+                if (chunk.length > 0) {
+                    buckets.push({
+                        start: currentStart,
+                        end: currentEnd,
+                        chapters: chunk
+                    });
+                }
+                currentStart += CHUNK_SIZE;
+            }
+        }
+
+        return { unnumbered, buckets };
+    }, [details?.chapters]);
+
     const renderHeader = () => {
         if (!details) return null;
         return (
@@ -279,43 +342,8 @@ const NovelDetailScreen = () => {
                 {/* Main Chapter List */}
                 <View style={styles.chapterList}>
                     {(() => {
-                        // 1. Separate Unnumbered (Bonus) and Numbered Chapters
-                        const unnumbered = details.chapters.filter(c => c.number === -1);
-                        const numbered = details.chapters.filter(c => c.number !== -1);
-
-                        // 2. Sort numbered chapters ensures strict order before grouping
-                        // (Scraper already sorts, but safety check)
-                        numbered.sort((a, b) => a.number - b.number);
-
-                        // 3. Group Numbered Chapters into Buckets of 50
-                        const CHUNK_SIZE = 50;
-                        const buckets = [];
-
-                        if (numbered.length > 0) {
-                            const maxNum = numbered[numbered.length - 1].number;
-                            const totalBuckets = Math.ceil(maxNum / CHUNK_SIZE);
-
-                            for (let i = 0; i < totalBuckets; i++) {
-                                const startRange = i * CHUNK_SIZE + 1;
-                                const endRange = (i + 1) * CHUNK_SIZE;
-
-                                // Find chapters that fall into this range (by Number, not Index)
-                                const chunkChapters = numbered.filter(c => c.number >= startRange && c.number <= endRange);
-
-                                if (chunkChapters.length > 0) {
-                                    buckets.push({
-                                        start: startRange,
-                                        end: endRange,
-                                        chapters: chunkChapters
-                                    });
-                                }
-                            }
-                        }
-
+                        const { unnumbered, buckets } = processedChapters;
                         // 4. Handle Reversal
-                        // If reversed, show unnumbered at bottom? Or top? 
-                        // User said "before the list", implying top. Let's keep Unnumbered at TOP always.
-                        // But buckets should be reversed (Latest ranges first).
                         const displayBuckets = reversed ? [...buckets].reverse() : buckets;
 
                         const renderChapter = (chapter, idx) => {

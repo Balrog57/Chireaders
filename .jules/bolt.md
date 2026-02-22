@@ -4,3 +4,7 @@
 1. Mock the `OPTIONS` method explicitly to return 204.
 2. Launch the browser with `--disable-web-security` args.
 3. Ensure mock responses include `Access-Control-Allow-Origin: *` and other CORS headers.
+
+## 2025-05-27 - Nested Filter in Render Loop
+**Learning:** In `NovelDetailScreen.js`, the chapter grouping logic used a nested `filter` inside a loop over buckets. This resulted in O(N * Buckets) complexity, running on every render. For large lists (e.g., 2000 chapters), this causes noticeable frame drops during interactions like toggling favorites.
+**Action:** Always extract complex data transformation logic into `useMemo`. When grouping data, prefer a single-pass O(N) iteration over repeated filtering.
