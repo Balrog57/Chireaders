@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StorageAccessFramework } from 'expo-file-system/legacy';
 import { Alert } from 'react-native';
+import { isMatchingFile } from '../utils/FileHelper.mjs';
 
 const BACKUP_FILE_NAME = 'chireaders_backup.json';
 const BACKUP_FOLDER_KEY = 'backup_folder_uri';
@@ -70,7 +71,7 @@ const BackupService = {
             // Best approach: try to find the file first.
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const backupFile = files.find(uri => uri.includes(BACKUP_FILE_NAME)); // Basic check, uri contains filename usually
+            const backupFile = files.find(uri => isMatchingFile(uri, BACKUP_FILE_NAME));
 
             let targetUri = backupFile;
 
@@ -139,9 +140,7 @@ const BackupService = {
             // But if the user deletes the file, the URI is dead.
 
             for (const fileUri of files) {
-                // SAF URIs usually contain the filename. decodeURIComponent helps handling spaces/special chars.
-                const decodedUri = decodeURIComponent(fileUri);
-                if (decodedUri.includes(BACKUP_FILE_NAME)) {
+                if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
                     return JSON.parse(content);
@@ -168,7 +167,7 @@ const BackupService = {
 
             // Check if file exists
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const existingFile = files.find(uri => decodeURIComponent(uri).includes(filename));
+            const existingFile = files.find(uri => isMatchingFile(uri, filename));
 
             if (existingFile) {
                 await StorageAccessFramework.writeAsStringAsync(existingFile, content);
@@ -196,7 +195,7 @@ const BackupService = {
             if (!folderUri) return null;
 
             const files = await StorageAccessFramework.readDirectoryAsync(folderUri);
-            const fileUri = files.find(uri => decodeURIComponent(uri).includes(filename));
+            const fileUri = files.find(uri => isMatchingFile(uri, filename));
 
             if (fileUri) {
                 return await StorageAccessFramework.readAsStringAsync(fileUri);
