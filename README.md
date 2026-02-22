@@ -264,7 +264,7 @@ Ce projet est personnel mais les suggestions sont les bienvenues !
 ## 📝 Notes de développement
 
 - **Dernière mise à jour** : Février 2026
-- **Version** : 1.5.2
+- **Version** : 1.5.3
 - **Stack** : React Native + Expo + Cheerio + Expo Image
 
 ---
