@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
-import { Animated, TouchableOpacity, StyleSheet } from 'react-native';
+import { Animated, StyleSheet, TouchableOpacity } from 'react-native';
 
 /**
  * Bouton coeur flottant pour ajouter/retirer des favoris
@@ -8,7 +8,7 @@ import { Animated, TouchableOpacity, StyleSheet } from 'react-native';
  */
 const FloatingHeartButton = ({ isActive, onPress }) => {
     const scaleAnim = useRef(new Animated.Value(0)).current;
-    
+
     useEffect(() => {
         // Animation d'apparition
         Animated.spring(scaleAnim, {
@@ -17,7 +17,7 @@ const FloatingHeartButton = ({ isActive, onPress }) => {
             tension: 40,
             useNativeDriver: true
         }).start();
-        
+
         return () => {
             // Animation de disparition
             Animated.timing(scaleAnim, {
@@ -27,7 +27,7 @@ const FloatingHeartButton = ({ isActive, onPress }) => {
             }).start();
         };
     }, []);
-    
+
     const handlePress = () => {
         // Animation de pression (squeeze effect)
         Animated.sequence([
@@ -42,10 +42,10 @@ const FloatingHeartButton = ({ isActive, onPress }) => {
                 useNativeDriver: true
             })
         ]).start();
-        
+
         onPress();
     };
-    
+
     return (
         <Animated.View
             style={[
@@ -62,6 +62,10 @@ const FloatingHeartButton = ({ isActive, onPress }) => {
                 ]}
                 onPress={handlePress}
                 activeOpacity={0.8}
+                accessibilityLabel={isActive ? "Retirer des favoris" : "Ajouter aux favoris"}
+                accessibilityRole="button"
+                accessibilityHint="Ajoute ou retire cette série de votre liste de favoris"
+                accessibilityState={{ selected: isActive }}
             >
                 <Ionicons
                     name={isActive ? "heart" : "heart-outline"}
