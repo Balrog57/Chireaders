@@ -70,7 +70,7 @@ export const detectPageType = (url) => {
  * @returns {string} Le titre formaté
  */
 export const slugToTitle = (slug) => {
-  if (!slug) return '';
+  if (!slug || typeof slug !== 'string') return '';
 
   return slug
     .split('-')
@@ -85,7 +85,7 @@ export const slugToTitle = (slug) => {
  * @returns {string|null} Le numéro du chapitre ou null
  */
 export const extractChapterNumber = (chapterSlug) => {
-  if (!chapterSlug) return null;
+  if (!chapterSlug || typeof chapterSlug !== 'string') return null;
 
   const match = chapterSlug.match(/chapitre-(\d+)/);
   return match ? match[1] : null;
