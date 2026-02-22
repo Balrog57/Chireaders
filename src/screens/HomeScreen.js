@@ -132,6 +132,12 @@ const HomeScreen = () => {
         return "sunny"; // Sepia -> Light
     };
 
+    const getThemeLabel = () => {
+        if (themeMode === 'light') return "Activer le thème sombre";
+        if (themeMode === 'dark') return "Activer le thème sépia";
+        return "Activer le thème clair";
+    };
+
     return (
         <SafeAreaView style={containerStyle}>
             <StatusBar barStyle={theme.statusBarStyle} />
@@ -140,21 +146,45 @@ const HomeScreen = () => {
 
                 <View style={styles.headerIcons}>
                     {/* Discord Icon */}
-                    <TouchableOpacity onPress={() => openLink('https://discordapp.com/invite/mMDsVAa')} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={() => openLink('https://discordapp.com/invite/mMDsVAa')}
+                        style={styles.iconButton}
+                        accessibilityLabel="Rejoindre le Discord"
+                        accessibilityRole="button"
+                        accessibilityHint="Ouvre l'invitation Discord dans le navigateur"
+                    >
                         <FontAwesome5 name="discord" size={24} color={themeMode === 'dark' ? "#7289da" : "#5865F2"} />
                     </TouchableOpacity>
 
                     {/* Website Icon */}
-                    <TouchableOpacity onPress={() => openLink('https://chireads.com/')} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={() => openLink('https://chireads.com/')}
+                        style={styles.iconButton}
+                        accessibilityLabel="Visiter le site web"
+                        accessibilityRole="button"
+                        accessibilityHint="Ouvre chireads.com dans le navigateur"
+                    >
                         <FontAwesome5 name="globe" size={22} color={theme.text} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Settings')}
+                        style={styles.iconButton}
+                        accessibilityLabel="Paramètres"
+                        accessibilityRole="button"
+                        accessibilityHint="Ouvre l'écran des paramètres"
+                    >
                         <Ionicons name="settings-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
 
                     {/* Theme Toggle */}
-                    <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={toggleTheme}
+                        style={styles.iconButton}
+                        accessibilityLabel={getThemeLabel()}
+                        accessibilityRole="button"
+                        accessibilityHint="Change le thème de l'application"
+                    >
                         <Ionicons name={getThemeIcon()} size={24} color={theme.text} />
                     </TouchableOpacity>
                 </View>
