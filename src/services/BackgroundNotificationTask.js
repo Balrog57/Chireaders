@@ -28,8 +28,10 @@ TaskManager.defineTask(TASK_NAME, async () => {
             return BackgroundFetch.BackgroundFetchResult.NoData;
         }
 
-        let hasNewData = false;
-        let updatedFavorites = [...favorites];
+        // Store updates in a Map instead of modifying a local copy
+        // This helps prevent race conditions where user changes (add/remove favs)
+        // are lost during the long-running scrape process.
+        const updates = new Map();
 
         // 2. Scan each favorite
         // We run these sequentially or in limited parallel to avoid overwhelming resources/network
@@ -59,15 +61,8 @@ TaskManager.defineTask(TASK_NAME, async () => {
                                 trigger: null, // Send immediately
                             });
 
-                            // Update local state to avoid repeat notifications
-                            const favIndex = updatedFavorites.findIndex(f => f.url === fav.url);
-                            if (favIndex !== -1) {
-                                updatedFavorites[favIndex] = {
-                                    ...updatedFavorites[favIndex],
-                                    latestKnownChapterUrl: latestChapter.url
-                                };
-                                hasNewData = true;
-                            }
+                            // Store update to be applied later
+                            updates.set(fav.url, latestChapter.url);
                         }
                     }
                 }
@@ -77,9 +72,29 @@ TaskManager.defineTask(TASK_NAME, async () => {
         }
 
         // 3. Save updates if any
-        if (hasNewData) {
-            await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-            return BackgroundFetch.BackgroundFetchResult.NewData;
+        if (updates.size > 0) {
+            // SECURITY/INTEGRITY FIX:
+            // Re-fetch the latest data from storage to ensure we don't overwrite
+            // any changes made by the user (adding/removing favorites) while we were scraping.
+            const currentFavsJson = await AsyncStorage.getItem('favorites');
+            if (currentFavsJson) {
+                const currentFavorites = JSON.parse(currentFavsJson);
+                let hasChanges = false;
+
+                const finalFavorites = currentFavorites.map(f => {
+                    // Apply update if this favorite still exists and needs update
+                    if (updates.has(f.url) && f.latestKnownChapterUrl !== updates.get(f.url)) {
+                        hasChanges = true;
+                        return { ...f, latestKnownChapterUrl: updates.get(f.url) };
+                    }
+                    return f;
+                });
+
+                if (hasChanges) {
+                    await AsyncStorage.setItem('favorites', JSON.stringify(finalFavorites));
+                    return BackgroundFetch.BackgroundFetchResult.NewData;
+                }
+            }
         }
 
         return BackgroundFetch.BackgroundFetchResult.NoData;
