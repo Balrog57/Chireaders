@@ -62,6 +62,10 @@ const FloatingHeartButton = ({ isActive, onPress }) => {
                 ]}
                 onPress={handlePress}
                 activeOpacity={0.8}
+                accessibilityLabel={isActive ? "Retirer des favoris" : "Ajouter aux favoris"}
+                accessibilityRole="button"
+                accessibilityHint="Double-tap pour ajouter ou retirer cette série de vos favoris"
+                accessibilityState={{ selected: isActive }}
             >
                 <Ionicons
                     name={isActive ? "heart" : "heart-outline"}
