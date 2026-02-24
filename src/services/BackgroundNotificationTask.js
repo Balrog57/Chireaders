@@ -29,7 +29,8 @@ TaskManager.defineTask(TASK_NAME, async () => {
         }
 
         let hasNewData = false;
-        let updatedFavorites = [...favorites];
+        // Store updates in a map: url -> newLatestChapterUrl
+        const updates = new Map();
 
         // 2. Scan each favorite
         // We run these sequentially or in limited parallel to avoid overwhelming resources/network
@@ -59,15 +60,8 @@ TaskManager.defineTask(TASK_NAME, async () => {
                                 trigger: null, // Send immediately
                             });
 
-                            // Update local state to avoid repeat notifications
-                            const favIndex = updatedFavorites.findIndex(f => f.url === fav.url);
-                            if (favIndex !== -1) {
-                                updatedFavorites[favIndex] = {
-                                    ...updatedFavorites[favIndex],
-                                    latestKnownChapterUrl: latestChapter.url
-                                };
-                                hasNewData = true;
-                            }
+                            updates.set(fav.url, latestChapter.url);
+                            hasNewData = true;
                         }
                     }
                 }
@@ -78,8 +72,19 @@ TaskManager.defineTask(TASK_NAME, async () => {
 
         // 3. Save updates if any
         if (hasNewData) {
-            await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-            return BackgroundFetch.BackgroundFetchResult.NewData;
+            // Re-fetch latest favorites to avoid race condition (user added/removed fav during scan)
+            const currentFavsJson = await AsyncStorage.getItem('favorites');
+            if (currentFavsJson) {
+                const currentFavorites = JSON.parse(currentFavsJson);
+                const updatedFavorites = currentFavorites.map(f => {
+                    if (updates.has(f.url)) {
+                        return { ...f, latestKnownChapterUrl: updates.get(f.url) };
+                    }
+                    return f;
+                });
+                await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+                return BackgroundFetch.BackgroundFetchResult.NewData;
+            }
         }
 
         return BackgroundFetch.BackgroundFetchResult.NoData;
