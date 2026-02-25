@@ -4,3 +4,7 @@
 1. Mock the `OPTIONS` method explicitly to return 204.
 2. Launch the browser with `--disable-web-security` args.
 3. Ensure mock responses include `Access-Control-Allow-Origin: *` and other CORS headers.
+
+## 2025-05-27 - Render Loop Bucketing Performance
+**Learning:** `NovelDetailScreen` used an O(N*Buckets) filtering operation inside the render loop (IIFE) to group chapters. With 2000+ chapters, this caused significant frame drops (~50ms computation) on every re-render (e.g., toggling read status).
+**Action:** Always extract heavy data transformation logic (grouping, sorting, filtering) into `useMemo`. For bucketing/grouping, use a single-pass O(N) algorithm with a Map or Index lookup instead of repeated `filter` calls.

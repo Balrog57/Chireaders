@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image'; // Optimized image component for better caching and performance
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import {
     ActivityIndicator,
     // Image, // Replaced by expo-image
@@ -169,6 +169,73 @@ const NovelDetailScreen = () => {
         }
     };
 
+    const groupedChapters = useMemo(() => {
+        if (!details || !details.chapters) return { unnumbered: [], buckets: [] };
+
+        const unnumbered = [];
+        const numbered = [];
+
+        // Single pass separation
+        for (const c of details.chapters) {
+            if (c.number === -1) unnumbered.push(c);
+            else numbered.push(c);
+        }
+
+        // Sort numbered chapters (ascending)
+        numbered.sort((a, b) => a.number - b.number);
+
+        // Optimized Bucketing Logic (O(N))
+        const CHUNK_SIZE = 50;
+        const bucketsMap = new Map();
+
+        for (const c of numbered) {
+            const bucketIdx = Math.floor((c.number - 1) / CHUNK_SIZE);
+
+            if (!bucketsMap.has(bucketIdx)) {
+                bucketsMap.set(bucketIdx, {
+                    start: bucketIdx * CHUNK_SIZE + 1,
+                    end: (bucketIdx + 1) * CHUNK_SIZE,
+                    chapters: []
+                });
+            }
+            bucketsMap.get(bucketIdx).chapters.push(c);
+        }
+
+        let buckets = Array.from(bucketsMap.values()).sort((a, b) => a.start - b.start);
+
+        // Handle Reversal
+        if (reversed) {
+            buckets.reverse();
+            // Deep reverse for chapters inside buckets
+            buckets = buckets.map(b => ({
+                ...b,
+                chapters: [...b.chapters].reverse()
+            }));
+        }
+
+        return { unnumbered, buckets };
+    }, [details, reversed]);
+
+    const renderChapterItem = useCallback((chapter, idx) => {
+        const isRead = isChapterRead(url, chapter.url);
+        return (
+            <TouchableOpacity
+                key={chapter.url + idx}
+                style={[styles.chapterItem, { borderBottomColor: theme.border }]}
+                onPress={() => handleChapterPress(chapter)}
+                onLongPress={() => handleChapterLongPress(chapter)}
+            >
+                <Text style={[
+                    styles.chapterTitle,
+                    { color: isRead ? '#888' : theme.text }
+                ]}>
+                    {chapter.title}
+                </Text>
+                {isRead && <Ionicons name="checkmark" size={16} color={theme.tint} />}
+            </TouchableOpacity>
+        );
+    }, [url, theme, isChapterRead]);
+
     const renderHeader = () => {
         if (!details) return null;
         return (
@@ -278,118 +345,47 @@ const NovelDetailScreen = () => {
 
                 {/* Main Chapter List */}
                 <View style={styles.chapterList}>
-                    {(() => {
-                        // 1. Separate Unnumbered (Bonus) and Numbered Chapters
-                        const unnumbered = details.chapters.filter(c => c.number === -1);
-                        const numbered = details.chapters.filter(c => c.number !== -1);
+                    {/* Unnumbered / Bonus Chapters */}
+                    {groupedChapters.unnumbered.length > 0 && (
+                        <View style={styles.accordionContainer}>
+                            <View style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+                                <Text style={[styles.accordionTitle, { color: theme.text }]}>
+                                    Hors-Série ({groupedChapters.unnumbered.length})
+                                </Text>
+                            </View>
+                            {groupedChapters.unnumbered.map((c, i) => renderChapterItem(c, i))}
+                        </View>
+                    )}
 
-                        // 2. Sort numbered chapters ensures strict order before grouping
-                        // (Scraper already sorts, but safety check)
-                        numbered.sort((a, b) => a.number - b.number);
-
-                        // 3. Group Numbered Chapters into Buckets of 50
-                        const CHUNK_SIZE = 50;
-                        const buckets = [];
-
-                        if (numbered.length > 0) {
-                            const maxNum = numbered[numbered.length - 1].number;
-                            const totalBuckets = Math.ceil(maxNum / CHUNK_SIZE);
-
-                            for (let i = 0; i < totalBuckets; i++) {
-                                const startRange = i * CHUNK_SIZE + 1;
-                                const endRange = (i + 1) * CHUNK_SIZE;
-
-                                // Find chapters that fall into this range (by Number, not Index)
-                                const chunkChapters = numbered.filter(c => c.number >= startRange && c.number <= endRange);
-
-                                if (chunkChapters.length > 0) {
-                                    buckets.push({
-                                        start: startRange,
-                                        end: endRange,
-                                        chapters: chunkChapters
-                                    });
-                                }
-                            }
-                        }
-
-                        // 4. Handle Reversal
-                        // If reversed, show unnumbered at bottom? Or top? 
-                        // User said "before the list", implying top. Let's keep Unnumbered at TOP always.
-                        // But buckets should be reversed (Latest ranges first).
-                        const displayBuckets = reversed ? [...buckets].reverse() : buckets;
-
-                        const renderChapter = (chapter, idx) => {
-                            const isRead = isChapterRead(url, chapter.url);
-                            return (
-                                <TouchableOpacity
-                                    key={chapter.url + idx}
-                                    style={[styles.chapterItem, { borderBottomColor: theme.border }]}
-                                    onPress={() => handleChapterPress(chapter)}
-                                    onLongPress={() => handleChapterLongPress(chapter)}
-                                >
-                                    <Text style={[
-                                        styles.chapterTitle,
-                                        { color: isRead ? '#888' : theme.text }
-                                    ]}>
-                                        {chapter.title}
-                                    </Text>
-                                    {isRead && <Ionicons name="checkmark" size={16} color={theme.tint} />}
-                                </TouchableOpacity>
-                            );
-                        };
+                    {/* Numbered Buckets */}
+                    {groupedChapters.buckets.map((bucket, bucketIdx) => {
+                        const isExpanded = currentTab === bucketIdx;
 
                         return (
-                            <>
-                                {/* Unnumbered / Bonus Chapters */}
-                                {unnumbered.length > 0 && (
-                                    <View style={styles.accordionContainer}>
-                                        <View style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-                                            <Text style={[styles.accordionTitle, { color: theme.text }]}>
-                                                Hors-Série ({unnumbered.length})
-                                            </Text>
-                                        </View>
-                                        {unnumbered.map((c, i) => renderChapter(c, i))}
-                                    </View>
-                                )}
+                            <View key={bucket.start} style={styles.accordionContainer}>
+                                <TouchableOpacity
+                                    style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
+                                    onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
+                                    onLongPress={() => handleGroupLongPress(bucket)}
+                                    delayLongPress={500}
+                                    accessibilityRole="button"
+                                    accessibilityState={{ expanded: isExpanded }}
+                                    accessibilityHint="Double-tap pour afficher ou masquer les chapitres de ce groupe"
+                                >
+                                    <Text style={[styles.accordionTitle, { color: theme.text }]}>
+                                        Chapitres {bucket.start} - {bucket.end}
+                                    </Text>
+                                    <Ionicons
+                                        name={isExpanded ? "chevron-up" : "chevron-down"}
+                                        size={20}
+                                        color={theme.text}
+                                    />
+                                </TouchableOpacity>
 
-                                {/* Numbered Buckets */}
-                                {displayBuckets.map((bucket, bucketIdx) => {
-                                    const isExpanded = currentTab === bucketIdx;
-
-                                    // If reversed, chapters inside bucket should also be reversed?
-                                    // Usually "Latest First" means logical order is reversed.
-                                    // e.g. Bucket 201-250: Display 250, 249... 
-                                    // Let's reverse content if 'reversed' is true.
-                                    const content = reversed ? [...bucket.chapters].reverse() : bucket.chapters;
-
-                                    return (
-                                        <View key={bucket.start} style={styles.accordionContainer}>
-                                            <TouchableOpacity
-                                                style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
-                                                onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
-                                                onLongPress={() => handleGroupLongPress(bucket)}
-                                                delayLongPress={500}
-                                                accessibilityRole="button"
-                                                accessibilityState={{ expanded: isExpanded }}
-                                                accessibilityHint="Double-tap pour afficher ou masquer les chapitres de ce groupe"
-                                            >
-                                                <Text style={[styles.accordionTitle, { color: theme.text }]}>
-                                                    Chapitres {bucket.start} - {bucket.end}
-                                                </Text>
-                                                <Ionicons
-                                                    name={isExpanded ? "chevron-up" : "chevron-down"}
-                                                    size={20}
-                                                    color={theme.text}
-                                                />
-                                            </TouchableOpacity>
-
-                                            {isExpanded && content.map((chapter, index) => renderChapter(chapter, index))}
-                                        </View>
-                                    );
-                                })}
-                            </>
+                                {isExpanded && bucket.chapters.map((chapter, index) => renderChapterItem(chapter, index))}
+                            </View>
                         );
-                    })()}
+                    })}
                 </View>
             </ScrollView>
         </SafeAreaView>
