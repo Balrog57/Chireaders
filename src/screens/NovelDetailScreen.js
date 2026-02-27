@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image'; // Optimized image component for better caching and performance
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     // Image, // Replaced by expo-image
@@ -209,6 +209,53 @@ const NovelDetailScreen = () => {
         );
     };
 
+    // Optimized Bucketing Logic with useMemo
+    const { unnumbered, buckets } = useMemo(() => {
+        if (!details || !details.chapters) return { unnumbered: [], buckets: [] };
+
+        const unnumberedChaps = [];
+        const numberedChaps = [];
+
+        // 1. Single Pass Separation (O(N))
+        details.chapters.forEach(c => {
+            if (c.number === -1) {
+                unnumberedChaps.push(c);
+            } else {
+                numberedChaps.push(c);
+            }
+        });
+
+        // 2. Sort Numbered (Fastest possible sort)
+        numberedChaps.sort((a, b) => a.number - b.number);
+
+        // 3. Single Pass Bucketing (O(N))
+        const CHUNK_SIZE = 50;
+        const resultBuckets = [];
+
+        if (numberedChaps.length > 0) {
+            let currentBucket = null;
+
+            numberedChaps.forEach(chapter => {
+                const bucketIndex = Math.floor((chapter.number - 1) / CHUNK_SIZE);
+                const startRange = bucketIndex * CHUNK_SIZE + 1;
+
+                if (!currentBucket || currentBucket.start !== startRange) {
+                    const endRange = (bucketIndex + 1) * CHUNK_SIZE;
+                    currentBucket = {
+                        start: startRange,
+                        end: endRange,
+                        chapters: []
+                    };
+                    resultBuckets.push(currentBucket);
+                }
+                currentBucket.chapters.push(chapter);
+            });
+        }
+
+        return { unnumbered: unnumberedChaps, buckets: resultBuckets };
+
+    }, [details]); // Only re-run when details change
+
     if (loading) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -228,18 +275,6 @@ const NovelDetailScreen = () => {
             </SafeAreaView>
         );
     }
-
-    if (!details) {
-        return (
-            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-                <View style={styles.centerContainer}>
-                    <Text style={{ color: theme.text }}>Erreur de chargement ou livre non trouvé.</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
-    // chaptersToShow removed, logic moved to render
 
     return (
         <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
@@ -279,43 +314,7 @@ const NovelDetailScreen = () => {
                 {/* Main Chapter List */}
                 <View style={styles.chapterList}>
                     {(() => {
-                        // 1. Separate Unnumbered (Bonus) and Numbered Chapters
-                        const unnumbered = details.chapters.filter(c => c.number === -1);
-                        const numbered = details.chapters.filter(c => c.number !== -1);
-
-                        // 2. Sort numbered chapters ensures strict order before grouping
-                        // (Scraper already sorts, but safety check)
-                        numbered.sort((a, b) => a.number - b.number);
-
-                        // 3. Group Numbered Chapters into Buckets of 50
-                        const CHUNK_SIZE = 50;
-                        const buckets = [];
-
-                        if (numbered.length > 0) {
-                            const maxNum = numbered[numbered.length - 1].number;
-                            const totalBuckets = Math.ceil(maxNum / CHUNK_SIZE);
-
-                            for (let i = 0; i < totalBuckets; i++) {
-                                const startRange = i * CHUNK_SIZE + 1;
-                                const endRange = (i + 1) * CHUNK_SIZE;
-
-                                // Find chapters that fall into this range (by Number, not Index)
-                                const chunkChapters = numbered.filter(c => c.number >= startRange && c.number <= endRange);
-
-                                if (chunkChapters.length > 0) {
-                                    buckets.push({
-                                        start: startRange,
-                                        end: endRange,
-                                        chapters: chunkChapters
-                                    });
-                                }
-                            }
-                        }
-
-                        // 4. Handle Reversal
-                        // If reversed, show unnumbered at bottom? Or top? 
-                        // User said "before the list", implying top. Let's keep Unnumbered at TOP always.
-                        // But buckets should be reversed (Latest ranges first).
+                        // 4. Handle Reversal (UI concern only)
                         const displayBuckets = reversed ? [...buckets].reverse() : buckets;
 
                         const renderChapter = (chapter, idx) => {
@@ -355,11 +354,6 @@ const NovelDetailScreen = () => {
                                 {/* Numbered Buckets */}
                                 {displayBuckets.map((bucket, bucketIdx) => {
                                     const isExpanded = currentTab === bucketIdx;
-
-                                    // If reversed, chapters inside bucket should also be reversed?
-                                    // Usually "Latest First" means logical order is reversed.
-                                    // e.g. Bucket 201-250: Display 250, 249... 
-                                    // Let's reverse content if 'reversed' is true.
                                     const content = reversed ? [...bucket.chapters].reverse() : bucket.chapters;
 
                                     return (
