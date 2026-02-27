@@ -1,19 +1,22 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as BackgroundFetch from 'expo-background-fetch';
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import ChiReadsScraper from './ChiReadsScraper';
 
 const TASK_NAME = 'CHECK_NEW_CHAPTERS';
 
-// Configure notification channel
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-    }),
-});
+// Configure notification channel ONLY if not in Expo Go (SDK 53+ drops remote push support in dev)
+if (Constants.appOwnership !== 'expo') {
+    Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: true,
+            shouldSetBadge: true,
+        }),
+    });
+}
 
 TaskManager.defineTask(TASK_NAME, async () => {
     try {

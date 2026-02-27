@@ -223,6 +223,23 @@ const HomeScreen = () => {
                     </View>
                 )}
 
+                {/* Empty State / Error State */}
+                {!loading &&
+                    homeData.featured.length === 0 &&
+                    homeData.newReleases.length === 0 &&
+                    homeData.popular.length === 0 &&
+                    homeData.recommended.length === 0 &&
+                    homeData.latest.length === 0 && (
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="cloud-offline-outline" size={64} color={theme.textSecondary} />
+                            <Text style={[styles.emptyText, textStyle]}>Impossible de charger les romans.</Text>
+                            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Vérifiez votre connexion internet.</Text>
+                            <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.tint }]} onPress={onRefresh}>
+                                <Text style={styles.retryButtonText}>Réessayer</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
                 <View style={{ height: 20 }} />
             </ScrollView>
         </SafeAreaView>
@@ -323,6 +340,34 @@ const styles = StyleSheet.create({
     },
     separator: {
         height: 1,
+    },
+    // Empty state
+    emptyContainer: {
+        marginTop: 60,
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 15,
+        textAlign: 'center',
+    },
+    emptySubtext: {
+        fontSize: 14,
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    retryButton: {
+        marginTop: 20,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
 });
 

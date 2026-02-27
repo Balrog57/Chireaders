@@ -2,12 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { DarkTheme, DefaultTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import {
+    AppState
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerBackgroundFetchAsync } from './src/services/BackgroundNotificationTask';
+import ChiReadsScraper from './src/services/ChiReadsScraper';
 
 import { StorageProvider } from './src/context/StorageContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -106,35 +111,62 @@ function AppContent() {
 export default function App() {
     useEffect(() => {
         const initNotifications = async () => {
-            // 1. Request permissions
-            const { status } = await Notifications.requestPermissionsAsync();
-            if (status === 'granted') {
-                console.log('Notification permissions granted');
-                // 2. Register background task
-                await registerBackgroundFetchAsync();
-            } else {
-                console.log('Notification permissions denied');
+            // Expo Go SDK 53+ throws errors if we use Push Notifications APIs
+            // So we skip notification initialization completely in Expo Go.
+            if (Constants.appOwnership === 'expo') {
+                console.log('Running in Expo Go: Skipping Push Notifications init to avoid SDK 53+ errors.');
+                return;
+            }
+
+            try {
+                // 1. Request permissions
+                const { status } = await Notifications.requestPermissionsAsync();
+                if (status === 'granted') {
+                    console.log('Notification permissions granted');
+                    // 2. Register background task
+                    await registerBackgroundFetchAsync();
+                } else {
+                    console.log('Notification permissions denied');
+                }
+            } catch (err) {
+                console.warn('Notification init failed:', err);
             }
         };
 
         const timer = setTimeout(initNotifications, 3000);
 
-        // Listener for notification interaction (tap)
-        const subscription = Notifications.addNotificationResponseReceivedListener(response => {
-            const data = response.notification.request.content.data;
-            if (data && data.url) {
-                console.log('Notification tapped, navigating to:', data.url);
-                if (navigationRef.isReady()) {
-                    navigationRef.navigate('NovelDetail', {
-                        url: data.url,
-                        title: data.title || 'Détails' // Fallback title
-                    });
+        let subscription;
+        if (Constants.appOwnership !== 'expo') {
+            // Listener for notification interaction (tap)
+            subscription = Notifications.addNotificationResponseReceivedListener(response => {
+                const data = response.notification.request.content.data;
+                if (data && data.url) {
+                    console.log('Notification tapped, navigating to:', data.url);
+                    if (navigationRef.isReady()) {
+                        navigationRef.navigate('NovelDetail', {
+                            url: data.url,
+                            title: data.title || 'Détails' // Fallback title
+                        });
+                    }
                 }
+            });
+        }
+
+        return () => {
+            clearTimeout(timer);
+            if (subscription) subscription.remove();
+        };
+    }, []);
+
+    // Clear chapter cache when App goes to background
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (nextAppState === 'background' || nextAppState === 'inactive') {
+                ChiReadsScraper.clearChapterCache();
             }
         });
 
         return () => {
-            clearTimeout(timer);
             subscription.remove();
         };
     }, []);

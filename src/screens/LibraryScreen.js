@@ -319,9 +319,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#666',
     },
-    tabContainer: {
-        display: 'none', // Hidden as we removed tabs
-    },
+
     // Search Bar Styles
     searchBar: {
         flexDirection: 'row',
