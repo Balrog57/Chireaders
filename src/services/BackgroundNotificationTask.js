@@ -28,8 +28,9 @@ TaskManager.defineTask(TASK_NAME, async () => {
             return BackgroundFetch.BackgroundFetchResult.NoData;
         }
 
-        let hasNewData = false;
-        let updatedFavorites = [...favorites];
+        // Use a Map to store updates to avoid race conditions
+        // Key: Novel URL, Value: New Chapter URL
+        const updates = new Map();
 
         // 2. Scan each favorite
         // We run these sequentially or in limited parallel to avoid overwhelming resources/network
@@ -59,15 +60,8 @@ TaskManager.defineTask(TASK_NAME, async () => {
                                 trigger: null, // Send immediately
                             });
 
-                            // Update local state to avoid repeat notifications
-                            const favIndex = updatedFavorites.findIndex(f => f.url === fav.url);
-                            if (favIndex !== -1) {
-                                updatedFavorites[favIndex] = {
-                                    ...updatedFavorites[favIndex],
-                                    latestKnownChapterUrl: latestChapter.url
-                                };
-                                hasNewData = true;
-                            }
+                            // Store update for later merge
+                            updates.set(fav.url, latestChapter.url);
                         }
                     }
                 }
@@ -77,9 +71,31 @@ TaskManager.defineTask(TASK_NAME, async () => {
         }
 
         // 3. Save updates if any
-        if (hasNewData) {
-            await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-            return BackgroundFetch.BackgroundFetchResult.NewData;
+        if (updates.size > 0) {
+            // CRITICAL SECURITY FIX: Race Condition Prevention
+            // Re-read storage strictly before saving to minimize the "Check-Then-Act" window.
+            // This prevents overwriting user actions (like deleting a favorite) that happened
+            // while the background task was running.
+            const freshFavsJson = await AsyncStorage.getItem('favorites');
+            const freshFavorites = freshFavsJson ? JSON.parse(freshFavsJson) : [];
+
+            let hasChanges = false;
+            const mergedFavorites = freshFavorites.map(freshFav => {
+                if (updates.has(freshFav.url)) {
+                    const newChapterUrl = updates.get(freshFav.url);
+                    // Only update if the chapter is actually newer/different
+                    if (freshFav.latestKnownChapterUrl !== newChapterUrl) {
+                        hasChanges = true;
+                        return { ...freshFav, latestKnownChapterUrl: newChapterUrl };
+                    }
+                }
+                return freshFav;
+            });
+
+            if (hasChanges) {
+                await AsyncStorage.setItem('favorites', JSON.stringify(mergedFavorites));
+                return BackgroundFetch.BackgroundFetchResult.NewData;
+            }
         }
 
         return BackgroundFetch.BackgroundFetchResult.NoData;
