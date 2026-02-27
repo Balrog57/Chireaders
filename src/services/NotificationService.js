@@ -1,5 +1,6 @@
-import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 
 /**
  * Service de gestion des notifications
@@ -8,13 +9,15 @@ import * as Device from 'expo-device';
  */
 
 // Configuration du gestionnaire de notifications
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-    }),
-});
+if (Constants.appOwnership !== 'expo') {
+    Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: true,
+            shouldSetBadge: true,
+        }),
+    });
+}
 
 /**
  * Demander les permissions de notifications

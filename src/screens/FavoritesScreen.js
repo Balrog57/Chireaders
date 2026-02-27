@@ -138,7 +138,7 @@ const FavoritesScreen = ({ navigation }) => {
                             Aucune série favorite
                         </Text>
                         <Text style={[styles.emptySubtext, { color: theme.text }]}>
-                            Appuyez sur le coeur sur une page série pour l'ajouter
+                            Appuyez sur le coeur sur une page série pour l&apos;ajouter
                         </Text>
                     </View>
                 }

@@ -69,6 +69,13 @@ const ReaderScreen = () => {
         loadChapter(currentUrl);
     }, [currentUrl]);
 
+    // Clear cache when leaving the reader
+    useEffect(() => {
+        return () => {
+            ChiReadsScraper.clearChapterCache();
+        };
+    }, []);
+
     const saveSettings = async (newSize, newTheme) => {
         const updates = {};
         if (newSize) updates.readerFontSize = newSize;

@@ -87,6 +87,11 @@ const getSafeImageUrl = (url) => {
     }
 };
 
+// --- In-Memory Cache for Reader ---
+// Stocke temporairement les chapitres visités pendant une session de lecture.
+let chapterCache = new Map();
+// ----------------------------------
+
 const ChiReadsScraper = {
     /**
      * Récupère les données de la page d'accueil (Nouveautés et Populaires)
@@ -290,6 +295,11 @@ const ChiReadsScraper = {
             const safeChapterUrl = getSafeUrl(chapterUrl);
             if (!safeChapterUrl) throw new Error('Invalid chapter URL');
 
+            // Vérification du Cache
+            if (chapterCache.has(safeChapterUrl)) {
+                return chapterCache.get(safeChapterUrl);
+            }
+
             const response = await client.get(safeChapterUrl);
             const $ = cheerio.load(response.data);
 
@@ -307,13 +317,18 @@ const ChiReadsScraper = {
 
             if (prevUrlRaw === '#') prevUrlRaw = null;
 
-            return {
+            const chapterData = {
                 title,
                 content: paragraphs,
                 // html: removed to prevent XSS risk if used improperly
                 prevUrl: getSafeUrl(prevUrlRaw),
                 nextUrl: getSafeUrl(nextUrlRaw)
             };
+
+            // Mise en cache
+            chapterCache.set(safeChapterUrl, chapterData);
+
+            return chapterData;
         } catch (error) {
             console.error('Error scraping chapter:', error.message);
             return null;
@@ -436,6 +451,17 @@ const ChiReadsScraper = {
         } catch (error) {
             console.error(`Error getting library count (${category}):`, error.message);
             return 1;
+        }
+    },
+
+    /**
+     * Efface le cache temporaire des chapitres.
+     * À appeler lorsque l'utilisateur quitte l'écran de lecture ou l'application.
+     */
+    clearChapterCache: () => {
+        if (typeof chapterCache !== 'undefined') {
+            chapterCache.clear();
+            console.log('[Scraper] Chapter cache cleared.');
         }
     }
 };
