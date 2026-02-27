@@ -44,6 +44,49 @@ const getSafeUrl = (url) => {
     return safeUrl;
 };
 
+/**
+ * Helper to ensure Image URLs are safe and absolute (HTTPS).
+ * Allows external domains (CDNs) but enforces HTTPS and strict protocol check.
+ */
+const getSafeImageUrl = (url) => {
+    if (!url) return null;
+    let safeUrl = url.trim();
+
+    // Handle protocol-relative URLs (e.g. //example.com/img.jpg)
+    if (safeUrl.startsWith('//')) {
+        safeUrl = 'https:' + safeUrl;
+    }
+    // Handle root-relative URLs (e.g. /images/cover.jpg)
+    else if (safeUrl.startsWith('/')) {
+        safeUrl = `${BASE_URL}${safeUrl}`;
+    }
+    // Handle other relative URLs or non-http protocols
+    else if (!safeUrl.startsWith('http')) {
+        // Check for risky protocols explicitly
+        if (safeUrl.match(/^(file|data|javascript|vbscript):/i)) {
+            return null;
+        }
+        // Assume relative path
+        safeUrl = `${BASE_URL}/${safeUrl}`;
+    }
+
+    // Enforce HTTPS
+    if (safeUrl.startsWith('http:')) {
+        safeUrl = safeUrl.replace(/^http:/, 'https:');
+    }
+
+    // Strict Protocol Validation using URL object
+    try {
+        const parsed = new URL(safeUrl);
+        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+            return null;
+        }
+        return safeUrl;
+    } catch (e) {
+        return null;
+    }
+};
+
 const ChiReadsScraper = {
     /**
      * Récupère les données de la page d'accueil (Nouveautés et Populaires)
@@ -64,7 +107,7 @@ const ChiReadsScraper = {
             const parseBookItem = (elem, selectorTitle, selectorUrl, selectorImage, selectorDesc = null) => {
                 const title = $(elem).find(selectorTitle).text().trim();
                 const rawUrl = $(elem).find(selectorUrl).attr('href');
-                const image = $(elem).find(selectorImage).attr('src');
+                const image = getSafeImageUrl($(elem).find(selectorImage).attr('src'));
                 const description = selectorDesc ? $(elem).find(selectorDesc).text().trim() : null;
 
                 const safeUrl = getSafeUrl(rawUrl);
@@ -141,7 +184,7 @@ const ChiReadsScraper = {
             // 5. Recommandé
             $('.recommended li').each((i, elem) => {
                 const rawUrl = $(elem).find('a').first().attr('href');
-                const image = $(elem).find('img').attr('src');
+                const image = getSafeImageUrl($(elem).find('img').attr('src'));
                 let refinedTitle = $(elem).find('.recommended-txt a, .recommended-list-txt a, h3, h4').text().trim();
                 if (!refinedTitle) refinedTitle = $(elem).find('a').last().text().trim();
 
@@ -178,7 +221,7 @@ const ChiReadsScraper = {
             const $ = cheerio.load(response.data);
 
             const title = $('.inform-title').text().trim();
-            const image = $('.inform-product img').attr('src');
+            const image = getSafeImageUrl($('.inform-product img').attr('src'));
             const author = $('.inform-inform-data h6').text().trim();
             let description = $('.inform-txt-show span').text().trim();
 
@@ -292,7 +335,7 @@ const ChiReadsScraper = {
                 const titleElem = $(elem).find('.news-list-tit h5 a, h2 a, h3 a, .entry-title a').first();
                 const title = titleElem.text().trim();
                 const rawUrl = titleElem.attr('href') || $(elem).find('a').first().attr('href');
-                const image = $(elem).find('img').first().attr('src');
+                const image = getSafeImageUrl($(elem).find('img').first().attr('src'));
                 const description = $(elem).find('.news-list-txt, .entry-content').text().trim();
 
                 const safeUrl = getSafeUrl(rawUrl);
@@ -341,7 +384,7 @@ const ChiReadsScraper = {
                 const titleElem = $(elem).find('.news-list-tit h5 a, h2 a, h3 a, .entry-title a, .archive-list-tit h5 a').first();
                 const title = titleElem.text().trim();
                 const rawUrl = titleElem.attr('href') || $(elem).find('a').first().attr('href');
-                const image = $(elem).find('.news-list-img img, .archive-list-img img, img').first().attr('src');
+                const image = getSafeImageUrl($(elem).find('.news-list-img img, .archive-list-img img, img').first().attr('src'));
                 const description = $(elem).find('.news-list-txt, .entry-content, .archive-list-txt').text().trim();
 
                 const safeUrl = getSafeUrl(rawUrl);
