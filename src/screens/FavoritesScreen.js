@@ -65,6 +65,10 @@ const FavoritesScreen = ({ navigation }) => {
                         <TouchableOpacity
                             onPress={() => toggleFavoriteNotification(item.url)}
                             style={[styles.deleteButton, { marginRight: 5 }]}
+                            accessibilityLabel={item.notificationsEnabled ? "Désactiver les notifications" : "Activer les notifications"}
+                            accessibilityRole="button"
+                            accessibilityHint="Active ou désactive les notifications pour cette série"
+                            accessibilityState={{ checked: item.notificationsEnabled }}
                         >
                             <Ionicons
                                 name={item.notificationsEnabled ? "notifications" : "notifications-off-outline"}
@@ -75,6 +79,9 @@ const FavoritesScreen = ({ navigation }) => {
                         <TouchableOpacity
                             onPress={() => handleDeletePress(item)}
                             style={styles.deleteButton}
+                            accessibilityLabel="Retirer des favoris"
+                            accessibilityRole="button"
+                            accessibilityHint="Supprime cette série de votre liste de favoris"
                         >
                             <Ionicons name="trash-outline" size={22} color="#e91e63" />
                         </TouchableOpacity>
