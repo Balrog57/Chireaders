@@ -194,8 +194,26 @@ const LibraryScreen = () => {
                         onChangeText={setSearchQuery}
                         onSubmitEditing={handleSearchSubmit}
                         returnKeyType="search"
+                        accessibilityLabel="Champ de recherche"
                     />
-                    <TouchableOpacity onPress={handleSearchSubmit} style={styles.searchButton}>
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity
+                            onPress={() => setSearchQuery('')}
+                            style={styles.clearButton}
+                            accessibilityLabel="Effacer la recherche"
+                            accessibilityRole="button"
+                            accessibilityHint="Efface le texte de la recherche"
+                        >
+                            <Ionicons name="close-circle" size={20} color={theme.text} style={{ opacity: 0.5 }} />
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                        onPress={handleSearchSubmit}
+                        style={styles.searchButton}
+                        accessibilityLabel="Lancer la recherche"
+                        accessibilityRole="button"
+                        accessibilityHint="Lance la recherche avec le texte saisi"
+                    >
                         <Ionicons name="search" size={20} color={theme.text} />
                     </TouchableOpacity>
                 </View>
@@ -321,6 +339,10 @@ const styles = StyleSheet.create({
     },
     searchButton: {
         padding: 5,
+    },
+    clearButton: {
+        padding: 5,
+        marginRight: 5,
     },
 });
 
