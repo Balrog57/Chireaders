@@ -65,7 +65,8 @@ const ReaderFooter = ({
                     style={[styles.button, !hasPrev && styles.disabled]}
                     accessibilityLabel="Chapitre précédent"
                     accessibilityRole="button"
-                    accessibilityHint="Naviguer vers le chapitre précédent"
+                    accessibilityHint={!hasPrev ? "Vous êtes au premier chapitre" : "Naviguer vers le chapitre précédent"}
+                    accessibilityState={{ disabled: !hasPrev }}
                 >
                     <Ionicons name="chevron-back" size={28} color={hasPrev ? theme.icon : theme.text + '50'} />
                 </TouchableOpacity>
@@ -86,7 +87,8 @@ const ReaderFooter = ({
                     style={[styles.button, !hasNext && styles.disabled]}
                     accessibilityLabel="Chapitre suivant"
                     accessibilityRole="button"
-                    accessibilityHint="Naviguer vers le chapitre suivant"
+                    accessibilityHint={!hasNext ? "Vous êtes au dernier chapitre" : "Naviguer vers le chapitre suivant"}
+                    accessibilityState={{ disabled: !hasNext }}
                 >
                     <Ionicons name="chevron-forward" size={28} color={hasNext ? theme.icon : theme.text + '50'} />
                 </TouchableOpacity>
