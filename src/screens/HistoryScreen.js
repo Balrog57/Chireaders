@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { 
     FlatList,
     StyleSheet, 
@@ -10,41 +10,41 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
 
+const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+
+    if (diffInHours < 1) {
+        const mins = Math.floor(diffInMs / (1000 * 60));
+        return `Il y a ${mins} minute${mins > 1 ? 's' : ''}`;
+    } else if (diffInHours < 24) {
+        const hours = Math.floor(diffInHours);
+        return `Il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+    } else if (diffInHours < 48) {
+        return 'Hier';
+    } else {
+        return date.toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
+    }
+};
+
 const HistoryScreen = ({ navigation }) => {
     const { getAllHistory, settings } = useContext(StorageContext);
     const history = getAllHistory();
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
-    const handleChapterPress = (chapter) => {
+    const handleChapterPress = useCallback((chapter) => {
         // Naviguer vers le Browser avec l'URL du chapitre
         navigation.navigate('Browser', { initialUrl: chapter.url });
-    };
+    }, [navigation]);
 
-    const formatDate = (timestamp) => {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffInMs = now - date;
-        const diffInHours = diffInMs / (1000 * 60 * 60);
-        
-        if (diffInHours < 1) {
-            const mins = Math.floor(diffInMs / (1000 * 60));
-            return `Il y a ${mins} minute${mins > 1 ? 's' : ''}`;
-        } else if (diffInHours < 24) {
-            const hours = Math.floor(diffInHours);
-            return `Il y a ${hours} heure${hours > 1 ? 's' : ''}`;
-        } else if (diffInHours < 48) {
-            return 'Hier';
-        } else {
-            return date.toLocaleDateString('fr-FR', { 
-                day: 'numeric', 
-                month: 'long',
-                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-            });
-        }
-    };
-
-    const renderHistoryItem = ({ item }) => {
+    const renderHistoryItem = useCallback(({ item }) => {
         return (
             <TouchableOpacity
                 style={[styles.historyCard, settings.darkMode && styles.historyCardDark]}
@@ -86,7 +86,7 @@ const HistoryScreen = ({ navigation }) => {
                 </View>
             </TouchableOpacity>
         );
-    };
+    }, [handleChapterPress, settings.darkMode]);
 
     return (
         <SafeAreaView style={[styles.container, theme]}>
@@ -106,6 +106,7 @@ const HistoryScreen = ({ navigation }) => {
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
                 contentContainerStyle={styles.listContent}
+                extraData={settings.darkMode}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="time-outline" size={64} color="#ccc" />
