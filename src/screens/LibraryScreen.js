@@ -153,7 +153,7 @@ const LibraryScreen = () => {
         loadBooks(true);
     }, [loadBooks]);
 
-    const renderItem = ({ item }) => (
+    const renderItem = useCallback(({ item }) => (
         <TouchableOpacity
             style={styles.itemContainer}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
@@ -169,16 +169,16 @@ const LibraryScreen = () => {
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
             </View>
         </TouchableOpacity>
-    );
+    ), [navigation, theme.text]);
 
-    const renderFooter = () => {
+    const renderFooter = useCallback(() => {
         if (!loadingMore) return null;
         return (
             <View style={styles.footerLoader}>
                 <ActivityIndicator size="small" color={theme.tint} />
             </View>
         );
-    };
+    }, [loadingMore, theme.tint]);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -233,6 +233,7 @@ const LibraryScreen = () => {
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
                     contentContainerStyle={styles.listContent}
+                    extraData={theme}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
