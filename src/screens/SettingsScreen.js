@@ -157,7 +157,13 @@ const SettingsScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={containerStyle}>
             <View style={headerStyle}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                    accessibilityLabel="Retour"
+                    accessibilityRole="button"
+                    accessibilityHint="Retourner à l'écran précédent"
+                >
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, textStyle]}>Paramètres</Text>
