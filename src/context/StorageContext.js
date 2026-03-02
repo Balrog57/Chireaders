@@ -443,13 +443,23 @@ export const StorageProvider = ({ children }) => {
     const getAllHistory = useCallback(() => {
         const allChapters = [];
 
+        // ⚡ Bolt: Optimize O(N) lookup inside nested loops to O(1) by pre-building a Map.
+        // This reduces time complexity from O(N * M) to O(N + M)
+        // where N is total chapters read and M is total favorites.
+        const favoritesMap = new Map();
+        for (const f of favorites) {
+            favoritesMap.set(f.url, f);
+        }
+
         Object.keys(readChapters).forEach(seriesUrl => {
+            const favorite = favoritesMap.get(seriesUrl);
+            const seriesTitle = favorite?.title || 'Série inconnue';
+
             readChapters[seriesUrl].forEach(chapter => {
-                const favorite = favorites.find(f => f.url === seriesUrl);
                 allChapters.push({
                     ...chapter,
                     seriesUrl,
-                    seriesTitle: favorite?.title || 'Série inconnue'
+                    seriesTitle
                 });
             });
         });
