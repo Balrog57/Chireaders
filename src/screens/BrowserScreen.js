@@ -3,7 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
-import { detectPageType, slugToTitle } from '../utils/URLDetector';
+import { detectPageType, slugToTitle, isValidChiReadsUrl } from '../utils/URLDetector';
 import FloatingHeartButton from '../components/FloatingHeartButton';
 
 // Script CSS et JavaScript à injecter pour améliorer l'ergonomie mobile/tablette
@@ -328,6 +328,13 @@ const BrowserScreen = ({ route }) => {
      * Gestion des messages envoyés par la WebView
      */
     const handleMessage = (event) => {
+        // Validation stricte de l'origine: ignorer les messages provenant de domaines non autorisés
+        // Cela empêche l'exécution de scripts malveillants si la WebView navigue hors du site
+        if (!event.nativeEvent.url || !isValidChiReadsUrl(event.nativeEvent.url)) {
+            console.warn('Message ignoré: origine non valide ou non autorisée', event.nativeEvent.url);
+            return;
+        }
+
         try {
             const message = JSON.parse(event.nativeEvent.data);
             
