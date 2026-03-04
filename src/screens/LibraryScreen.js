@@ -94,11 +94,18 @@ const LibraryScreen = () => {
             });
 
             const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title));
-            setData(sortedBooks);
-            setFullData(sortedBooks);
+
+            // Pre-compute normalized title for faster search filtering (Bolt optimization)
+            const processedBooks = sortedBooks.map(book => ({
+                ...book,
+                normalizedTitle: normalizeText(book.title)
+            }));
+
+            setData(processedBooks);
+            setFullData(processedBooks);
 
             // Save to cache
-            await saveLibraryCache(sortedBooks);
+            await saveLibraryCache(processedBooks);
 
         } catch (error) {
             console.error('Failed to load library', error);
@@ -121,8 +128,9 @@ const LibraryScreen = () => {
         const queryTerms = normalizedQuery.split(' ').filter(term => term.length > 0);
 
         const filtered = fullData.filter(item => {
-            const normalizedTitle = normalizeText(item.title);
-            // Check if ALL terms are present in the title
+            // Check if ALL terms are present in the pre-computed normalized title
+            // Fallback to dynamic normalization if not pre-computed (e.g., from old cache)
+            const normalizedTitle = item.normalizedTitle || normalizeText(item.title);
             return queryTerms.every(term => normalizedTitle.includes(term));
         });
 
@@ -153,7 +161,7 @@ const LibraryScreen = () => {
         loadBooks(true);
     }, [loadBooks]);
 
-    const renderItem = ({ item }) => (
+    const renderItem = useCallback(({ item }) => (
         <TouchableOpacity
             style={styles.itemContainer}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
@@ -169,16 +177,16 @@ const LibraryScreen = () => {
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
             </View>
         </TouchableOpacity>
-    );
+    ), [navigation, theme.text]);
 
-    const renderFooter = () => {
+    const renderFooter = useCallback(() => {
         if (!loadingMore) return null;
         return (
             <View style={styles.footerLoader}>
                 <ActivityIndicator size="small" color={theme.tint} />
             </View>
         );
-    };
+    }, [loadingMore, theme.tint]);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
