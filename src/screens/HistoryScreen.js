@@ -45,10 +45,16 @@ const HistoryScreen = ({ navigation }) => {
     };
 
     const renderHistoryItem = ({ item }) => {
+        const readDateStr = formatDate(item.dateRead);
+        const a11yLabel = `${item.seriesTitle}, ${item.title}, Lu ${readDateStr}`;
+
         return (
             <TouchableOpacity
                 style={[styles.historyCard, settings.darkMode && styles.historyCardDark]}
                 onPress={() => handleChapterPress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={a11yLabel}
+                accessibilityHint="Double-tap pour ouvrir et lire ce chapitre"
             >
                 {/* En-tête avec icône et titre série */}
                 <View style={styles.historyHeader}>
@@ -74,14 +80,14 @@ const HistoryScreen = ({ navigation }) => {
                 </Text>
                 
                 {/* Date de lecture */}
-                <View style={styles.dateContainer}>
+                <View style={styles.dateContainer} accessible={false}>
                     <Ionicons 
                         name="time-outline" 
                         size={12} 
                         color={settings.darkMode ? '#999' : '#666'} 
                     />
                     <Text style={[styles.dateText, settings.darkMode && styles.subtitleDark]}>
-                        {formatDate(item.dateRead)}
+                        {readDateStr}
                     </Text>
                 </View>
             </TouchableOpacity>
