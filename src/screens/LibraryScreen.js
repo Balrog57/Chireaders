@@ -51,8 +51,13 @@ const LibraryScreen = () => {
             if (!forceRefresh && !isSearching) {
                 const cachedData = await loadLibraryCache();
                 if (cachedData && cachedData.length > 0) {
-                    setData(cachedData);
-                    setFullData(cachedData);
+                    // Pre-compute normalized title for faster search
+                    const processedData = cachedData.map(item => ({
+                        ...item,
+                        _normalizedTitle: item._normalizedTitle || normalizeText(item.title)
+                    }));
+                    setData(processedData);
+                    setFullData(processedData);
                     setLoading(false);
                     return;
                 }
@@ -94,11 +99,18 @@ const LibraryScreen = () => {
             });
 
             const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title));
-            setData(sortedBooks);
-            setFullData(sortedBooks);
+
+            // Pre-compute normalized title for faster search
+            const processedSortedBooks = sortedBooks.map(item => ({
+                ...item,
+                _normalizedTitle: normalizeText(item.title)
+            }));
+
+            setData(processedSortedBooks);
+            setFullData(processedSortedBooks);
 
             // Save to cache
-            await saveLibraryCache(sortedBooks);
+            await saveLibraryCache(processedSortedBooks);
 
         } catch (error) {
             console.error('Failed to load library', error);
@@ -121,7 +133,8 @@ const LibraryScreen = () => {
         const queryTerms = normalizedQuery.split(' ').filter(term => term.length > 0);
 
         const filtered = fullData.filter(item => {
-            const normalizedTitle = normalizeText(item.title);
+            // Use pre-computed normalized title if available, fallback to normalizing title
+            const normalizedTitle = item._normalizedTitle || normalizeText(item.title);
             // Check if ALL terms are present in the title
             return queryTerms.every(term => normalizedTitle.includes(term));
         });
