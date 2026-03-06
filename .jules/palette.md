@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessibility on complex list items
+**Learning:** React Native screen readers evaluate nested Text nodes sequentially within touchable elements if not properly grouped, leading to a fragmented and non-interactive screen reader experience for visually impaired users.
+**Action:** When creating complex list item cards containing multiple Text components within a TouchableOpacity, always aggregate the data into a single descriptive string and set it as `accessibilityLabel` on the parent touchable wrapper. Set `accessible={false}` or `importantForAccessibility="no"` on decorative inner containers to prevent duplicate readouts. Additionally, explicitly declare `accessibilityRole="button"` on the parent wrapper to indicate interactivity.
