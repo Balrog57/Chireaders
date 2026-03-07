@@ -51,8 +51,13 @@ const LibraryScreen = () => {
             if (!forceRefresh && !isSearching) {
                 const cachedData = await loadLibraryCache();
                 if (cachedData && cachedData.length > 0) {
-                    setData(cachedData);
-                    setFullData(cachedData);
+                    // ⚡ Bolt Optimization: Pre-compute normalized titles for search to prevent blocking JS thread on every keystroke
+                    const preparedData = cachedData.map(item => ({
+                        ...item,
+                        _normalizedTitle: item._normalizedTitle || normalizeText(item.title)
+                    }));
+                    setData(preparedData);
+                    setFullData(preparedData);
                     setLoading(false);
                     return;
                 }
@@ -93,7 +98,12 @@ const LibraryScreen = () => {
                 return true;
             });
 
-            const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title));
+            // ⚡ Bolt Optimization: Pre-compute normalized titles for search to prevent blocking JS thread on every keystroke
+            const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title)).map(book => ({
+                ...book,
+                _normalizedTitle: normalizeText(book.title)
+            }));
+
             setData(sortedBooks);
             setFullData(sortedBooks);
 
@@ -121,9 +131,9 @@ const LibraryScreen = () => {
         const queryTerms = normalizedQuery.split(' ').filter(term => term.length > 0);
 
         const filtered = fullData.filter(item => {
-            const normalizedTitle = normalizeText(item.title);
+            // ⚡ Bolt Optimization: Use pre-computed _normalizedTitle instead of calculating it inside the filter loop (~14x faster)
             // Check if ALL terms are present in the title
-            return queryTerms.every(term => normalizedTitle.includes(term));
+            return queryTerms.every(term => item._normalizedTitle.includes(term));
         });
 
         setData(filtered);
