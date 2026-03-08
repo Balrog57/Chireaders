@@ -3,7 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
-import { detectPageType, slugToTitle } from '../utils/URLDetector';
+import { detectPageType, slugToTitle, isValidChiReadsUrl } from '../utils/URLDetector';
 import FloatingHeartButton from '../components/FloatingHeartButton';
 
 // Script CSS et JavaScript à injecter pour améliorer l'ergonomie mobile/tablette
@@ -329,6 +329,12 @@ const BrowserScreen = ({ route }) => {
      */
     const handleMessage = (event) => {
         try {
+            // Sécurité : Vérifier que le message provient bien du site autorisé
+            if (!isValidChiReadsUrl(event.nativeEvent.url)) {
+                console.warn('Message ignoré : origine non autorisée ou invalide');
+                return;
+            }
+
             const message = JSON.parse(event.nativeEvent.data);
             
             if (message.type === 'styleApplied') {
