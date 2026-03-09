@@ -443,9 +443,15 @@ export const StorageProvider = ({ children }) => {
     const getAllHistory = useCallback(() => {
         const allChapters = [];
 
+        // ⚡ Bolt: Pré-calculer une Map des favoris pour réduire la complexité de O(N*M) à O(N+M)
+        const favoritesMap = new Map();
+        for (let i = 0; i < favorites.length; i++) {
+            favoritesMap.set(favorites[i].url, favorites[i]);
+        }
+
         Object.keys(readChapters).forEach(seriesUrl => {
+            const favorite = favoritesMap.get(seriesUrl);
             readChapters[seriesUrl].forEach(chapter => {
-                const favorite = favorites.find(f => f.url === seriesUrl);
                 allChapters.push({
                     ...chapter,
                     seriesUrl,
