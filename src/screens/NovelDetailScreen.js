@@ -187,6 +187,10 @@ const NovelDetailScreen = () => {
                         <TouchableOpacity
                             style={[styles.favButton, isFav ? styles.favButtonActive : { backgroundColor: theme.border }]}
                             onPress={toggleFavorite}
+                            accessibilityRole="button"
+                            accessibilityLabel={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                            accessibilityState={{ checked: isFav }}
+                            accessibilityHint="Ajoute ou retire cette série de votre liste de favoris"
                         >
                             <Ionicons name={isFav ? "heart" : "heart-outline"} size={20} color={isFav ? "#fff" : theme.text} />
                             <Text style={[styles.favButtonText, { color: isFav ? "#fff" : theme.text }]}>
@@ -306,6 +310,7 @@ const NovelDetailScreen = () => {
                         accessibilityLabel={reversed ? "Trier du plus ancien au plus récent" : "Trier du plus récent au plus ancien"}
                         accessibilityRole="button"
                         accessibilityHint="Double-tap pour changer l'ordre de tri des chapitres"
+                        accessibilityState={{ checked: reversed }}
                     >
                         <Ionicons name="swap-vertical" size={20} color={theme.tint} />
                     </TouchableOpacity>
