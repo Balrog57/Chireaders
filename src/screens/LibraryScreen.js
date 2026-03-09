@@ -93,7 +93,11 @@ const LibraryScreen = () => {
                 return true;
             });
 
-            const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title));
+            const sortedBooks = uniqueBooks.sort((a, b) => a.title.localeCompare(b.title)).map(book => ({
+                ...book,
+                _normalizedTitle: normalizeText(book.title)
+            }));
+
             setData(sortedBooks);
             setFullData(sortedBooks);
 
@@ -121,7 +125,8 @@ const LibraryScreen = () => {
         const queryTerms = normalizedQuery.split(' ').filter(term => term.length > 0);
 
         const filtered = fullData.filter(item => {
-            const normalizedTitle = normalizeText(item.title);
+            // Use pre-computed normalized title if available, otherwise fallback
+            const normalizedTitle = item._normalizedTitle || normalizeText(item.title);
             // Check if ALL terms are present in the title
             return queryTerms.every(term => normalizedTitle.includes(term));
         });
