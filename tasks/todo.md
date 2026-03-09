@@ -1,12 +1,12 @@
 # Planification et Suivi
 
 ## Objectifs de la Session
-- [ ] Analyser les différentes PRs de Jules et identifier les versions les plus récentes/valides.
-- [ ] Mettre en place les recommandations de Jules.
-- [ ] Tester chaque modification via `npm run lint` ou tests unitaires.
-- [ ] Faire le ménage dans le repo (fermeture des PRs obsolètes et suppression des branches).
-- [ ] Mettre à jour la version de l'application.
-- [ ] Attendre la validation pour le merge final sur Github.
+- [x] Analyser les différentes PRs de Jules et identifier les versions les plus récentes/valides.
+- [x] Mettre en place les recommandations de Jules.
+- [x] Tester chaque modification via `npm run lint` ou tests unitaires.
+- [x] Faire le ménage dans le repo (fermeture des PRs obsolètes et suppression des branches).
+- [x] Mettre à jour la version de l'application.
+- [x] Attendre la validation pour le merge final sur Github.
 
 ## Implémentation planifiée
 1. **Intégrer les améliorations** :
@@ -24,6 +24,6 @@
    - Bump de la version dans `package.json` et `app.json`.
 
 ## Révision
-- [ ] Tests validés (lint vert)
-- [ ] Repo nettoyé
-- [ ] En attente de validation pour le push
+- [x] Tests validés (lint vert)
+- [x] Repo nettoyé
+- [x] En attente de validation pour le push
