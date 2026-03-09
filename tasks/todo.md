@@ -1,30 +1,29 @@
 # Planification et Suivi
 
 ## Objectifs de la Session
-- [x] Résumer les PRs ouvertes.
-- [x] Identifier et fermer les PRs superflues (doublons).
-- [x] Tester les PRs valides (checkout + `npm install` + `npm run lint`).
-- [x] Fusionner les PRs testées avec succès.
-- [x] Supprimer toutes les branches secondaires résiduelles.
+- [ ] Analyser les différentes PRs de Jules et identifier les versions les plus récentes/valides.
+- [ ] Mettre en place les recommandations de Jules.
+- [ ] Tester chaque modification via `npm run lint` ou tests unitaires.
+- [ ] Faire le ménage dans le repo (fermeture des PRs obsolètes et suppression des branches).
+- [ ] Mettre à jour la version de l'application.
+- [ ] Attendre la validation pour le merge final sur Github.
 
-## Implémentation
-1. **Analyse des PRs et Doublons** : 
-   - **Optimisation NovelDetailScreen** : Garder PR #57, fermer #56, #55, #46.
-   - **Race condition background task** : Garder PR #53, fermer #52, #49.
-   - **Accessibilité Palette** : Garder #54, #51, #48, #45.
-   - **Sentinel / Validation** : Garder #59, #47.
-   - **Features & Perfs** : Garder #58, #50.
-2. **Phase de Test** : Pour chaque PR à garder, je vais `git fetch`, `git checkout <branche>`, exécuter `npm install` puis `npm run lint` pour s'assurer qu'il n'y a pas d'erreur de lint/compilation.
-3. **Fusion** : Utilisation de l'outil GitHub MCP pour merger les PRs qui passent le test. `mcp_remote-github_merge_pull_request`.
-4. **Nettoyage** : Fermeture des PRs obsolètes, suppression des branches distantes associées.
-
-## Implémentation
-- [x] Corriger l'écran blanc provoqué par une erreur réseau (émulateur sans internet).
-- [x] Ajouter un système de cache temporaire en mémoire pour les chapitres visités dans `ReaderScreen`.
-- [x] Vider le cache à la fermeture de l'écran de lecture.
-- [x] Vider le cache lorsque l'application passe en arrière-plan ou se ferme (`AppState`).
+## Implémentation planifiée
+1. **Intégrer les améliorations** :
+   - Optimisation `getAllHistory` (PR #87)
+   - Accessibilité des boutons dans `NovelDetailScreen` (PR #86)
+   - Sécurité WebView : Validation origin (PR #85, remplace 82, 80, 77, 74, 71, 69)
+   - Optimisation de la recherche `LibraryScreen` (PR #84, remplace 81, 78, 73, 72)
+   - Accessibilité cartes `HistoryScreen` (PR #83, remplace 79, 76, 75)
+   - Accessibilité bouton retour `SettingsScreen` (PR #70, remplace 68)
+2. **Phase de test** : 
+   - Exécution de `npm install` et `npm run lint`.
+3. **Ménage** :
+   - Clôture des PRs en doublon et anciennes via l'API GitHub.
+4. **Version** :
+   - Bump de la version dans `package.json` et `app.json`.
 
 ## Révision
-- [x] La commande `npm run lint` passe sans erreur sur la branche `main` après toutes les fusions.
-- [x] Plus de PR ouvertes sur le repo.
-- [x] Plus de branches secondaires.
+- [ ] Tests validés (lint vert)
+- [ ] Repo nettoyé
+- [ ] En attente de validation pour le push
