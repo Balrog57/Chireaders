@@ -4,3 +4,7 @@
 1. Mock the `OPTIONS` method explicitly to return 204.
 2. Launch the browser with `--disable-web-security` args.
 3. Ensure mock responses include `Access-Control-Allow-Origin: *` and other CORS headers.
+
+## 2025-05-27 - Optimize getAllHistory Lookup
+**Learning:** O(N*M) lookups within loops (e.g. `favorites.find(f => f.url === seriesUrl)`) severely hurt performance as arrays grow. Array.prototype.find inside another loop should be avoided.
+**Action:** Pre-calculate a Map for lookups outside the loop. This reduces complexity from O(N*M) to O(N+M).
