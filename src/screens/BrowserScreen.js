@@ -3,7 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
-import { detectPageType, slugToTitle } from '../utils/URLDetector';
+import { detectPageType, slugToTitle, isValidChiReadsUrl } from '../utils/URLDetector';
 import FloatingHeartButton from '../components/FloatingHeartButton';
 
 // Script CSS et JavaScript à injecter pour améliorer l'ergonomie mobile/tablette
@@ -329,6 +329,13 @@ const BrowserScreen = ({ route }) => {
      */
     const handleMessage = (event) => {
         try {
+            // Validate message origin to prevent XSS/Injection from untrusted domains
+            const sourceUrl = event.nativeEvent.url;
+            if (!isValidChiReadsUrl(sourceUrl)) {
+                console.warn(`[Security] Dropping WebView message from untrusted origin: ${sourceUrl}`);
+                return;
+            }
+
             const message = JSON.parse(event.nativeEvent.data);
             
             if (message.type === 'styleApplied') {
