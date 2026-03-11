@@ -1,9 +1,4 @@
-## 2025-06-03 - [Race Condition in AsyncStorage Background Tasks]
-**Vulnerability:** A "Check-Then-Act" race condition was found in `BackgroundNotificationTask.js`. The task read data from `AsyncStorage`, performed long-running network operations, and then overwrote the storage with the stale initial data plus updates. This caused user changes (e.g., deleting a favorite) made during the task execution to be lost.
-**Learning:** Background tasks in React Native headless JS operate independently of the UI state and contexts. Direct `AsyncStorage` usage without re-validation is dangerous for data integrity when user interaction is possible concurrently.
-**Prevention:** Always implement a "Fetch-Merge-Save" strategy for background tasks: collect updates first, then re-read the storage source of truth immediately before saving, merging the updates into the fresh state.
-
-## 2024-03-09 - [Missing WebView Message Origin Validation]
-**Vulnerability:** The WebView in `BrowserScreen.js` processed messages from injected JavaScript without validating the origin URL (`event.nativeEvent.url`), allowing potential XSS/injection from untrusted domains.
-**Learning:** Trusting WebView messages blindly exposes the native application to attacks if the user navigates to external malicious sites.
-**Prevention:** Always validate `event.nativeEvent.url` against an allowed list of domains (e.g., using `isValidChiReadsUrl`) inside the `onMessage` handler before processing the data.
+## 2024-05-18 - [Restrict WebView Navigation]
+**Vulnerability:** The application's main `WebView` component (`BrowserScreen.js`) previously allowed navigation to any URL. This meant that if the target website (`chireads.com`) was compromised with malicious ads, XSS, or unexpected redirects, the app would silently load those untrusted third-party sites within the app's context, potentially exposing users to phishing or malicious scripts.
+**Learning:** WebViews in React Native do not restrict navigation by default. If an app is designed to wrap a specific domain, the application code must explicitly enforce origin boundaries to prevent "open redirect" style vulnerabilities within the app shell.
+**Prevention:** Always implement `onShouldStartLoadWithRequest` on `WebView` components to intercept and validate all navigation attempts against a strict allowlist (e.g., `isValidChiReadsUrl`). Any legitimate external links clicked by the user should be safely delegated to the device's default system browser using `Linking.openURL()`.
