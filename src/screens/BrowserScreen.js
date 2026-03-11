@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
+import * as Linking from 'expo-linking';
 import { detectPageType, slugToTitle, isValidChiReadsUrl } from '../utils/URLDetector';
 import FloatingHeartButton from '../components/FloatingHeartButton';
 
@@ -325,6 +326,29 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Empêcher la navigation vers des domaines non autorisés
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        // Si c'est une URL valide ChiReads, on laisse passer
+        if (isValidChiReadsUrl(url) || url === 'about:blank') {
+            return true;
+        }
+
+        // Sinon, c'est un lien externe (pub, redirection malveillante, etc.)
+        console.warn(`[Security] Blocking WebView navigation to untrusted origin: ${url}`);
+
+        // Optionnel: Ouvrir dans le navigateur externe si l'utilisateur a cliqué explicitement
+        // Pour les redirections automatiques, on pourrait ajouter une vérification supplémentaire
+        if (request.isTopFrame && request.navigationType === 'click') {
+            Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+        }
+
+        return false;
+    };
+
+    /**
      * Gestion des messages envoyés par la WebView
      */
     const handleMessage = (event) => {
@@ -368,6 +392,7 @@ const BrowserScreen = ({ route }) => {
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
