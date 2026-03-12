@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -361,12 +361,28 @@ const BrowserScreen = ({ route }) => {
         }
     };
 
+    /**
+     * Prevents navigation to untrusted domains
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+        if (isValidChiReadsUrl(url)) {
+            return true; // Allow navigation to trusted domains
+        }
+
+        // Open untrusted/external domains in the system browser
+        console.warn(`[Security] Offloading untrusted URL to system browser: ${url}`);
+        Linking.openURL(url).catch(err => console.error("Couldn't open external URL", err));
+        return false; // Prevent WebView from loading it
+    };
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* WebView plein écran */}
             <WebView
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onNavigationStateChange={handleNavigationStateChange}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
