@@ -45,10 +45,15 @@ const HistoryScreen = ({ navigation }) => {
     };
 
     const renderHistoryItem = ({ item }) => {
+        const formattedDate = formatDate(item.dateRead);
+
         return (
             <TouchableOpacity
                 style={[styles.historyCard, settings.darkMode && styles.historyCardDark]}
                 onPress={() => handleChapterPress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.seriesTitle}, ${item.title}, lu ${formattedDate}`}
+                accessibilityHint="Double-tap pour ouvrir et lire ce chapitre"
             >
                 {/* En-tête avec icône et titre série */}
                 <View style={styles.historyHeader}>
@@ -81,7 +86,7 @@ const HistoryScreen = ({ navigation }) => {
                         color={settings.darkMode ? '#999' : '#666'} 
                     />
                     <Text style={[styles.dateText, settings.darkMode && styles.subtitleDark]}>
-                        {formatDate(item.dateRead)}
+                        {formattedDate}
                     </Text>
                 </View>
             </TouchableOpacity>
