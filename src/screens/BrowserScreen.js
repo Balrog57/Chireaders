@@ -1,5 +1,6 @@
 import { useContext, useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import * as Linking from 'expo-linking';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -325,6 +326,28 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Secures the WebView by preventing navigation to untrusted domains
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        // Always allow about:blank (used internally by WebView)
+        if (url === 'about:blank') {
+            return true;
+        }
+
+        // Validate if the domain is allowed
+        if (isValidChiReadsUrl(url)) {
+            return true;
+        }
+
+        // Block untrusted domains and offload to external system browser
+        console.warn(`[Security] Blocking WebView navigation to untrusted domain: ${url}`);
+        Linking.openURL(url).catch(err => console.error("Couldn't load external page", err));
+        return false;
+    };
+
+    /**
      * Gestion des messages envoyés par la WebView
      */
     const handleMessage = (event) => {
@@ -371,6 +394,7 @@ const BrowserScreen = ({ route }) => {
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 injectedJavaScript={INJECTED_JAVASCRIPT}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
