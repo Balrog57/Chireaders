@@ -1,3 +1,7 @@
 ## 2025-05-27 - [Toggle Button Accessibility States]
 **Learning:** State-dependent toggle buttons (e.g. "Favorites" or "Sort Order" icons) not only require dynamic `accessibilityLabel` props to reflect the action performed, but they must also communicate their active state to assistive technologies using `accessibilityState={{ checked: boolean }}` or `accessibilityState={{ selected: boolean }}`. Text changes inside the button are not reliably interpreted as state changes by screen readers if the element role is purely a button without state markers.
 **Action:** When implementing interactive UI elements that toggle a state, explicitly set the `accessibilityState` property based on the boolean state variable controlling the UI (like `isFav` or `reversed`) to ensure proper screen reader context.
+
+## 2024-03-14 - [Complex Touchable List Items Accessibility]
+**Learning:** Complex touchable list items (like History cards with multiple text elements: series title, chapter, date) require an explicit `accessibilityRole="button"` and a comprehensive `accessibilityLabel` that aggregates their internal text content. Otherwise, screen readers will simply read the internal text sequentially without providing interactive context to the user.
+**Action:** Always provide an aggregated `accessibilityLabel` and an explicit `accessibilityRole="button"` for complex `TouchableOpacity` components that act as navigation or interactive elements.
