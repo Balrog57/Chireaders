@@ -158,7 +158,9 @@ const LibraryScreen = () => {
         loadBooks(true);
     }, [loadBooks]);
 
-    const renderItem = ({ item }) => (
+    // Optimize renderItem with useCallback to prevent function recreation on every render
+    // This is crucial for FlatList performance, especially with thousands of items
+    const renderItem = useCallback(({ item }) => (
         <TouchableOpacity
             style={styles.itemContainer}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
@@ -174,7 +176,7 @@ const LibraryScreen = () => {
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
             </View>
         </TouchableOpacity>
-    );
+    ), [navigation, theme.text]);
 
     const renderFooter = () => {
         if (!loadingMore) return null;
