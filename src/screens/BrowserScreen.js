@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -349,6 +349,27 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Prevent WebView from navigating to untrusted domains
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+
+        // Automatically allow about:blank and data URIs (often used internally by WebView)
+        if (url.startsWith('about:') || url.startsWith('data:')) {
+            return true;
+        }
+
+        if (isValidChiReadsUrl(url)) {
+            return true; // Let WebView handle it
+        }
+
+        // Untrusted domain, open in system browser and stop WebView navigation
+        console.warn(`[Security] Intercepted navigation to untrusted domain: ${url}`);
+        Linking.openURL(url).catch(err => console.error("Couldn't open URL:", err));
+        return false;
+    };
+
+    /**
      * Gestion du bouton coeur (toggle favori)
      */
     const handleHeartPress = () => {
@@ -369,6 +390,7 @@ const BrowserScreen = ({ route }) => {
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
                 onMessage={handleMessage}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
                 injectedJavaScript={INJECTED_JAVASCRIPT}
