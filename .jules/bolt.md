@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2025-05-27 - Optimize List Rendering
+**Learning:** For large lists (e.g., thousands of items), not wrapping the `renderItem` function of `FlatList` in `useCallback` causes the function to be re-created on every render cycle, leading to unnecessary and expensive re-renders of the list items.
+**Action:** Always wrap the `renderItem` function and its internal event handlers in `useCallback` to maintain referential equality across render cycles, preventing unnecessary list re-renders.
