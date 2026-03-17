@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -361,6 +361,28 @@ const BrowserScreen = ({ route }) => {
         }
     };
 
+    /**
+     * Gestion de la sécurité : empêcher la navigation vers des domaines non autorisés
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        // Autoriser les schémas internes React Native / WebView
+        if (url.startsWith('about:blank') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // Autoriser les URLs valides de chireads.com
+        if (isValidChiReadsUrl(url)) {
+            return true;
+        }
+
+        // Bloquer et ouvrir dans le navigateur externe
+        console.warn(`[Security] Intercepted external navigation to: ${url}`);
+        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+        return false;
+    };
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* WebView plein écran */}
@@ -369,6 +391,7 @@ const BrowserScreen = ({ route }) => {
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
                 onMessage={handleMessage}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
                 injectedJavaScript={INJECTED_JAVASCRIPT}
