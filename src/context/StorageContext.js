@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BackupService from '../services/BackupService';
 
 export const StorageContext = createContext();
@@ -438,9 +438,11 @@ export const StorageProvider = ({ children }) => {
 
     /**
      * Obtenir tout l'historique de lecture (tous chapitres, triés par date)
-     * @returns {Array} Liste de tous les chapitres lus
+     * ⚡ Bolt: Memoize the resulting data instead of the function.
+     * This prevents expensive N+M computation and sorting on every render
+     * of consumers like HistoryScreen.
      */
-    const getAllHistory = useCallback(() => {
+    const allHistory = useMemo(() => {
         const allChapters = [];
 
         // ⚡ Bolt: Pré-calculer une Map des favoris pour réduire la complexité de O(N*M) à O(N+M)
@@ -530,7 +532,7 @@ export const StorageProvider = ({ children }) => {
             getSeriesProgress,
             getLastChapterRead,
             isChapterRead,
-            getAllHistory,
+            allHistory,
             toggleChapterRead, // compatibilité
 
             // Settings
