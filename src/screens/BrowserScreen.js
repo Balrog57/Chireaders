@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -286,6 +286,43 @@ const BrowserScreen = ({ route }) => {
     const [loading, setLoading] = useState(true);
 
     /**
+     * Sécurité: Intercepter la navigation pour bloquer les domaines non autorisés
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+
+        // Allow internal WebView schemes (vital for rendering)
+        if (url.startsWith('about:blank') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // Validate destination URL
+        if (isValidChiReadsUrl(url)) {
+            return true; // Let the WebView load it
+        }
+
+        // Untrusted / External domain: Offload to system browser
+        console.warn(`[Security] Intercepted navigation to untrusted domain: ${url}`);
+
+        try {
+            const parsedUrl = new URL(url);
+            // Only allow standard web protocols
+            if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+                Linking.openURL(url).catch(err => {
+                    console.error('Failed to open external URL:', err);
+                });
+            } else {
+                console.warn(`[Security] Blocked dangerous protocol scheme: ${parsedUrl.protocol}`);
+            }
+        } catch (e) {
+            console.error('[Security] Failed to parse URL:', e);
+        }
+
+        // Block WebView from loading the malicious/external URL
+        return false;
+    };
+
+    /**
      * Gestion de la navigation dans la WebView
      */
     const handleNavigationStateChange = (navState) => {
@@ -367,6 +404,7 @@ const BrowserScreen = ({ route }) => {
             <WebView
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onNavigationStateChange={handleNavigationStateChange}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
