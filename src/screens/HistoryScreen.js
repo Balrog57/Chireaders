@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { useContext } from 'react';
 import { 
@@ -11,8 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
 
 const HistoryScreen = ({ navigation }) => {
-    const { getAllHistory, settings } = useContext(StorageContext);
-    const history = getAllHistory();
+    // ⚡ Bolt: Destructure the memoized allHistory array directly instead of calling a function,
+    // avoiding unnecessary computations and array creations on every render.
+    const { allHistory, settings } = useContext(StorageContext);
+    const history = allHistory;
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
