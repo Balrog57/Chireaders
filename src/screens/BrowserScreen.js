@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -349,6 +349,27 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Sécurité : Restreindre la navigation aux URLs autorisées
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+
+        // Autoriser les schémas internes essentiels pour WebView
+        if (url.startsWith('about:') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // Bloquer et décharger les URL non approuvées vers le navigateur du système
+        if (!isValidChiReadsUrl(url)) {
+            console.warn(`[Security] Navigating to external URL via system browser: ${url}`);
+            Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+            return false;
+        }
+
+        return true;
+    };
+
+    /**
      * Gestion du bouton coeur (toggle favori)
      */
     const handleHeartPress = () => {
@@ -368,6 +389,7 @@ const BrowserScreen = ({ route }) => {
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
