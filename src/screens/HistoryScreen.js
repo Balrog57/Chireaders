@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import { 
     FlatList,
     StyleSheet, 
@@ -45,10 +45,15 @@ const HistoryScreen = ({ navigation }) => {
     };
 
     const renderHistoryItem = ({ item }) => {
+        const dateRead = formatDate(item.dateRead);
+
         return (
             <TouchableOpacity
                 style={[styles.historyCard, settings.darkMode && styles.historyCardDark]}
                 onPress={() => handleChapterPress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.seriesTitle}, ${item.title}, Lu ${dateRead}`}
+                accessibilityHint="Reprendre la lecture de ce chapitre"
             >
                 {/* En-tête avec icône et titre série */}
                 <View style={styles.historyHeader}>
@@ -74,14 +79,14 @@ const HistoryScreen = ({ navigation }) => {
                 </Text>
                 
                 {/* Date de lecture */}
-                <View style={styles.dateContainer}>
+                <View style={styles.dateContainer} importantForAccessibility="no-hide-descendants">
                     <Ionicons 
                         name="time-outline" 
                         size={12} 
                         color={settings.darkMode ? '#999' : '#666'} 
                     />
                     <Text style={[styles.dateText, settings.darkMode && styles.subtitleDark]}>
-                        {formatDate(item.dateRead)}
+                        {dateRead}
                     </Text>
                 </View>
             </TouchableOpacity>
