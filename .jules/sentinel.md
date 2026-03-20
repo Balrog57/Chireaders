@@ -7,3 +7,7 @@
 **Vulnerability:** The WebView in `BrowserScreen.js` processed messages from injected JavaScript without validating the origin URL (`event.nativeEvent.url`), allowing potential XSS/injection from untrusted domains.
 **Learning:** Trusting WebView messages blindly exposes the native application to attacks if the user navigates to external malicious sites.
 **Prevention:** Always validate `event.nativeEvent.url` against an allowed list of domains (e.g., using `isValidChiReadsUrl`) inside the `onMessage` handler before processing the data.
+## 2024-05-30 - Prevent URI Scheme Injection via Linking.openURL
+**Vulnerability:** React Native's `Linking.openURL(url)` unconditionally passes intercepted WebView URLs to the system. Without validating the protocol/scheme (e.g., ensuring it's `http://` or `https://`), a malicious page within the WebView can redirect to `intent://`, `tel:`, or other dangerous URI schemes, triggering arbitrary system actions.
+**Learning:** Intercepting navigation to protect a WebView (`onShouldStartLoadWithRequest`) can inadvertently introduce scheme injection if the untrusted URL is automatically forwarded to the OS via `Linking`.
+**Prevention:** Always validate that the URI scheme strictly begins with `http://` or `https://` before offloading intercepted URLs to the system browser via `Linking.openURL()`.
