@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -349,6 +349,34 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Security: Restrict WebView navigation to trusted URLs.
+     * External or untrusted links are passed to the system browser.
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        // Allow internal schemes necessary for WebView rendering
+        if (url.startsWith('about:') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // Validate domain
+        if (isValidChiReadsUrl(url)) {
+            return true;
+        }
+
+        // External or untrusted domain: open in system browser and prevent WebView navigation
+        // Security: Prevent URI scheme injection by only allowing http/https
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            console.log(`[Security] Intercepted navigation to external URL: ${url}`);
+            Linking.openURL(url).catch(err => console.error("Couldn't load external page", err));
+        } else {
+            console.warn(`[Security] Blocked untrusted URI scheme: ${url}`);
+        }
+        return false;
+    };
+
+    /**
      * Gestion du bouton coeur (toggle favori)
      */
     const handleHeartPress = () => {
@@ -368,6 +396,7 @@ const BrowserScreen = ({ route }) => {
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
