@@ -7,3 +7,8 @@
 **Vulnerability:** The WebView in `BrowserScreen.js` processed messages from injected JavaScript without validating the origin URL (`event.nativeEvent.url`), allowing potential XSS/injection from untrusted domains.
 **Learning:** Trusting WebView messages blindly exposes the native application to attacks if the user navigates to external malicious sites.
 **Prevention:** Always validate `event.nativeEvent.url` against an allowed list of domains (e.g., using `isValidChiReadsUrl`) inside the `onMessage` handler before processing the data.
+
+## 2024-05-18 - WebView Intent Injection Prevention
+**Vulnerability:** WebView allowed arbitrary URI schemes to load, posing intent/file/javascript injection risks.
+**Learning:** `onShouldStartLoadWithRequest` must explicitly filter allowed schemes (`http://`, `https://`, `about:`, `data:`). Offloading navigation to `Linking.openURL()` without validation can still lead to intent injection.
+**Prevention:** Always whitelist allowed URI schemes when intercepting and delegating WebView navigation.
