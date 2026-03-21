@@ -49,6 +49,9 @@ const HistoryScreen = ({ navigation }) => {
             <TouchableOpacity
                 style={[styles.historyCard, settings.darkMode && styles.historyCardDark]}
                 onPress={() => handleChapterPress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.seriesTitle}, ${item.title}, lu ${formatDate(item.dateRead)}`}
+                accessibilityHint="Ouvre ce chapitre dans le lecteur"
             >
                 {/* En-tête avec icône et titre série */}
                 <View style={styles.historyHeader}>
