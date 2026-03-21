@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -349,6 +349,33 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Intercepte et valide les requêtes de navigation pour des raisons de sécurité.
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+
+        // Autoriser les schémas internes (nécessaire pour le rendu WebView)
+        if (url.startsWith('about:') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // Autoriser la navigation interne sécurisée
+        if (isValidChiReadsUrl(url)) {
+            return true;
+        }
+
+        // Externaliser les autres liens HTTP/HTTPS vers le navigateur système
+        // Refuser explicitement les schémas non sécurisés (intent:, file:, javascript:)
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            Linking.openURL(url).catch(err => console.error("Failed to open URL:", err));
+        } else {
+            console.warn(`[Security] Blocked untrusted URI scheme: ${url}`);
+        }
+
+        return false;
+    };
+
+    /**
      * Gestion du bouton coeur (toggle favori)
      */
     const handleHeartPress = () => {
@@ -371,6 +398,7 @@ const BrowserScreen = ({ route }) => {
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 injectedJavaScript={INJECTED_JAVASCRIPT}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
