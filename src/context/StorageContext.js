@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BackupService from '../services/BackupService';
 
 export const StorageContext = createContext();
@@ -464,6 +464,13 @@ export const StorageProvider = ({ children }) => {
         return allChapters.sort((a, b) => b.dateRead - a.dateRead);
     }, [readChapters, favorites]);
 
+    /**
+     * Historique de lecture mémoïsé (tous chapitres, triés par date)
+     */
+    const allHistory = useMemo(() => {
+        return getAllHistory();
+    }, [getAllHistory]);
+
     // ===== SETTINGS =====
 
     /**
@@ -531,6 +538,7 @@ export const StorageProvider = ({ children }) => {
             getLastChapterRead,
             isChapterRead,
             getAllHistory,
+            allHistory,
             toggleChapterRead, // compatibilité
 
             // Settings
