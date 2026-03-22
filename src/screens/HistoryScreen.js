@@ -11,8 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
 
 const HistoryScreen = ({ navigation }) => {
-    const { getAllHistory, settings } = useContext(StorageContext);
-    const history = getAllHistory();
+    const { allHistory: history, settings } = useContext(StorageContext);
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
