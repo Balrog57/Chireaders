@@ -349,6 +349,28 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Securing WebView Navigation
+     * Prevents loading malicious URI schemes (Intent Injection) inside the in-app browser.
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        // Allow internal React Native WebView schemes
+        if (url.startsWith('about:blank') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // Allow standard web protocols to load inside the WebView
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return true;
+        }
+
+        // Block any other unknown or potentially malicious schemes (intent://, javascript:, file://, etc.)
+        console.warn(`[Security] Blocked unsafe URI scheme or intent: ${url}`);
+        return false;
+    };
+
+    /**
      * Gestion du bouton coeur (toggle favori)
      */
     const handleHeartPress = () => {
@@ -368,6 +390,7 @@ const BrowserScreen = ({ route }) => {
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
