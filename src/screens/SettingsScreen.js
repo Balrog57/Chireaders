@@ -181,6 +181,8 @@ const SettingsScreen = ({ navigation }) => {
                             style={[styles.button, { backgroundColor: theme.tint }]}
                             onPress={handleCheckUpdate}
                             disabled={isCheckingUpdate}
+                            accessibilityRole="button"
+                            accessibilityState={{ disabled: isCheckingUpdate }}
                         >
                             {isCheckingUpdate ? (
                                 <ActivityIndicator color="#fff" size="small" />
@@ -218,6 +220,8 @@ const SettingsScreen = ({ navigation }) => {
                                     style={[styles.button, { backgroundColor: theme.tint }]}
                                     onPress={handleRestore}
                                     disabled={isRestoring}
+                                    accessibilityRole="button"
+                                    accessibilityState={{ disabled: isRestoring }}
                                 >
                                     {isRestoring ? (
                                         <ActivityIndicator color="#fff" size="small" />
