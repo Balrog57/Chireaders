@@ -361,12 +361,35 @@ const BrowserScreen = ({ route }) => {
         }
     };
 
+    /**
+     * Sécuriser la navigation de la WebView
+     * Bloque les schémas dangereux pour prévenir les injections
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+
+        // Toujours autoriser les schémas web standards et internes
+        if (
+            url.startsWith('http://') ||
+            url.startsWith('https://') ||
+            url.startsWith('about:blank') ||
+            url.startsWith('data:')
+        ) {
+            return true;
+        }
+
+        // Bloquer tout autre schéma (ex: intent://, javascript:, file://, tel:, etc.)
+        console.warn(`[Security] Navigation bloquée vers un schéma non sécurisé: ${url}`);
+        return false;
+    };
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* WebView plein écran */}
             <WebView
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onNavigationStateChange={handleNavigationStateChange}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
