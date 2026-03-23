@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2025-05-27 - Memoize Large Datasets in Context Providers
+**Learning:** Context providers that expose computed datasets (like a history array derived from multiple objects mapping) without memoizing the computation can cause severe performance degradation for their consumers. Passing a `useCallback` function instead of the computed dataset itself masks the problem by deferring execution to the consumer's render cycle, causing massive O(N+M) array allocations and sorting on *every* consumer render.
+**Action:** Always compute large datasets using `useMemo` in the context provider. Consumers should extract the pre-computed `useMemo` value directly, rather than executing a function during their render cycle.

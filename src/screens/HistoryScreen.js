@@ -11,8 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
 
 const HistoryScreen = ({ navigation }) => {
-    const { getAllHistory, settings } = useContext(StorageContext);
-    const history = getAllHistory();
+    // ⚡ Bolt: Utilisation de allHistory mémorisé depuis le contexte pour éviter la recréation du tableau à chaque rendu
+    const { allHistory, settings } = useContext(StorageContext);
+    const history = allHistory;
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
