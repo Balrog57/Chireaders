@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { 
     FlatList,
     StyleSheet, 
@@ -16,12 +16,12 @@ const HistoryScreen = ({ navigation }) => {
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
-    const handleChapterPress = (chapter) => {
+    const handleChapterPress = useCallback((chapter) => {
         // Naviguer vers le Browser avec l'URL du chapitre
         navigation.navigate('Browser', { initialUrl: chapter.url });
-    };
+    }, [navigation]);
 
-    const formatDate = (timestamp) => {
+    const formatDate = useCallback((timestamp) => {
         const date = new Date(timestamp);
         const now = new Date();
         const diffInMs = now - date;
@@ -42,9 +42,9 @@ const HistoryScreen = ({ navigation }) => {
                 year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
             });
         }
-    };
+    }, []);
 
-    const renderHistoryItem = ({ item }) => {
+    const renderHistoryItem = useCallback(({ item }) => {
         return (
             <TouchableOpacity
                 style={[styles.historyCard, settings.darkMode && styles.historyCardDark]}
@@ -86,7 +86,7 @@ const HistoryScreen = ({ navigation }) => {
                 </View>
             </TouchableOpacity>
         );
-    };
+    }, [settings.darkMode, handleChapterPress, formatDate]);
 
     return (
         <SafeAreaView style={[styles.container, theme]}>
