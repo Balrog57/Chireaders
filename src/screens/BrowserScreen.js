@@ -349,6 +349,27 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Valider et filtrer les URL sortantes pour prévenir Intent Injection et URL Scheme Hijacking.
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        // Autoriser explicitement les schémas internes (nécessaire pour le rendu WebView)
+        if (url.startsWith('about:blank') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // N'autoriser que les schémas web standards (http, https)
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return true;
+        }
+
+        // Bloquer tous les autres schémas (ex: intent://, javascript:, tel:, mailto:)
+        console.warn(`[Security] Dropping unsafe WebView navigation request: ${url}`);
+        return false;
+    };
+
+    /**
      * Gestion du bouton coeur (toggle favori)
      */
     const handleHeartPress = () => {
@@ -368,6 +389,7 @@ const BrowserScreen = ({ route }) => {
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
