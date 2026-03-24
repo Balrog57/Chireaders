@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import {
     Alert,
     FlatList,
@@ -24,15 +24,15 @@ const FavoritesScreen = ({ navigation }) => {
 
     // const theme = settings.darkMode ? styles.dark : styles.light; // Replaced by global theme context
 
-    const handleFavoritePress = (favorite) => {
+    const handleFavoritePress = useCallback((favorite) => {
         // Naviguer vers le Détail Natif
         navigation.navigate('NovelDetail', {
             url: favorite.url,
             title: favorite.title
         });
-    };
+    }, [navigation]);
 
-    const handleDeletePress = (favorite) => {
+    const handleDeletePress = useCallback((favorite) => {
         Alert.alert(
             'Retirer des favoris',
             `Voulez-vous retirer "${favorite.title}" de vos favoris ?`,
@@ -45,9 +45,9 @@ const FavoritesScreen = ({ navigation }) => {
                 }
             ]
         );
-    };
+    }, [removeFavorite]);
 
-    const renderFavoriteItem = ({ item }) => {
+    const renderFavoriteItem = useCallback(({ item }) => {
         const progress = getSeriesProgress(item.url);
         const lastChapter = item.lastChapterRead;
 
@@ -112,7 +112,7 @@ const FavoritesScreen = ({ navigation }) => {
                 </Text>
             </TouchableOpacity>
         );
-    };
+    }, [getSeriesProgress, handleFavoritePress, handleDeletePress, theme.card, theme.text, theme.tint, toggleFavoriteNotification]);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
