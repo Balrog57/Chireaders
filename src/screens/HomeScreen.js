@@ -66,6 +66,9 @@ const HomeScreen = () => {
         <TouchableOpacity
             style={styles.bookItem}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
+            accessibilityRole="button"
+            accessibilityLabel={item.title}
+            accessibilityHint="Ouvre les détails de cette série"
         >
             <Image
                 source={{ uri: item.image }}
@@ -102,12 +105,18 @@ const HomeScreen = () => {
             <TouchableOpacity
                 style={styles.latestInfo}
                 onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
+                accessibilityRole="button"
+                accessibilityLabel={item.title}
+                accessibilityHint="Ouvre les détails de cette série"
             >
                 <Text style={[styles.latestTitle, textStyle]} numberOfLines={1}>{item.title}</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.latestChapter}
                 onPress={() => navigation.navigate('Reader', { url: item.latestChapter.url, title: item.latestChapter.title, novelUrl: item.url })}
+                accessibilityRole="button"
+                accessibilityLabel={`Chapitre ${item.latestChapter.title}`}
+                accessibilityHint="Reprendre la lecture de ce chapitre"
             >
                 <Text style={[styles.chapterText, { color: theme.tint }]} numberOfLines={1}>{item.latestChapter.title}</Text>
                 <Text style={styles.dateText}>{item.latestChapter.date}</Text>

@@ -162,6 +162,9 @@ const LibraryScreen = () => {
         <TouchableOpacity
             style={styles.itemContainer}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
+            accessibilityRole="button"
+            accessibilityLabel={item.title}
+            accessibilityHint="Ouvre les détails de cette série"
         >
             <Image
                 source={{ uri: item.image }}
