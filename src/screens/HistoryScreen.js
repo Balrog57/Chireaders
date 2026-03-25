@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { 
     FlatList,
     StyleSheet, 
@@ -12,7 +12,8 @@ import { StorageContext } from '../context/StorageContext';
 
 const HistoryScreen = ({ navigation }) => {
     const { getAllHistory, settings } = useContext(StorageContext);
-    const history = getAllHistory();
+    // ⚡ Bolt: Memoize the history lookup to prevent an expensive O(N+M) re-computation on every component render
+    const history = useMemo(() => getAllHistory(), [getAllHistory]);
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
