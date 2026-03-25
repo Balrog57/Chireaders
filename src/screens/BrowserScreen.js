@@ -286,6 +286,28 @@ const BrowserScreen = ({ route }) => {
     const [loading, setLoading] = useState(true);
 
     /**
+     * Intercepte les requêtes de navigation pour bloquer les schémas dangereux
+     * Prévient l'injection d'intent (Intent Injection) et limite la surface d'attaque
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        // Autoriser les schémas internes de WebView
+        if (url.startsWith('about:blank') || url.startsWith('data:')) {
+            return true;
+        }
+
+        // Autoriser uniquement HTTP(S) dans la WebView
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return true;
+        }
+
+        // Bloquer tout le reste (intent://, javascript:, file://, etc.)
+        console.warn(`[Security] Blocked navigation to potentially dangerous scheme: ${url}`);
+        return false;
+    };
+
+    /**
      * Gestion de la navigation dans la WebView
      */
     const handleNavigationStateChange = (navState) => {
@@ -371,6 +393,7 @@ const BrowserScreen = ({ route }) => {
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 injectedJavaScript={INJECTED_JAVASCRIPT}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
