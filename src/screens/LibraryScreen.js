@@ -158,7 +158,9 @@ const LibraryScreen = () => {
         loadBooks(true);
     }, [loadBooks]);
 
-    const renderItem = ({ item }) => (
+    // ⚡ Bolt: Memoize renderItem to prevent function re-creation on every render cycle,
+    // avoiding unnecessary re-renders of the FlatList items.
+    const renderItem = useCallback(({ item }) => (
         <TouchableOpacity
             style={styles.itemContainer}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
@@ -174,7 +176,7 @@ const LibraryScreen = () => {
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
             </View>
         </TouchableOpacity>
-    );
+    ), [navigation, theme]);
 
     const renderFooter = () => {
         if (!loadingMore) return null;

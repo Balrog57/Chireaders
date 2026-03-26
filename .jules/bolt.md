@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2026-03-26 - Memoize FlatList renderItem
+**Learning:** For large lists (e.g., `FlatList` in `LibraryScreen.js`), failing to memoize the `renderItem` function causes the function to be re-created on every render cycle. This leads to unnecessary re-renders of all list items, which degrades performance.
+**Action:** Always wrap `renderItem` in `useCallback` with the appropriate dependency array (e.g., `[navigation, theme.text]`) to prevent it from being re-created unnecessarily.
