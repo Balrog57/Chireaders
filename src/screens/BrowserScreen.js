@@ -325,6 +325,27 @@ const BrowserScreen = ({ route }) => {
     };
 
     /**
+     * Securiser la navigation WebView
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+        if (!url) return true;
+
+        const lowerUrl = url.toLowerCase();
+        const isSafeProtocol =
+            lowerUrl.startsWith('http://') ||
+            lowerUrl.startsWith('https://') ||
+            lowerUrl.startsWith('about:blank') ||
+            lowerUrl.startsWith('data:');
+
+        if (!isSafeProtocol) {
+            console.warn(`[Security] Blocked navigation to unsafe URI scheme: ${url}`);
+            return false;
+        }
+        return true;
+    };
+
+    /**
      * Gestion des messages envoyés par la WebView
      */
     const handleMessage = (event) => {
@@ -368,6 +389,7 @@ const BrowserScreen = ({ route }) => {
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
