@@ -361,6 +361,32 @@ const BrowserScreen = ({ route }) => {
         }
     };
 
+    /**
+     * Securiser la navigation WebView contre l'injection d'intentions (Intent Injection)
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+
+        if (!url) return true;
+
+        try {
+            const urlLower = url.toLowerCase();
+            const isSafeProtocol = urlLower.startsWith('http://') ||
+                                   urlLower.startsWith('https://') ||
+                                   urlLower.startsWith('about:blank') ||
+                                   urlLower.startsWith('data:');
+
+            if (!isSafeProtocol) {
+                console.warn(`[Security] Blocked unsafe navigation scheme: ${url}`);
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('[Security] Error validating URL scheme', error);
+            return false;
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* WebView plein écran */}
@@ -368,6 +394,7 @@ const BrowserScreen = ({ route }) => {
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
