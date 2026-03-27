@@ -1,3 +1,7 @@
 ## 2025-05-27 - [Toggle Button Accessibility States]
 **Learning:** State-dependent toggle buttons (e.g. "Favorites" or "Sort Order" icons) not only require dynamic `accessibilityLabel` props to reflect the action performed, but they must also communicate their active state to assistive technologies using `accessibilityState={{ checked: boolean }}` or `accessibilityState={{ selected: boolean }}`. Text changes inside the button are not reliably interpreted as state changes by screen readers if the element role is purely a button without state markers.
 **Action:** When implementing interactive UI elements that toggle a state, explicitly set the `accessibilityState` property based on the boolean state variable controlling the UI (like `isFav` or `reversed`) to ensure proper screen reader context.
+
+## 2024-05-23 - Interactive Structural Elements Accessibility
+**Learning:** Structural wrapper elements like `TouchableOpacity` used for series cards or list items (e.g., in `HomeScreen.js`) are functionally buttons but are not announced as such to screen readers by default. Without `accessibilityRole="button"` and a descriptive `accessibilityLabel` and `accessibilityHint`, screen reader users encounter opaque, generic interactive targets.
+**Action:** When wrapping visual components in interactive structural elements like `TouchableOpacity`, explicitly define `accessibilityRole="button"`, a descriptive `accessibilityLabel` (e.g., the title), and an `accessibilityHint` to provide clear interaction context for screen readers.
