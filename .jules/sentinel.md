@@ -7,3 +7,8 @@
 **Vulnerability:** The WebView in `BrowserScreen.js` processed messages from injected JavaScript without validating the origin URL (`event.nativeEvent.url`), allowing potential XSS/injection from untrusted domains.
 **Learning:** Trusting WebView messages blindly exposes the native application to attacks if the user navigates to external malicious sites.
 **Prevention:** Always validate `event.nativeEvent.url` against an allowed list of domains (e.g., using `isValidChiReadsUrl`) inside the `onMessage` handler before processing the data.
+
+## 2026-03-28 - [Unrestricted WebView Navigation]
+**Vulnerability:** The WebView in `BrowserScreen.js` lacked an `onShouldStartLoadWithRequest` handler, allowing navigation to any protocol. This exposed the application to Intent Injections via malicious schemes like `intent://` or execution of arbitrary code via `javascript:`.
+**Learning:** React Native WebViews act as fully capable browsers unless restricted. Without explicit protocol whitelisting, they inherit the risk of handling unsafe custom URL schemes that can interact deeply with the native device OS.
+**Prevention:** Always implement `onShouldStartLoadWithRequest` in WebViews serving as general in-app browsers to explicitly allow safe protocols (like `http://` and `https://`) and block all unhandled or dangerous schemes.

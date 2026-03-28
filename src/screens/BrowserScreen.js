@@ -361,12 +361,36 @@ const BrowserScreen = ({ route }) => {
         }
     };
 
+
+    /**
+     * Secures navigation by validating URL protocols
+     */
+    const handleShouldStartLoadWithRequest = (request) => {
+        const { url } = request;
+        if (!url) return false;
+
+        const safeUrl = url.toLowerCase();
+        const isSafeProtocol =
+            safeUrl.startsWith('http://') ||
+            safeUrl.startsWith('https://') ||
+            safeUrl.startsWith('about:blank') ||
+            safeUrl.startsWith('data:');
+
+        if (!isSafeProtocol) {
+            console.warn(`[Security] Blocked navigation to unsafe URL protocol: ${url}`);
+            return false;
+        }
+
+        return true;
+    };
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* WebView plein écran */}
             <WebView
                 ref={webViewRef}
                 source={{ uri: initialUrl }}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 onNavigationStateChange={handleNavigationStateChange}
                 onMessage={handleMessage}
                 onLoadStart={() => setLoading(true)}
