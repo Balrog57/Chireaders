@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useContext } from 'react';
+import * as React from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { 
     FlatList,
     StyleSheet, 
@@ -11,10 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
 
 const HistoryScreen = ({ navigation }) => {
-    // ⚡ Bolt: Destructure the memoized allHistory array directly instead of calling a function,
-    // avoiding unnecessary computations and array creations on every render.
-    const { allHistory, settings } = useContext(StorageContext);
-    const history = allHistory;
+    // ⚡ Bolt: Destructure the getAllHistory function and compute locally to prevent eager
+    // evaluation in the provider, avoiding global UI stuttering on context updates.
+    const { getAllHistory, settings } = useContext(StorageContext);
+    const history = useMemo(() => getAllHistory(), [getAllHistory]);
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
