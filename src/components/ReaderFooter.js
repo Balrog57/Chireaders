@@ -1,4 +1,3 @@
-
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -63,9 +62,10 @@ const ReaderFooter = ({
                     onPress={onPrev}
                     disabled={!hasPrev}
                     style={[styles.button, !hasPrev && styles.disabled]}
-                    accessibilityLabel="Chapitre précédent"
+                    accessibilityLabel="Chapitre precedent"
                     accessibilityRole="button"
-                    accessibilityHint="Naviguer vers le chapitre précédent"
+                    accessibilityHint="Naviguer vers le chapitre precedent"
+                    accessibilityState={{ disabled: !hasPrev }}
                 >
                     <Ionicons name="chevron-back" size={28} color={hasPrev ? theme.icon : theme.text + '50'} />
                 </TouchableOpacity>
@@ -87,6 +87,7 @@ const ReaderFooter = ({
                     accessibilityLabel="Chapitre suivant"
                     accessibilityRole="button"
                     accessibilityHint="Naviguer vers le chapitre suivant"
+                    accessibilityState={{ disabled: !hasNext }}
                 >
                     <Ionicons name="chevron-forward" size={28} color={hasNext ? theme.icon : theme.text + '50'} />
                 </TouchableOpacity>

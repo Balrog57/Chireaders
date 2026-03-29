@@ -157,7 +157,13 @@ const SettingsScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={containerStyle}>
             <View style={headerStyle}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()} 
+                    style={styles.backButton}
+                    accessibilityLabel="Retour"
+                    accessibilityRole="button"
+                    accessibilityHint="Retourne à l'écran précédent"
+                >
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, textStyle]}>Paramètres</Text>
@@ -181,6 +187,10 @@ const SettingsScreen = ({ navigation }) => {
                             style={[styles.button, { backgroundColor: theme.tint }]}
                             onPress={handleCheckUpdate}
                             disabled={isCheckingUpdate}
+                            accessibilityRole="button"
+                            accessibilityLabel={isCheckingUpdate ? "Verification des mises a jour en cours" : "Verifier les mises a jour"}
+                            accessibilityHint="Recherche une nouvelle version sur GitHub"
+                            accessibilityState={{ disabled: isCheckingUpdate }}
                         >
                             {isCheckingUpdate ? (
                                 <ActivityIndicator color="#fff" size="small" />
@@ -210,6 +220,9 @@ const SettingsScreen = ({ navigation }) => {
                                 <TouchableOpacity
                                     style={[styles.button, { backgroundColor: '#e91e63' }]}
                                     onPress={handleDisableBackup}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Desactiver la sauvegarde automatique"
+                                    accessibilityHint="Supprime le dossier de sauvegarde configure"
                                 >
                                     <Text style={styles.buttonText}>Désactiver</Text>
                                 </TouchableOpacity>
@@ -218,6 +231,10 @@ const SettingsScreen = ({ navigation }) => {
                                     style={[styles.button, { backgroundColor: theme.tint }]}
                                     onPress={handleRestore}
                                     disabled={isRestoring}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={isRestoring ? "Restauration en cours" : "Forcer la restauration de la sauvegarde"}
+                                    accessibilityHint="Restaure les donnees depuis le dossier de sauvegarde configure"
+                                    accessibilityState={{ disabled: isRestoring }}
                                 >
                                     {isRestoring ? (
                                         <ActivityIndicator color="#fff" size="small" />
@@ -235,6 +252,9 @@ const SettingsScreen = ({ navigation }) => {
                             <TouchableOpacity
                                 style={[styles.button, { backgroundColor: theme.tint, alignSelf: 'stretch' }]}
                                 onPress={handleConfigureBackup}
+                                accessibilityRole="button"
+                                accessibilityLabel="Choisir un dossier de sauvegarde"
+                                accessibilityHint="Ouvre le selecteur de dossier pour configurer la sauvegarde automatique"
                             >
                                 <Text style={styles.buttonText}>Choisir un dossier de sauvegarde</Text>
                             </TouchableOpacity>

@@ -1,5 +1,5 @@
-import { useContext, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useCallback, useContext, useRef, useState } from 'react';
+import { View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
@@ -327,6 +327,37 @@ const BrowserScreen = ({ route }) => {
     /**
      * Gestion des messages envoyés par la WebView
      */
+    // 🛡️ Sentinel: Navigation safety policy for WebView
+    const handleShouldStartLoadWithRequest = useCallback((request) => {
+        const { url } = request;
+        if (!url) {
+            return false;
+        }
+
+        // Allowed schemas
+        const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
+        const urlScheme = url.split(':')[0] + ':';
+        
+        // Bloquer les schémas dangereux (intent:, file:, javascript:)
+        if (!allowedSchemes.includes(urlScheme)) {
+            console.warn(`[Sentinel] Blocking potentially dangerous URI scheme: ${urlScheme}`);
+            // Ouvrir dans le navigateur système si c'est un lien externe légitime (ex: mailto, tel)
+            if (['mailto:', 'tel:'].includes(urlScheme)) {
+                Linking.openURL(url).catch(() => {});
+            }
+            return false;
+        }
+
+        // Si ce n'est pas le domaine principal, on ouvre dans le navigateur système
+        if (!isValidChiReadsUrl(url) && url !== 'about:blank' && !url.startsWith('data:')) {
+            console.log(`[Sentinel] External link detected, opening in system browser: ${url}`);
+            Linking.openURL(url).catch(() => {});
+            return false;
+        }
+
+        return true;
+    }, [isValidChiReadsUrl]);
+
     const handleMessage = (event) => {
         try {
             // Validate message origin to prevent XSS/Injection from untrusted domains
@@ -375,6 +406,7 @@ const BrowserScreen = ({ route }) => {
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
                 cacheEnabled={true}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
                 style={styles.webview}
                 userAgent="Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
             />

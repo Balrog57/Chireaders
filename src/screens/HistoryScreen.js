@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { 
     FlatList,
     StyleSheet, 
@@ -11,17 +11,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageContext } from '../context/StorageContext';
 
 const HistoryScreen = ({ navigation }) => {
-    const { getAllHistory, settings } = useContext(StorageContext);
-    const history = getAllHistory();
+    // ⚡ Bolt: Destructure the memoized allHistory array directly instead of calling a function,
+    // avoiding unnecessary computations and array creations on every render.
+    const { allHistory, settings } = useContext(StorageContext);
+    const history = allHistory;
     
     const theme = settings.darkMode ? styles.dark : styles.light;
 
-    const handleChapterPress = (chapter) => {
+    const handleChapterPress = useCallback((chapter) => {
         // Naviguer vers le Browser avec l'URL du chapitre
         navigation.navigate('Browser', { initialUrl: chapter.url });
-    };
+    }, [navigation]);
 
-    const formatDate = (timestamp) => {
+    const formatDate = useCallback((timestamp) => {
         const date = new Date(timestamp);
         const now = new Date();
         const diffInMs = now - date;
@@ -42,13 +44,16 @@ const HistoryScreen = ({ navigation }) => {
                 year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
             });
         }
-    };
+    }, []);
 
-    const renderHistoryItem = ({ item }) => {
+    const renderHistoryItem = useCallback(({ item }) => {
         return (
             <TouchableOpacity
                 style={[styles.historyCard, settings.darkMode && styles.historyCardDark]}
                 onPress={() => handleChapterPress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.seriesTitle}, ${item.title}, lu ${formatDate(item.dateRead)}`}
+                accessibilityHint="Ouvre ce chapitre dans le lecteur"
             >
                 {/* En-tête avec icône et titre série */}
                 <View style={styles.historyHeader}>
@@ -86,7 +91,7 @@ const HistoryScreen = ({ navigation }) => {
                 </View>
             </TouchableOpacity>
         );
-    };
+    }, [settings.darkMode, handleChapterPress, formatDate]);
 
     return (
         <SafeAreaView style={[styles.container, theme]}>
