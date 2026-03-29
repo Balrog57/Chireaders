@@ -158,10 +158,13 @@ const LibraryScreen = () => {
         loadBooks(true);
     }, [loadBooks]);
 
-    const renderItem = ({ item }) => (
+    const renderItem = useCallback(({ item }) => (
         <TouchableOpacity
             style={styles.itemContainer}
             onPress={() => navigation.navigate('NovelDetail', { url: item.url, title: item.title })}
+            accessibilityRole="button"
+            accessibilityLabel={item.title}
+            accessibilityHint="Ouvre les details de ce roman"
         >
             <Image
                 source={{ uri: item.image }}
@@ -174,7 +177,7 @@ const LibraryScreen = () => {
                 <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
             </View>
         </TouchableOpacity>
-    );
+    ), [navigation, theme.text]);
 
     const renderFooter = () => {
         if (!loadingMore) return null;

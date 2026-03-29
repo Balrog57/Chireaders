@@ -1,3 +1,16 @@
-## 2025-05-27 - [Toggle Button Accessibility States]
-**Learning:** State-dependent toggle buttons (e.g. "Favorites" or "Sort Order" icons) not only require dynamic `accessibilityLabel` props to reflect the action performed, but they must also communicate their active state to assistive technologies using `accessibilityState={{ checked: boolean }}` or `accessibilityState={{ selected: boolean }}`. Text changes inside the button are not reliably interpreted as state changes by screen readers if the element role is purely a button without state markers.
-**Action:** When implementing interactive UI elements that toggle a state, explicitly set the `accessibilityState` property based on the boolean state variable controlling the UI (like `isFav` or `reversed`) to ensure proper screen reader context.
+# Palette - Apprentissages Accessibilité
+
+## Listes complexes (FlatList)
+- **Problème** : Les cartes d'historique ou de favoris contiennent plusieurs informations (Titre, Chapitre, Date). Un lecteur d'écran peut se perdre ou lire les éléments de manière décousue.
+- **Solution** : Regrouper l'information dans un seul `accessibilityLabel` sur le conteneur `TouchableOpacity` parent.
+- **Exemple** :
+  ```javascript
+  accessibilityLabel={`${item.seriesTitle}, ${item.title}, lu ${formatDate(item.dateRead)}`}
+  ```
+
+## Navigation
+- Toujours ajouter un `accessibilityLabel="Retour"` sur les boutons iconographiques de retour.
+- Utiliser `accessibilityRole="button"` pour tous les éléments cliquables qui ne sont pas des liens natifs.
+
+## États Dynamiques
+- Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).

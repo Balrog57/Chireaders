@@ -1,9 +1,19 @@
-## 2025-06-03 - [Race Condition in AsyncStorage Background Tasks]
-**Vulnerability:** A "Check-Then-Act" race condition was found in `BackgroundNotificationTask.js`. The task read data from `AsyncStorage`, performed long-running network operations, and then overwrote the storage with the stale initial data plus updates. This caused user changes (e.g., deleting a favorite) made during the task execution to be lost.
-**Learning:** Background tasks in React Native headless JS operate independently of the UI state and contexts. Direct `AsyncStorage` usage without re-validation is dangerous for data integrity when user interaction is possible concurrently.
-**Prevention:** Always implement a "Fetch-Merge-Save" strategy for background tasks: collect updates first, then re-read the storage source of truth immediately before saving, merging the updates into the fresh state.
+# Sentinel - Apprentissages Sécurité WebView
 
-## 2024-03-09 - [Missing WebView Message Origin Validation]
-**Vulnerability:** The WebView in `BrowserScreen.js` processed messages from injected JavaScript without validating the origin URL (`event.nativeEvent.url`), allowing potential XSS/injection from untrusted domains.
-**Learning:** Trusting WebView messages blindly exposes the native application to attacks if the user navigates to external malicious sites.
-**Prevention:** Always validate `event.nativeEvent.url` against an allowed list of domains (e.g., using `isValidChiReadsUrl`) inside the `onMessage` handler before processing the data.
+## Restriction de Navigation
+- **Problème** : Une WebView peut naviguer vers n'importe quelle URL, y compris des domaines malveillants ou des schémas d'URI dangereux.
+- **Solution** : Utiliser la prop `onShouldStartLoadWithRequest` pour intercepter et valider chaque tentative de navigation.
+- **Règle** : N'autoriser que les domaines de confiance (ex: `chireads.com`) et les schémas sûrs (`http`, `https`, `about`, `data`).
+
+## Protection contre l'Injection d'Intents (Android)
+- **Problème** : Les schémas comme `intent://` peuvent être utilisés pour lancer des applications tierces avec des permissions élevées via la WebView.
+- **Solution** : Bloquer explicitement les schémas `intent:`, `file:`, et `javascript:`.
+- **Alternative** : Pour les liens légitimes (ex: `mailto:`, `tel:`), utiliser `Linking.openURL()` pour déléguer au système.
+
+## Validation des Origines PostMessage
+- **Problème** : N'importe quelle page chargée dans la WebView peut envoyer des messages via `window.ReactNativeWebView.postMessage`.
+- **Solution** : Vérifier l'URL d'origine du message dans le handler `onMessage`.
+  ```javascript
+  const sourceUrl = event.nativeEvent.url;
+  if (!isValidChiReadsUrl(sourceUrl)) return;
+  ```
