@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-05-14 - Consistent Empty States
+**Learning:** Empty states in lists or search results that lack visual indication (icons/illustrations) feel jarring compared to populated screens, reducing overall UI cohesion.
+**Action:** Ensure all list and search result screens implement a consistent visual empty state using an icon, a bold title, and descriptive subtext.
