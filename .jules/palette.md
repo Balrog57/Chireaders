@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2026-03-30 - Empty States
+**Learning:** Empty states in lists or search results should implement a consistent visual structure to improve UI cohesion and user guidance.
+**Action:** Use an icon (e.g., `Ionicons`), a bold title, and descriptive subtext for empty state components (like `ListEmptyComponent`).
