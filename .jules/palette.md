@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-04-01 - Empty States Consistency
+**Learning:** Showing plain text "Aucun résultat." in lists creates a jarring and unhelpful user experience compared to sections that use full-page empty states (like the Home or Favorites screens). Consistency in handling "zero data" states is critical for UX.
+**Action:** Always implement a consistent empty state combining a contextual icon (e.g., `Ionicons`), a bold clear title, and descriptive subtext for list views with empty results to maintain UI cohesion.
