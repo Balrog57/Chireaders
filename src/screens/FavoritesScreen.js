@@ -51,10 +51,15 @@ const FavoritesScreen = ({ navigation }) => {
         const progress = getSeriesProgress(item.url);
         const lastChapter = item.lastChapterRead;
 
+        const a11yLabel = `${item.title}, ${lastChapter ? 'Dernier chapitre lu : ' + lastChapter.title + ', ' : ''}${progress.length} chapitre${progress.length > 1 ? 's' : ''} lu${progress.length > 1 ? 's' : ''}`;
+
         return (
             <TouchableOpacity
                 style={[styles.favoriteCard, { backgroundColor: theme.card }]}
                 onPress={() => handleFavoritePress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={a11yLabel}
+                accessibilityHint="Ouvre les détails de cette série"
             >
                 {/* En-tête avec titre et bouton supprimer */}
                 <View style={styles.favoriteHeader}>
