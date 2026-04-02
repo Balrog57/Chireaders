@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-02 - WebView URL Scheme Case Sensitivity
+**Vulnerability:** WebView URL scheme validation using strict exact matching against a lowercase allowlist can lead to false positives (blocking safe mixed-case protocols like `HTTP://`) while attempting to block unsafe protocols.
+**Learning:** Security validation relying on allowlists must normalize user input case (e.g., lowercase) prior to comparison. Failure to normalize creates brittle validation logic that rejects valid, secure inputs.
+**Prevention:** Always normalize the extracted URL scheme to lowercase (`url.toLowerCase().split(':')[0] + ':'`) before comparing against the allowed schema list to ensure robust and accurate evaluation.

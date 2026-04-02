@@ -336,7 +336,7 @@ const BrowserScreen = ({ route }) => {
 
         // Allowed schemas
         const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
-        const urlScheme = url.split(':')[0] + ':';
+        const urlScheme = url.toLowerCase().split(':')[0] + ':';
         
         // Bloquer les schémas dangereux (intent:, file:, javascript:)
         if (!allowedSchemes.includes(urlScheme)) {
