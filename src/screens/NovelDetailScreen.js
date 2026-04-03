@@ -140,9 +140,16 @@ const NovelDetailScreen = () => {
         });
     };
 
+    // ⚡ Bolt: Pre-calculate read chapters into a Set (O(1) lookups)
+    // Avoids calling isChapterRead which internally runs O(N) Array.some() on every render inside map() and FlatList
+    const readChapterUrlsSet = useMemo(() => {
+        const chapters = readChapters[url] || [];
+        return new Set(chapters.map(ch => ch.url));
+    }, [readChapters, url]);
+
     // Manual toggle logic
     const handleChapterLongPress = (chapter) => {
-        const isRead = isChapterRead(url, chapter.url);
+        const isRead = readChapterUrlsSet.has(chapter.url);
         if (isRead) {
             markChapterAsUnread(url, chapter.url);
             ToastAndroid.show('Marqué comme non lu', ToastAndroid.SHORT);
@@ -155,7 +162,7 @@ const NovelDetailScreen = () => {
     const handleGroupLongPress = (bucket) => {
         const chapters = bucket.chapters;
         // Check if ALL chapters in this bucket are read
-        const allRead = chapters.every(ch => isChapterRead(url, ch.url));
+        const allRead = chapters.every(ch => readChapterUrlsSet.has(ch.url));
 
         if (allRead) {
             // Mark all as Unread
@@ -323,7 +330,7 @@ const NovelDetailScreen = () => {
                         const displayBuckets = reversed ? [...buckets].reverse() : buckets;
 
                         const renderChapter = (chapter, idx) => {
-                            const isRead = isChapterRead(url, chapter.url);
+                            const isRead = readChapterUrlsSet.has(chapter.url);
                             return (
                                 <TouchableOpacity
                                     key={chapter.url + idx}
