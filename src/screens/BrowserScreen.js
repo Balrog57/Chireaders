@@ -334,22 +334,30 @@ const BrowserScreen = ({ route }) => {
             return false;
         }
 
-        // Allowed schemas
-        const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
-        const urlScheme = url.split(':')[0] + ':';
+        const lowerUrl = url.toLowerCase();
+
+        // Check for safe protocols
+        const isSafeProtocol = lowerUrl.startsWith('http:') ||
+                               lowerUrl.startsWith('https:') ||
+                               lowerUrl.startsWith('about:') ||
+                               lowerUrl.startsWith('data:');
+
+        // Check for allowed external protocols
+        const isExternalProtocol = lowerUrl.startsWith('mailto:') ||
+                                   lowerUrl.startsWith('tel:');
         
         // Bloquer les schémas dangereux (intent:, file:, javascript:)
-        if (!allowedSchemes.includes(urlScheme)) {
-            console.warn(`[Sentinel] Blocking potentially dangerous URI scheme: ${urlScheme}`);
+        if (!isSafeProtocol) {
+            console.warn(`[Sentinel] Blocking potentially dangerous or unhandled URI: ${url}`);
             // Ouvrir dans le navigateur système si c'est un lien externe légitime (ex: mailto, tel)
-            if (['mailto:', 'tel:'].includes(urlScheme)) {
+            if (isExternalProtocol) {
                 Linking.openURL(url).catch(() => {});
             }
             return false;
         }
 
         // Si ce n'est pas le domaine principal, on ouvre dans le navigateur système
-        if (!isValidChiReadsUrl(url) && url !== 'about:blank' && !url.startsWith('data:')) {
+        if (!isValidChiReadsUrl(url) && !lowerUrl.startsWith('about:blank') && !lowerUrl.startsWith('data:')) {
             console.log(`[Sentinel] External link detected, opening in system browser: ${url}`);
             Linking.openURL(url).catch(() => {});
             return false;

@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-24 - Intent Injection Bypass via URL Case Manipulation
+**Vulnerability:** The WebView `onShouldStartLoadWithRequest` handler was vulnerable to bypasses of its security filters because the URL scheme check was case-sensitive. Attackers could bypass scheme blacklists/whitelists using mixed-case schemes (e.g., `jAvAscript:`, `InTeNt:`).
+**Learning:** Checking for URL schemes string-matching must account for case-insensitivity because URL schemes are case-insensitive by spec, and WebViews may process mixed-case schemes.
+**Prevention:** Always convert the URL (or its scheme part) to lowercase using `.toLowerCase()` before performing string matching, or use the standard `URL` object to parse and check the `.protocol` property which normalizes case automatically.
