@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-04-03 - Indicateurs d'état et d'action longue
+**Learning:** Les icônes indiquant un état (comme "lu") et les actions complexes (comme un appui long) ne sont pas devinables par les lecteurs d'écran si elles ne sont pas explicitement décrites.
+**Action:** Utiliser `accessibilityLabel` pour inclure l'état visuel (ex: "Chapitre 1, Lu") et `accessibilityHint` pour expliquer les actions secondaires (ex: "Appuyez pour lire, maintenez pour marquer comme lu").
