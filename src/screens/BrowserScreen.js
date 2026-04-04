@@ -336,7 +336,7 @@ const BrowserScreen = ({ route }) => {
 
         // Allowed schemas
         const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
-        const urlScheme = url.split(':')[0] + ':';
+        const urlScheme = url.split(':')[0].toLowerCase() + ':';
         
         // Bloquer les schémas dangereux (intent:, file:, javascript:)
         if (!allowedSchemes.includes(urlScheme)) {
@@ -349,7 +349,7 @@ const BrowserScreen = ({ route }) => {
         }
 
         // Si ce n'est pas le domaine principal, on ouvre dans le navigateur système
-        if (!isValidChiReadsUrl(url) && url !== 'about:blank' && !url.startsWith('data:')) {
+        if (!isValidChiReadsUrl(url) && url.toLowerCase() !== 'about:blank' && !url.toLowerCase().startsWith('data:')) {
             console.log(`[Sentinel] External link detected, opening in system browser: ${url}`);
             Linking.openURL(url).catch(() => {});
             return false;
