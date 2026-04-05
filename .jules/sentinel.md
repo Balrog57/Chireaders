@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-05 - Insecure Deserialization and Schema Validation
+**Vulnerability:** Unvalidated parsed JSON data from external backups and caches (`JSON.parse`) in `BackupService.js` could lead to prototype pollution, app crashes, or unexpected states if malicious or corrupted files are loaded.
+**Learning:** Functions that parse JSON from persistent storage or external sources must not assume the schema matches the application's required structure. Missing schema validation exposes the app to untrusted inputs even if the app initially created the files.
+**Prevention:** Always validate the structure and type of parsed JSON data (e.g., verifying objects contain specific keys, validating arrays) before returning or using the object in application state.
