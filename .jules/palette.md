@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2026-04-05 - Accessibility of error states
+**Learning:** Error states with retry buttons must be accessible so that users relying on screen readers can attempt to recover from the error.
+**Action:** Always add accessibilityRole="button", accessibilityLabel, and accessibilityHint to retry buttons in empty/error states.
