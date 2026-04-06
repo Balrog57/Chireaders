@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-06 - Insecure Deserialization in BackupService
+**Vulnerability:** `JSON.parse` was used to load data from the file system (`BackupService.restoreFromBackup` and `loadLibraryCache`) without verifying the schema of the parsed data.
+**Learning:** File system data, especially backup files, can be modified by the user or other applications. Deserializing this data without validation can lead to unexpected app states or crashes if the data structure is manipulated.
+**Prevention:** Always implement runtime schema validation after `JSON.parse` for data originating outside the app's secure sandbox. Ensure the parsed data matches expected types (e.g., `Array.isArray()` for lists, checking for specific keys in objects) before returning it to the application logic.
