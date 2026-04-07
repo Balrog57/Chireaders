@@ -143,7 +143,19 @@ const BackupService = {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    const parsedData = JSON.parse(content);
+
+                    // 🛡️ Sentinel: Runtime schema validation for restored backup data
+                    if (!parsedData || typeof parsedData !== 'object' || Array.isArray(parsedData)) {
+                        console.error("[Sentinel] Invalid backup format: not an object.");
+                        return null;
+                    }
+                    if (!('favorites' in parsedData) && !('readChapters' in parsedData) && !('settings' in parsedData)) {
+                        console.error("[Sentinel] Invalid backup data: missing expected keys.");
+                        return null;
+                    }
+
+                    return parsedData;
                 }
             }
 
@@ -224,7 +236,15 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsedData = JSON.parse(content);
+
+                // 🛡️ Sentinel: Runtime schema validation for library cache
+                if (!Array.isArray(parsedData)) {
+                    console.error("[Sentinel] Invalid library cache format: not an array.");
+                    return null;
+                }
+
+                return parsedData;
             } catch (e) {
                 console.error("Failed to parse library cache", e);
                 return null;

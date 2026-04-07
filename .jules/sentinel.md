@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2026-04-07 - Insecure Deserialization in BackupService
+**Vulnerability:** Data loaded from external files via StorageAccessFramework (backups and library cache) is deserialized using `JSON.parse()` without any schema validation.
+**Learning:** External files can be tampered with by users or malicious apps with storage permissions. Deserializing untrusted data directly into app state can lead to crashes, state corruption, or injection attacks if unexpected types or properties are introduced.
+**Prevention:** Always validate the schema of deserialized data from external sources at runtime before using it. Ensure arrays are actually `Array`s and objects contain the expected keys (e.g., `favorites`, `readChapters`, `settings`).
