@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-05-17 - Cohérence Visuelle des États Vides (Empty States)
+**Learning:** L'utilisation de simples composants `<Text>` pour les états vides (ex: "Aucun résultat") donne une impression d'inachèvement et ne guide pas l'utilisateur.
+**Action:** Toujours implémenter un état vide complet et cohérent incluant une icône descriptive (ex: `Ionicons`), un titre en gras et un sous-texte explicatif, en particulier lors de la gestion de la recherche et du filtrage.
