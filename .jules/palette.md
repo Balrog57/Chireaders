@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2026-04-08 - États Vides et Boutons de Réessai
+**Learning:** Les boutons de réessai ("Réessayer") dans les états d'erreur ou vides manquent souvent d'attributs d'accessibilité, ce qui empêche les utilisateurs de lecteurs d'écran de comprendre comment récupérer après une erreur de réseau.
+**Action:** Toujours s'assurer que les boutons de récupération/réessai ont un `accessibilityRole="button"`, un `accessibilityLabel` clair et un `accessibilityHint` qui explique l'action.
