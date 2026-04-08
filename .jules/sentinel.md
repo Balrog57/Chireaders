@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-08 - Missing Schema Validation on External Files
+**Vulnerability:** External SAF files were being parsed with JSON.parse() and returned without schema validation.
+**Learning:** Untrusted external JSON data could be malformed or manipulated, causing type confusion or crashes (e.g., expecting an array but receiving an object).
+**Prevention:** Always perform runtime schema validation (e.g., Array.isArray or checking for specific keys) after parsing external JSON data.
