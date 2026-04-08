@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2026-03-08 - Avoid O(N) Context Helpers in Render Loops
+**Learning:** Using context helper functions that internally execute O(N) operations (e.g., `isChapterRead` calling `Array.some()`) inside render loops like `Array.map` or `FlatList.renderItem` creates severe O(N*M) performance bottlenecks as list sizes grow.
+**Action:** Replace these helper calls with a locally memoized O(1) structure (e.g., a `Set` via `useMemo`) computed outside the loop, destructuring raw data dependencies directly from the context.
