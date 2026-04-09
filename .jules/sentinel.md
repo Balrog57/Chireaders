@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-24 - Runtime Schema Validation for Deserialization
+**Vulnerability:** Insecure Deserialization in BackupService where JSON.parse() output was trusted implicitly without validation.
+**Learning:** Parsing JSON from local files (even backups) can lead to insecure state injection if the file is tampered with or corrupted.
+**Prevention:** Always perform runtime schema validation on parsed JSON data before using it. Ensure arrays are verified with `Array.isArray()` and objects contain expected keys.

@@ -143,7 +143,20 @@ const BackupService = {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    try {
+                        const parsed = JSON.parse(content);
+                        // 🛡️ Sentinel: Runtime schema validation to prevent insecure deserialization
+                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) &&
+                           (parsed.favorites || parsed.readChapters || parsed.settings)) {
+                            return parsed;
+                        } else {
+                            console.warn("[Sentinel] Backup validation failed: invalid schema.");
+                            return null;
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse backup file", e);
+                        return null;
+                    }
                 }
             }
 
@@ -224,7 +237,14 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                // 🛡️ Sentinel: Runtime schema validation to prevent insecure deserialization
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                } else {
+                    console.warn("[Sentinel] Library cache validation failed: expected an array.");
+                    return null;
+                }
             } catch (e) {
                 console.error("Failed to parse library cache", e);
                 return null;
