@@ -250,8 +250,14 @@ const LibraryScreen = () => {
                         />
                     }
                     ListEmptyComponent={
-                        <View style={styles.centerContainer}>
-                            <Text style={{ color: theme.text }}>Aucun résultat.</Text>
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name={searchQuery ? "search-outline" : "library-outline"} size={64} color={theme.text + '80'} />
+                            <Text style={[styles.emptyText, { color: theme.text }]}>
+                                {searchQuery ? "Aucun résultat" : "Bibliothèque vide"}
+                            </Text>
+                            <Text style={[styles.emptySubtext, { color: theme.text }]}>
+                                {searchQuery ? "Essayez avec d'autres mots-clés" : "Aucun livre n'a pu être chargé"}
+                            </Text>
                         </View>
                     }
                 />
@@ -269,6 +275,24 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 100,
+        paddingHorizontal: 40,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginTop: 15,
+        marginBottom: 8,
+    },
+    emptySubtext: {
+        fontSize: 14,
+        textAlign: 'center',
+        opacity: 0.7,
     },
     header: {
         padding: 15,

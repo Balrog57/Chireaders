@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-04-09 - Empty States Contextuels
+**Learning:** Les états vides (empty states) génériques dans les listes filtrables (comme la recherche) manquent de clarté. L'utilisateur ne sait pas s'il y a un problème de connexion, si la bibliothèque est réellement vide, ou si sa recherche n'a simplement rien donné.
+**Action:** Utiliser un composant `ListEmptyComponent` contextuel qui analyse les états (ex: `searchQuery`) pour afficher une icône, un titre et un sous-texte spécifiques ("Aucun résultat" pour une recherche vs "Bibliothèque vide" au lancement).
