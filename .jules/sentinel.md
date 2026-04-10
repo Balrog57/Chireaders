@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-10 - Insecure Deserialization in Backups
+**Vulnerability:** Insecure deserialization without schema validation when loading backup JSON files.
+**Learning:** Parsing JSON from local files without validation can cause application crashes or injection of corrupted data into state.
+**Prevention:** Always enforce strict runtime schema validation after `JSON.parse` (e.g. checking for expected types `Array`, `Object`, and specific keys) before returning data to the application.
