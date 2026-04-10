@@ -40,7 +40,7 @@ const NovelDetailScreen = () => {
         favorites, // Add favorites to context
         updateFavoriteLatestChapter,
         toggleFavoriteNotification,
-        isChapterRead,
+
         getLastChapterRead,
         markChapterAsRead,
         markChapterAsUnread,
@@ -92,6 +92,14 @@ const NovelDetailScreen = () => {
         }
     };
 
+    // ⚡ Bolt: Optimize chapter read lookups from O(N*M) to O(N+M)
+    // Pre-calculate a Set of read chapters to avoid calling the O(N) context helper
+    // inside the render loop, which causes severe UI stuttering on state updates.
+    const readChapterUrls = useMemo(() => {
+        const chapters = readChapters[url] || [];
+        return new Set(chapters.map(ch => ch.url));
+    }, [readChapters, url]);
+
     const toggleFavorite = async () => {
         // Haptic feedback for better UX
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -142,7 +150,7 @@ const NovelDetailScreen = () => {
 
     // Manual toggle logic
     const handleChapterLongPress = (chapter) => {
-        const isRead = isChapterRead(url, chapter.url);
+        const isRead = readChapterUrls.has(chapter.url);
         if (isRead) {
             markChapterAsUnread(url, chapter.url);
             ToastAndroid.show('Marqué comme non lu', ToastAndroid.SHORT);
@@ -155,7 +163,7 @@ const NovelDetailScreen = () => {
     const handleGroupLongPress = (bucket) => {
         const chapters = bucket.chapters;
         // Check if ALL chapters in this bucket are read
-        const allRead = chapters.every(ch => isChapterRead(url, ch.url));
+        const allRead = chapters.every(ch => readChapterUrls.has(ch.url));
 
         if (allRead) {
             // Mark all as Unread
@@ -323,7 +331,7 @@ const NovelDetailScreen = () => {
                         const displayBuckets = reversed ? [...buckets].reverse() : buckets;
 
                         const renderChapter = (chapter, idx) => {
-                            const isRead = isChapterRead(url, chapter.url);
+                            const isRead = readChapterUrls.has(chapter.url);
                             return (
                                 <TouchableOpacity
                                     key={chapter.url + idx}
