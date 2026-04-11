@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2025-05-27 - Render Loop Context Function Optimization
+**Learning:** Calling `isChapterRead(url, chapter.url)` inside `.every()` and inside a mapping function for rendering chapters causes O(N) lookup operations per chapter. If a novel has thousands of chapters, this causes severe rendering performance hits, resulting in UI jank as the complexity balloons to O(N*M).
+**Action:** Extract loop-based context function calls into a `useMemo` that pre-calculates a `Set` (e.g. `new Set((readChapters[url] || []).map(ch => ch.url))`). Use `Set.has(chapter.url)` inside rendering functions and `.every()` to reduce complexity to O(1) per lookup. Ensure all destructured elements from the context are preserved to prevent ReferenceErrors.
