@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2025-02-28 - Runtime Validation for Backup Data
+**Vulnerability:** Insecure deserialization via `JSON.parse()` without type validation on imported external backup files in `BackupService.js`.
+**Learning:** Data from backups/caches could be maliciously altered or corrupted. Blindly trusting parsed JSON structures directly can cause application crashes or unexpected behavior.
+**Prevention:** Implement runtime schema validation explicitly checking structure (e.g. `Array.isArray`, checking required keys) before consuming externally sourced parsed JSON.
