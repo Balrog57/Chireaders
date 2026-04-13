@@ -143,7 +143,22 @@ const BackupService = {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    try {
+                        const data = JSON.parse(content);
+                        // 🛡️ Sentinel: Validate that the backup has the expected schema to prevent crashes
+                        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                            console.error("[Sentinel] Backup data is not an object");
+                            return null;
+                        }
+                        if (!data.favorites && !data.readChapters && !data.settings) {
+                             console.error("[Sentinel] Backup data is missing required keys");
+                             return null;
+                        }
+                        return data;
+                    } catch (e) {
+                        console.error("[Sentinel] Failed to parse backup file securely", e);
+                        return null;
+                    }
                 }
             }
 
@@ -224,9 +239,15 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                // 🛡️ Sentinel: Validate that the library cache is an array to prevent crashes
+                if (!Array.isArray(parsed)) {
+                    console.error("[Sentinel] Library cache is not an array");
+                    return null;
+                }
+                return parsed;
             } catch (e) {
-                console.error("Failed to parse library cache", e);
+                console.error("[Sentinel] Failed to parse library cache securely", e);
                 return null;
             }
         }

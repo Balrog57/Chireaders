@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-13 - Insecure Deserialization in BackupService
+**Vulnerability:** External backup files read via `StorageAccessFramework` were passed directly to `JSON.parse` and returned to the application context without any try/catch block or schema validation. An attacker could craft a malicious or malformed backup file (e.g. replacing the expected object with an Array or invalid string) that would crash the app or potentially cause unexpected state injection when the Context blindy assigns the properties.
+**Learning:** `JSON.parse` on externally-sourced data (files from standard device storage via SAF) is just as untrusted as network data. React context methods assumed the restored data perfectly matched the expected schema (`{ favorites, readChapters, settings }`).
+**Prevention:** Wrap all `JSON.parse` operations on external files in `try/catch` blocks. Validate the type (e.g. `typeof data === 'object'` and `!Array.isArray(data)`) and ensure at least one expected core key exists before returning the object to the application logic.
