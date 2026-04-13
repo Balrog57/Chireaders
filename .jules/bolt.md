@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2025-05-27 - O(1) Lookups in Render Loops
+**Learning:** Calling `isChapterRead(url, chapter.url)` inside a `FlatList` `renderItem` mapping function incurs an O(N) lookup for each of the M chapters. The reviewer incorrectly believed `readChapters` was missing, however ensuring that it is fully destructured is key. Removing unused helper functions while leaving required data dependencies in destructuring is crucial.
+**Action:** Replace `Array.some` / helper calls inside render loops with a `useMemo` that pre-calculates a `Set` outside the loop, enabling safe O(1) lookups.
