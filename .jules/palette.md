@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-05-24 - Empty State Retry Buttons Accessibility
+**Learning:** Error or empty states containing generic action buttons like "Réessayer" lack context for screen readers when they fail to describe *what* is being retried.
+**Action:** Always add `accessibilityRole="button"`, a descriptive `accessibilityLabel` (e.g., "Réessayer de charger les romans"), and an `accessibilityHint` to the interactive wrapper of empty state buttons so users can understand and trigger error recovery.
