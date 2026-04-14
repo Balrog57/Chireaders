@@ -12,3 +12,6 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+## 2025-06-13 - O(1) Lookups in Render Loops
+**Learning:** Calling `Array.some()` inside nested render loops or handlers (like mapping over chapters) scales poorly, resulting in O(N*M) time complexity, and causes sluggish performance on lists with hundreds of items.
+**Action:** Always pre-calculate an O(1) lookup structure (like a `Set`) outside of the iteration block (using `useMemo` in React) so that the lookups are fast and constant time.
