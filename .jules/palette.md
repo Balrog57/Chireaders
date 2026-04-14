@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-04-14 - Accessibilité des états d'erreur
+**Learning:** Les boutons de relance (comme "Réessayer") dans les états d'erreur ou vides manquent souvent de contexte pour les lecteurs d'écran, ce qui empêche les utilisateurs de comprendre comment récupérer d'une erreur.
+**Action:** Ajouter explicitement `accessibilityRole="button"`, `accessibilityLabel` et `accessibilityHint` sur les conteneurs interactifs des boutons de relance.
