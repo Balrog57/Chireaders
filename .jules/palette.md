@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2025-04-15 - Accessibilité des états d'erreur
+**Learning:** Les boutons de relance (retry/refresh) dans les états d'erreur (ex: "Réessayer") sans `accessibilityRole`, `accessibilityLabel` ou `accessibilityHint` sont invisibles ou confus pour les utilisateurs de lecteurs d'écran.
+**Action:** Toujours s'assurer que ces boutons interactifs (comme TouchableOpacity) incluent explicitement ces propriétés pour permettre de comprendre et de déclencher la récupération.
