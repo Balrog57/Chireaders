@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2025-05-27 - O(1) Lookup with useMemo
+**Learning:** Calling O(N) context functions (like `isChapterRead` which uses `Array.some()`) inside map/render iterations creates an O(N*M) performance bottleneck, especially on long lists like chapters.
+**Action:** Pre-calculate a `Set` of required checks using `useMemo` outside the render loop. This reduces rendering complexity for large lists and makes lookups O(1).
