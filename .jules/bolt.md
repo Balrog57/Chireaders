@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2026-10-27 - Context Property Leakage and Code Review Flags
+**Learning:** Automated code reviewers (like the one used in `request_code_review`) may flag false positive `ReferenceError`s if a required variable (like a context dependency) is already destructured in the file but falls outside the specific lines modified by the patch diff.
+**Action:** Always verify the variable's presence in the full file (e.g., via `grep` or `cat`) before abandoning a valid solution. In this case `readChapters` was present on line 48.
