@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-16 - Prevent Insecure Deserialization in BackupService
+**Vulnerability:** Raw string data retrieved via StorageAccessFramework was parsed using `JSON.parse` and used immediately without schema validation. This allowed insecure deserialization of malicious or corrupted backup files, potentially crashing the app or injecting arbitrary properties.
+**Learning:** `JSON.parse` trusts the input data structure completely. When dealing with untrusted or externally stored data (like SAF backups), the structure must be explicitly validated before use, including type checks and property verification.
+**Prevention:** Always wrap `JSON.parse` in a `try/catch` and explicitly validate the resulting object's shape (e.g., using `typeof parsed === 'object'`, `Array.isArray`, and checking for expected keys like `favorites` or `settings`) before returning it.
