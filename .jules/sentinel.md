@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## Insecure Deserialization in StorageAccessFramework
+- **Vulnerability** : Data read from `StorageAccessFramework` can be modified by the user or third-party apps outside the app's sandboxed storage.
+- **Learning** : Relying on `JSON.parse` directly on external file contents can lead to insecure deserialization if the shape is assumed to be safe.
+- **Prevention** : Always wrap `JSON.parse` in a `try/catch` block and perform runtime schema validation (e.g., `Array.isArray()` for arrays, or truthy object checks checking specific keys for objects) before using the data.

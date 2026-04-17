@@ -143,7 +143,17 @@ const BackupService = {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    try {
+                        const parsed = JSON.parse(content);
+                        if (parsed && typeof parsed === 'object' && (parsed.favorites || parsed.readChapters || parsed.settings)) {
+                            return parsed;
+                        }
+                        console.error("[Security] Invalid backup schema detected");
+                        return null;
+                    } catch (e) {
+                        console.error("[Security] Failed to parse backup file securely", e);
+                        return null;
+                    }
                 }
             }
 
@@ -224,9 +234,14 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+                console.error("[Security] Invalid library cache schema: expected an array");
+                return null;
             } catch (e) {
-                console.error("Failed to parse library cache", e);
+                console.error("[Security] Failed to parse library cache securely", e);
                 return null;
             }
         }
