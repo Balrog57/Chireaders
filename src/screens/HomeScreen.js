@@ -243,7 +243,13 @@ const HomeScreen = () => {
                             <Ionicons name="cloud-offline-outline" size={64} color={theme.textSecondary} />
                             <Text style={[styles.emptyText, textStyle]}>Impossible de charger les romans.</Text>
                             <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Vérifiez votre connexion internet.</Text>
-                            <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.tint }]} onPress={onRefresh}>
+                            <TouchableOpacity
+                                style={[styles.retryButton, { backgroundColor: theme.tint }]}
+                                onPress={onRefresh}
+                                accessibilityRole="button"
+                                accessibilityLabel="Réessayer le chargement des romans"
+                                accessibilityHint="Tente de recharger les données depuis le serveur"
+                            >
                                 <Text style={styles.retryButtonText}>Réessayer</Text>
                             </TouchableOpacity>
                         </View>
