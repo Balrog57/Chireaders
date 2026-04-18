@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2026-04-18 - Optimize Context Lookup in List Renders
+**Learning:** Using context helper functions (like `isChapterRead`) that internally perform O(N) array operations (like `.some()`) inside a long list's map/render cycle creates an O(N*M) performance bottleneck, as the O(N) operation is re-run for every item.
+**Action:** Locally memoize the relevant subset of context data into an O(1) lookup structure (like a `Set` or `Map`) using `useMemo` in the component, and query that `Set` inside the render loop instead of calling the helper function.
