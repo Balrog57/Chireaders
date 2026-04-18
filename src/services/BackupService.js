@@ -142,8 +142,18 @@ const BackupService = {
             for (const fileUri of files) {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
-                    const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    try {
+                        const content = await StorageAccessFramework.readAsStringAsync(fileUri);
+                        const parsed = JSON.parse(content);
+                        if (parsed && typeof parsed === 'object' && ('favorites' in parsed || 'readChapters' in parsed || 'settings' in parsed)) {
+                            return parsed;
+                        }
+                        console.error("Invalid backup schema");
+                        return null;
+                    } catch (e) {
+                        console.error("Failed to parse backup content", e);
+                        return null;
+                    }
                 }
             }
 
@@ -224,7 +234,12 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+                console.error("Library cache schema invalid: expected array");
+                return null;
             } catch (e) {
                 console.error("Failed to parse library cache", e);
                 return null;

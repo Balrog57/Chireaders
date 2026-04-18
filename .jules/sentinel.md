@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2026-02-27 - [Insecure Deserialization in Storage]
+**Vulnerability:** Parsing JSON from external files (like SAF backups or caches) without `try/catch` and schema validation leads to insecure deserialization.
+**Learning:** `JSON.parse()` can throw unhandled exceptions or return unexpected types (like `null` or arrays instead of objects), which can crash the app or cause logic errors when properties are accessed.
+**Prevention:** Always wrap `JSON.parse` in a `try/catch` block and perform runtime shape checking (e.g., verifying `parsed && typeof parsed === 'object'` and checking for required keys, or `Array.isArray()`) before returning the data.
