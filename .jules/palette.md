@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2025-02-28 - Boutons de rafraîchissement
+**Learning:** Les boutons de relance (comme "Réessayer" en cas d'erreur réseau) manquent souvent de contexte pour les lecteurs d'écran.
+**Action:** Toujours ajouter `accessibilityRole="button"`, un `accessibilityLabel` clair, et un `accessibilityHint` pour expliquer l'action sur les boutons de récupération d'erreur.
