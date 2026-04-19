@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2026-04-19 - Insecure Deserialization in SAF Backups
+**Vulnerability:** External backup files read via StorageAccessFramework were parsed with `JSON.parse` and used without any shape or type validation, and without a try-catch block in `restoreFromBackup`.
+**Learning:** Files stored on external storage can be modified by malicious apps or users. Using raw string output without validation leads to insecure deserialization and potential crashes/data corruption.
+**Prevention:** Always wrap `JSON.parse` in a try-catch block and perform runtime schema validation (e.g., verifying it's an object with known keys or an array) before returning the parsed data.
