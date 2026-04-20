@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2026-03-09 - Memoized Lookups in Context Providers
+**Learning:** Exposing raw arrays like `favorites` from a global Context encourages consumers to use O(N) operations like `.find()` on every render or state change.
+**Action:** Always derive and export a `favoritesMap` (`Map<id, item>`) via `useMemo` in the Context Provider so all consumers can perform O(1) lookups, saving significant main-thread CPU time on large datasets.

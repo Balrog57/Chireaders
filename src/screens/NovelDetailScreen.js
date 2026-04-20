@@ -37,7 +37,7 @@ const NovelDetailScreen = () => {
         isFavorite,
         addFavorite,
         removeFavorite,
-        favorites, // Add favorites to context
+        favoritesMap,
         updateFavoriteLatestChapter,
         toggleFavoriteNotification,
         isChapterRead,
@@ -61,10 +61,10 @@ const NovelDetailScreen = () => {
     useEffect(() => {
         checkFavorite();
         loadDetails();
-    }, [favorites]); // Add favorites dependency to react to changes
+    }, [favoritesMap, url]); // React to map changes instead of array
 
     const checkFavorite = async () => {
-        const fav = favorites.find(f => f.url === url);
+        const fav = favoritesMap.get(url);
         if (fav) {
             setIsFav(true);
             setNotifyEnabled(fav.notificationsEnabled !== false);

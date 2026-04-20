@@ -123,6 +123,14 @@ export const StorageProvider = ({ children }) => {
 
     // ===== FAVORIS =====
 
+    const favoritesMap = useMemo(() => {
+        const map = new Map();
+        for (let i = 0; i < favorites.length; i++) {
+            map.set(favorites[i].url, favorites[i]);
+        }
+        return map;
+    }, [favorites]);
+
     /**
      * Ajouter une série aux favoris
      * @param {Object} seriesData - { url, title, slug, latestChapterUrl }
@@ -163,8 +171,8 @@ export const StorageProvider = ({ children }) => {
      * @returns {boolean}
      */
     const isFavorite = useCallback((url) => {
-        return favorites.some(f => f.url === url);
-    }, [favorites]);
+        return favoritesMap.has(url);
+    }, [favoritesMap]);
 
     /**
      * Toggle favori (ancienne fonction pour compatibilité)
@@ -445,12 +453,6 @@ export const StorageProvider = ({ children }) => {
     const allHistory = useMemo(() => {
         const allChapters = [];
 
-        // ⚡ Bolt: Pré-calculer une Map des favoris pour réduire la complexité de O(N*M) à O(N+M)
-        const favoritesMap = new Map();
-        for (let i = 0; i < favorites.length; i++) {
-            favoritesMap.set(favorites[i].url, favorites[i]);
-        }
-
         Object.keys(readChapters).forEach(seriesUrl => {
             const favorite = favoritesMap.get(seriesUrl);
             readChapters[seriesUrl].forEach(chapter => {
@@ -464,7 +466,7 @@ export const StorageProvider = ({ children }) => {
 
         // Trier par date décroissante (plus récent en premier)
         return allChapters.sort((a, b) => b.dateRead - a.dateRead);
-    }, [readChapters, favorites]);
+    }, [readChapters, favoritesMap]);
 
     // ===== SETTINGS =====
 
@@ -512,6 +514,7 @@ export const StorageProvider = ({ children }) => {
         <StorageContext.Provider value={{
             // État
             favorites,
+            favoritesMap,
             readChapters,
             settings,
             isLoading,
