@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-20 - Insecure Deserialization in External Storage
+**Vulnerability:** Data loaded from external user-selected backup folders was parsed using `JSON.parse` and returned directly without schema validation.
+**Learning:** External storage accessible via SAF can be modified by other applications. Deserializing this data blindly allows malicious applications to inject objects that could cause logic bugs or application crashes.
+**Prevention:** Always perform runtime schema validation (e.g., checking for specific expected properties or array type) immediately after parsing external JSON data, and before returning it to the application state.

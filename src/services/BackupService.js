@@ -139,11 +139,20 @@ const BackupService = {
             // If we create a file, we get a URI. We should probably store that URI too?
             // But if the user deletes the file, the URI is dead.
 
-            for (const fileUri of files) {
-                if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
-                    console.log("Backup file found:", fileUri);
-                    const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+            const backupFileUri = files.find(uri => isMatchingFile(uri, BACKUP_FILE_NAME));
+
+            if (backupFileUri) {
+                console.log("Backup file found:", backupFileUri);
+                const content = await StorageAccessFramework.readAsStringAsync(backupFileUri);
+                const parsed = JSON.parse(content);
+
+                // 🛡️ Sentinel: Validate deserialized backup schema
+                if (parsed && typeof parsed === 'object' &&
+                   ('favorites' in parsed || 'readChapters' in parsed || 'settings' in parsed)) {
+                    return parsed;
+                } else {
+                    console.warn("[Sentinel] Insecure deserialization: backup file has invalid schema");
+                    return null;
                 }
             }
 
@@ -224,7 +233,14 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                // 🛡️ Sentinel: Validate deserialized library cache schema
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                } else {
+                    console.warn("[Sentinel] Insecure deserialization: library cache is not an array");
+                    return null;
+                }
             } catch (e) {
                 console.error("Failed to parse library cache", e);
                 return null;
