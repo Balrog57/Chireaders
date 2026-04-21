@@ -147,7 +147,12 @@ const LibraryScreen = () => {
 
     // Real-time search update
     useEffect(() => {
-        performSearch(searchQuery);
+        // ⚡ Bolt: Debounce search to prevent JS thread blocking on every keystroke
+        // when filtering the massive in-memory scraped library dataset.
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -237,6 +242,10 @@ const LibraryScreen = () => {
                     renderItem={renderItem}
                     keyExtractor={(item, index) => item.url + index}
                     numColumns={3}
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
