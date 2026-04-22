@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2026-04-22 - Accessibilité des boutons de rechargement/erreur
+**Learning:** Les états d'erreur ou vides contenant des boutons de rechargement (ex. "Réessayer") doivent comporter des attributs d'accessibilité (role, label, hint) pour que les utilisateurs de lecteurs d'écran puissent comprendre et déclencher la récupération d'erreur.
+**Action:** Toujours ajouter `accessibilityRole="button"`, `accessibilityLabel` et `accessibilityHint` sur les `TouchableOpacity` agissant comme boutons de rechargement.
