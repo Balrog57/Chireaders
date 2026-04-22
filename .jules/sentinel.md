@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-22 - Insecure Deserialization via SAF
+**Vulnerability:** Raw file content retrieved via StorageAccessFramework in `BackupService.js` was parsed with `JSON.parse` and used immediately without runtime schema validation.
+**Learning:** External files could be modified or corrupted, leading to unexpected application state or crash when assumptions about object shape are violated.
+**Prevention:** Always perform shape validation (truthy check, object type check, array check) after parsing JSON before returning the data to the application context.

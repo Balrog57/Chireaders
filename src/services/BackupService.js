@@ -139,12 +139,17 @@ const BackupService = {
             // If we create a file, we get a URI. We should probably store that URI too?
             // But if the user deletes the file, the URI is dead.
 
-            for (const fileUri of files) {
-                if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
-                    console.log("Backup file found:", fileUri);
-                    const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+            const backupFileUri = files.find(uri => isMatchingFile(uri, BACKUP_FILE_NAME));
+            if (backupFileUri) {
+                console.log("Backup file found:", backupFileUri);
+                const content = await StorageAccessFramework.readAsStringAsync(backupFileUri);
+                const parsed = JSON.parse(content);
+
+                // 🛡️ Sentinel: Secure Deserialization - Shape Validation
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && (parsed.favorites || parsed.readChapters || parsed.settings)) {
+                    return parsed;
                 }
+                throw new Error("Insecure deserialization blocked: Invalid backup file format");
             }
 
             console.log("No backup file found in folder.");
@@ -224,7 +229,12 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                // 🛡️ Sentinel: Secure Deserialization - Cache Shape Validation
+                if (parsed && Array.isArray(parsed)) {
+                    return parsed;
+                }
+                throw new Error("Insecure deserialization blocked: Cache must be an array");
             } catch (e) {
                 console.error("Failed to parse library cache", e);
                 return null;
