@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-04-23 - Insecure Deserialization in BackupService
+**Vulnerability:** External data loaded via StorageAccessFramework was parsed with `JSON.parse()` and returned directly without schema validation.
+**Learning:** The StorageAccessFramework reads files from user-selected directories which could be modified by third-party apps, potentially leading to insecure deserialization if the app expects a specific object shape but receives an array or a primitive.
+**Prevention:** Always validate the structure of parsed JSON (e.g., checking `typeof parsed === 'object'`, `parsed !== null`, and required keys) before using or returning data from external storage.
