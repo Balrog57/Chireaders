@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-20 - Insecure Deserialization in AsyncStorage and SAF
+**Vulnerability:** Parsing raw JSON strings directly into application state (e.g., `JSON.parse(content)`) from local storage and user-selected backup folders without runtime schema validation.
+**Learning:** In JavaScript, `typeof null` is `'object'`, and `JSON.parse` can return primitive types, arrays, or arbitrary objects. Directly assigning these to context state without checking the expected shape (e.g., `Array.isArray`) can lead to runtime crashes or insecure deserialization if the backup file or local storage is corrupted or maliciously altered.
+**Prevention:** Always validate the structure and type of parsed JSON data before using it, especially when the data source is outside the immediate control of the executing code (like the file system). Use explicit checks like `parsed && typeof parsed === 'object' && !Array.isArray(parsed)` for objects and `Array.isArray(parsed)` for arrays.
