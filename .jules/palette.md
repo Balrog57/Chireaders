@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2023-10-25 - États d'erreur et Boutons de Réessai
+**Learning:** Les boutons de rafraîchissement ou de réessai dans les états vides/d'erreur (ex. 'Réessayer') sont critiques pour la récupération d'erreur, mais manquent souvent de contexte pour les lecteurs d'écran lorsqu'ils utilisent un `TouchableOpacity` simple.
+**Action:** Toujours ajouter `accessibilityRole="button"`, un `accessibilityLabel`, et un `accessibilityHint` descriptif sur ces éléments pour que les utilisateurs de lecteurs d'écran puissent comprendre et déclencher l'action de récupération.
