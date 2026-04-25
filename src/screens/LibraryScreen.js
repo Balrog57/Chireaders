@@ -146,8 +146,12 @@ const LibraryScreen = () => {
     };
 
     // Real-time search update
+    // ⚡ Bolt: Debounce search input by 300ms to reduce JS thread blocking on large datasets
     useEffect(() => {
-        performSearch(searchQuery);
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -239,6 +243,11 @@ const LibraryScreen = () => {
                     numColumns={3}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
+                    // ⚡ Bolt: Add virtualization props for massive lists
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     ListFooterComponent={renderFooter}
                     contentContainerStyle={styles.listContent}
                     refreshControl={
