@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## $(date +%Y-%m-%d) - Insecure Deserialization in BackupService
+**Vulnerability:** External backup and cache files retrieved via StorageAccessFramework were parsed with `JSON.parse` and used immediately without try/catch or runtime shape validation.
+**Learning:** External storage is not trusted. `typeof null === 'object'` in JavaScript, which can bypass simple validation.
+**Prevention:** Always wrap `JSON.parse` in a try/catch, verify the result is truthy and the correct type (e.g., `Array.isArray` or `typeof === 'object'`), and ensure it contains expected keys before returning the object.
