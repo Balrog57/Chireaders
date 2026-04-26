@@ -14,3 +14,6 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+## 2025-05-15 - Actions cachées
+**Learning:** Les actions associées à `onLongPress` (comme marquer un chapitre comme lu) sont invisibles pour les lecteurs d'écran si elles ne sont pas mentionnées dans un `accessibilityHint`.
+**Action:** Toujours expliciter les actions secondaires (comme les appuis longs ou doubles appuis) dans les `accessibilityHint` pour garantir l'accessibilité de toutes les fonctionnalités.

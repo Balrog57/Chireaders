@@ -202,6 +202,9 @@ const NovelDetailScreen = () => {
                             <TouchableOpacity
                                 style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
                                 onPress={handleResume}
+                                accessibilityRole="button"
+                                accessibilityLabel="Reprendre la lecture"
+                                accessibilityHint="Ouvre le dernier chapitre lu"
                             >
                                 <Ionicons name="play" size={20} color="#fff" />
                                 <Text style={styles.resumeButtonText}>Reprendre</Text>
@@ -330,6 +333,10 @@ const NovelDetailScreen = () => {
                                     style={[styles.chapterItem, { borderBottomColor: theme.border }]}
                                     onPress={() => handleChapterPress(chapter)}
                                     onLongPress={() => handleChapterLongPress(chapter)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`${chapter.title}${isRead ? ', lu' : ''}`}
+                                    accessibilityHint="Appui simple pour lire, appui long pour marquer comme lu ou non lu"
+                                    accessibilityState={{ checked: isRead }}
                                 >
                                     <Text style={[
                                         styles.chapterTitle,

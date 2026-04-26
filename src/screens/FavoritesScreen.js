@@ -55,6 +55,9 @@ const FavoritesScreen = ({ navigation }) => {
             <TouchableOpacity
                 style={[styles.favoriteCard, { backgroundColor: theme.card }]}
                 onPress={() => handleFavoritePress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title}, ${progress.length} chapitre${progress.length > 1 ? 's' : ''} lu${progress.length > 1 ? 's' : ''}, ${lastChapter ? 'dernier lu: ' + lastChapter.title : ''}`}
+                accessibilityHint="Ouvre les détails de cette série"
             >
                 {/* En-tête avec titre et bouton supprimer */}
                 <View style={styles.favoriteHeader}>
