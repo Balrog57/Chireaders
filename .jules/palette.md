@@ -14,3 +14,6 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+## 2025-02-14 - Empty State Consistency
+**Learning:** In list views (like Library, Favorites, History), unstyled "no results" text feels broken and fails to guide the user. Using consistent visual empty states with an icon, title, and action-oriented subtitle reduces user frustration when searches return empty.
+**Action:** Always implement a styled `ListEmptyComponent` for `FlatList` with `emptyContainer`, `emptyText`, and `emptySubtext` styles, including an icon and helpful contextual text.
