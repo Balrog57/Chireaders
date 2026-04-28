@@ -146,8 +146,13 @@ const LibraryScreen = () => {
     };
 
     // Real-time search update
+    // ⚡ Bolt Optimization: Debouncing search input by 300ms prevents the JS thread from blocking
+    // while typing, significantly improving responsiveness when searching through the massive library.
     useEffect(() => {
-        performSearch(searchQuery);
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -237,6 +242,12 @@ const LibraryScreen = () => {
                     renderItem={renderItem}
                     keyExtractor={(item, index) => item.url + index}
                     numColumns={3}
+                    // ⚡ Bolt Optimization: Virtualization props drastically reduce memory consumption
+                    // and speed up initial render by limiting off-screen item rendering for large lists.
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
