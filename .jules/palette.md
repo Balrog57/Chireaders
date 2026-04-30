@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-05-24 - Empty States in Lists
+**Learning:** Empty list states with just "No results" can leave users confused or frustrated, especially if they don't know why it's empty (e.g. search vs. empty library).
+**Action:** Always implement a styled `ListEmptyComponent` with an icon, clear title, and actionable or explanatory subtitle.
