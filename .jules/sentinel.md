@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-20 - Insecure Deserialization via StorageAccessFramework
+**Vulnerability:** Raw string data loaded from external storage via `StorageAccessFramework` was passed directly to `JSON.parse()` without shape validation, and in some cases, without `try/catch`.
+**Learning:** The application implicitly trusted external backup files, ignoring that they could be modified outside the app by a user or another app, leading to runtime crashes or state corruption via object injection.
+**Prevention:** Always wrap `JSON.parse()` for external data in a `try/catch` and strictly validate the structure (e.g., `typeof parsed === 'object'`, `Array.isArray()`, and checking for required keys) before returning the deserialized data.
