@@ -146,8 +146,13 @@ const LibraryScreen = () => {
     };
 
     // Real-time search update
+    // ⚡ Bolt Optimization: Debounce search to prevent JS thread blocking during rapid typing on massive in-memory datasets.
+    // Expected impact: Significantly smoother keyboard input responsiveness.
     useEffect(() => {
-        performSearch(searchQuery);
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -237,6 +242,12 @@ const LibraryScreen = () => {
                     renderItem={renderItem}
                     keyExtractor={(item, index) => item.url + index}
                     numColumns={3}
+                    // ⚡ Bolt Optimization: Virtualization props to control memory usage and layout time for large grids.
+                    // Expected impact: Lower memory footprint and faster scrolling performance.
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
