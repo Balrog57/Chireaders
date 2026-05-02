@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-02 - Insecure Deserialization in Backup Services
+**Vulnerability:** `JSON.parse()` output from untrusted storage (SAF) was returned directly, allowing local backup modification to crash the app (e.g. passing an object when an array is expected).
+**Learning:** Local files read via Storage Access Framework should be treated as untrusted user input, as they can be modified by other apps or the user.
+**Prevention:** Always validate the structure (schema check) of parsed JSON before passing it to internal contexts or state managers.

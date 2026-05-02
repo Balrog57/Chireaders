@@ -143,7 +143,21 @@ const BackupService = {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    try {
+                        const parsed = JSON.parse(content);
+                        if (parsed && typeof parsed === 'object') {
+                            const hasValidFavorites = !parsed.favorites || Array.isArray(parsed.favorites);
+                            const hasValidReadChapters = !parsed.readChapters || typeof parsed.readChapters === 'object';
+                            const hasValidSettings = !parsed.settings || typeof parsed.settings === 'object';
+
+                            if (hasValidFavorites && hasValidReadChapters && hasValidSettings && (parsed.favorites || parsed.readChapters || parsed.settings)) {
+                                return parsed;
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Backup file parsing or validation failed:", e);
+                    }
+                    return null;
                 }
             }
 
@@ -224,7 +238,12 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                if (parsed && Array.isArray(parsed)) {
+                    return parsed;
+                }
+                console.error("Library cache validation failed: not an array");
+                return null;
             } catch (e) {
                 console.error("Failed to parse library cache", e);
                 return null;
