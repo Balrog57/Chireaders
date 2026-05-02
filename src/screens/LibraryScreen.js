@@ -250,8 +250,10 @@ const LibraryScreen = () => {
                         />
                     }
                     ListEmptyComponent={
-                        <View style={styles.centerContainer}>
-                            <Text style={{ color: theme.text }}>Aucun résultat.</Text>
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="search-outline" size={64} color="#ccc" />
+                            <Text style={[styles.emptyText, { color: theme.text }]}>Aucun résultat trouvé</Text>
+                            <Text style={[styles.emptySubtext, { color: theme.text, opacity: 0.7 }]}>Essayez de modifier votre recherche</Text>
                         </View>
                     }
                 />
@@ -349,6 +351,26 @@ const styles = StyleSheet.create({
     clearButton: {
         padding: 5,
         marginRight: 5,
+    },
+    // Empty state
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 100,
+        paddingHorizontal: 40,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#999',
+        marginTop: 15,
+        marginBottom: 8,
+    },
+    emptySubtext: {
+        fontSize: 14,
+        color: '#999',
+        textAlign: 'center',
     },
 });
 
