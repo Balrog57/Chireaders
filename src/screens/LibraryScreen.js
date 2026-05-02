@@ -146,8 +146,12 @@ const LibraryScreen = () => {
     };
 
     // Real-time search update
+    // ⚡ Bolt: Debounce search by 300ms to prevent blocking the JS thread on every keystroke
     useEffect(() => {
-        performSearch(searchQuery);
+        const delayDebounceFn = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(delayDebounceFn);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -241,6 +245,11 @@ const LibraryScreen = () => {
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
                     contentContainerStyle={styles.listContent}
+                    // ⚡ Bolt: Explicitly configure virtualization props to reduce memory and layout calculations
+                    initialNumToRender={15}
+                    maxToRenderPerBatch={15}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
