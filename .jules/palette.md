@@ -14,3 +14,6 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+## 2026-05-03 - Long Press Discoverability
+**Learning:** Secondary actions triggered by `onLongPress` on interactable components (like `TouchableOpacity`) are invisible to screen readers (VoiceOver/TalkBack).
+**Action:** Always explicitly describe the secondary long-press action in the element's `accessibilityHint` to ensure full discoverability and accessibility.
