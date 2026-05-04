@@ -31,18 +31,38 @@ export const StorageProvider = ({ children }) => {
                 const read = await AsyncStorage.getItem('readChapters');
                 const sett = await AsyncStorage.getItem('settings');
 
-                if (favs) setFavorites(JSON.parse(favs));
-                if (read) setReadChapters(JSON.parse(read));
+                if (favs) {
+                    try {
+                        const parsedFavs = JSON.parse(favs);
+                        if (Array.isArray(parsedFavs)) setFavorites(parsedFavs);
+                    } catch (e) {
+                        console.error("Failed to parse favorites", e);
+                    }
+                }
+                if (read) {
+                    try {
+                        const parsedRead = JSON.parse(read);
+                        if (parsedRead && typeof parsedRead === 'object') setReadChapters(parsedRead);
+                    } catch (e) {
+                        console.error("Failed to parse readChapters", e);
+                    }
+                }
                 if (sett) {
-                    const parsedSettings = JSON.parse(sett);
-                    // Migration: si readerFontSize n'existe pas mais fontSize oui
-                    if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
-                        parsedSettings.readerFontSize = parsedSettings.fontSize;
+                    try {
+                        const parsedSettings = JSON.parse(sett);
+                        if (parsedSettings && typeof parsedSettings === 'object') {
+                            // Migration: si readerFontSize n'existe pas mais fontSize oui
+                            if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
+                                parsedSettings.readerFontSize = parsedSettings.fontSize;
+                            }
+                            if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
+                                parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
+                            }
+                            setSettings(parsedSettings);
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse settings", e);
                     }
-                    if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
-                        parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
-                    }
-                    setSettings(parsedSettings);
                 }
             } catch (e) {
                 console.error("Failed to load local data", e);

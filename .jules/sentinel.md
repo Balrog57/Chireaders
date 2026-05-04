@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-04 - Fix Storage Parsing Crash Vulnerability
+**Vulnerability:** AsyncStorage items were parsed using JSON.parse without try-catch blocks or type validation. A corrupted JSON string or unexpected object type could crash the app or block other critical data from loading.
+**Learning:** Storage data should never be implicitly trusted as valid JSON or as the correct shape, as unexpected values or corruption can act as a local Denial of Service vector.
+**Prevention:** Always wrap JSON.parse in try-catch and explicitly validate the type (e.g. Array.isArray) before setting application state.
