@@ -145,9 +145,12 @@ const LibraryScreen = () => {
         performSearch(searchQuery);
     };
 
-    // Real-time search update
+    // Real-time search update (Debounced)
     useEffect(() => {
-        performSearch(searchQuery);
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -237,6 +240,10 @@ const LibraryScreen = () => {
                     renderItem={renderItem}
                     keyExtractor={(item, index) => item.url + index}
                     numColumns={3}
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
