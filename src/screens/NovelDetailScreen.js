@@ -330,6 +330,9 @@ const NovelDetailScreen = () => {
                                     style={[styles.chapterItem, { borderBottomColor: theme.border }]}
                                     onPress={() => handleChapterPress(chapter)}
                                     onLongPress={() => handleChapterLongPress(chapter)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={chapter.title}
+                                    accessibilityHint={`Double-tap pour lire. Maintenir appuyé pour marquer comme ${isRead ? 'non lu' : 'lu'}`}
                                 >
                                     <Text style={[
                                         styles.chapterTitle,
@@ -370,7 +373,7 @@ const NovelDetailScreen = () => {
                                                 delayLongPress={500}
                                                 accessibilityRole="button"
                                                 accessibilityState={{ expanded: isExpanded }}
-                                                accessibilityHint="Double-tap pour afficher ou masquer les chapitres de ce groupe"
+                                                accessibilityHint="Double-tap pour afficher ou masquer. Maintenir appuyé pour marquer le groupe comme lu/non lu"
                                             >
                                                 <Text style={[styles.accordionTitle, { color: theme.text }]}>
                                                     Chapitres {bucket.start} - {bucket.end}
