@@ -24,7 +24,15 @@ TaskManager.defineTask(TASK_NAME, async () => {
         const favsJson = await AsyncStorage.getItem('favorites');
         if (!favsJson) return BackgroundFetch.BackgroundFetchResult.NoData;
 
-        const favorites = JSON.parse(favsJson);
+        let favorites = [];
+        try {
+            const parsed = JSON.parse(favsJson);
+            favorites = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            console.error("[Security] Failed to parse favorites in background", e);
+            return BackgroundFetch.BackgroundFetchResult.Failed;
+        }
+
         const favoritesToScan = favorites.filter(f => f.notificationsEnabled !== false); // Default to true if undefined
 
         if (favoritesToScan.length === 0) {
@@ -80,7 +88,13 @@ TaskManager.defineTask(TASK_NAME, async () => {
             // This prevents overwriting user actions (like deleting a favorite) that happened
             // while the background task was running.
             const freshFavsJson = await AsyncStorage.getItem('favorites');
-            const freshFavorites = freshFavsJson ? JSON.parse(freshFavsJson) : [];
+            let freshFavorites = [];
+            try {
+                const parsedFresh = freshFavsJson ? JSON.parse(freshFavsJson) : [];
+                freshFavorites = Array.isArray(parsedFresh) ? parsedFresh : [];
+            } catch (e) {
+                console.error("[Security] Failed to parse fresh favorites", e);
+            }
 
             let hasChanges = false;
             const mergedFavorites = freshFavorites.map(freshFav => {

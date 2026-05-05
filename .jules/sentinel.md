@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-24 - Defensive Storage Parsing
+**Vulnerability:** Unprotected `JSON.parse()` on data retrieved from `AsyncStorage` without type validation.
+**Learning:** If persistent storage is corrupted or maliciously tampered with (e.g., changed to a non-array type), blind deserialization causes fatal type errors (e.g., calling `.filter()` on an object), leading to application crashes (Local Denial of Service).
+**Prevention:** Always wrap `JSON.parse()` in a `try-catch` block and explicitly validate the expected structural type (e.g., `Array.isArray()`, `typeof object`) before updating application state.
