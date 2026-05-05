@@ -250,8 +250,18 @@ const LibraryScreen = () => {
                         />
                     }
                     ListEmptyComponent={
-                        <View style={styles.centerContainer}>
-                            <Text style={{ color: theme.text }}>Aucun résultat.</Text>
+                        <View style={styles.emptyContainer}>
+                            <Ionicons
+                                name={searchQuery?.length > 0 ? "search-outline" : "library-outline"}
+                                size={64}
+                                color={theme.textSecondary || '#ccc'}
+                            />
+                            <Text style={[styles.emptyText, { color: theme.text }]}>
+                                {searchQuery?.length > 0 ? "Aucun résultat trouvé" : "Bibliothèque vide"}
+                            </Text>
+                            <Text style={[styles.emptySubtext, { color: theme.textSecondary || '#999' }]}>
+                                {searchQuery?.length > 0 ? "Essayez avec d'autres mots-clés." : "Aucun roman n'est disponible pour le moment."}
+                            </Text>
                         </View>
                     }
                 />
@@ -308,6 +318,24 @@ const styles = StyleSheet.create({
     footerLoader: {
         paddingVertical: 20,
         alignItems: 'center',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 100,
+        paddingHorizontal: 40,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginTop: 15,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    emptySubtext: {
+        fontSize: 14,
+        textAlign: 'center',
     },
     tabContainer: {
         flexDirection: 'row',

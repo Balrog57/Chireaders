@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2024-05-05 - Empty States Contextual Guidance
+**Learning:** Unstyled "no results" text in FlatList views (like "Aucun résultat." in LibraryScreen) provides a poor user experience. The app's design system uses a consistent pattern of an icon, title, and action-oriented subtitle.
+**Action:** Always implement a visually styled ListEmptyComponent using consistent styles (emptyContainer, emptyText, emptySubtext) to provide helpful contextual guidance in list views.
