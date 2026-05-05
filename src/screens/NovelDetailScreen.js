@@ -58,10 +58,18 @@ const NovelDetailScreen = () => {
     // State for notification (local only for UI, synced with context)
     const [notifyEnabled, setNotifyEnabled] = useState(true);
 
+    // ⚡ Bolt: Split effects to prevent redundant network requests.
+    // loadDetails only depends on the URL, preventing expensive API calls
+    // when just toggling a favorite or when global favorites update.
+    useEffect(() => {
+        loadDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [url]);
+
     useEffect(() => {
         checkFavorite();
-        loadDetails();
-    }, [favorites]); // Add favorites dependency to react to changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [favorites, url]);
 
     const checkFavorite = async () => {
         const fav = favorites.find(f => f.url === url);
