@@ -14,3 +14,6 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+## 2024-05-24 - Library Empty State
+**Learning:** An unstyled 'No results' text can cause user frustration as it lacks context and helpful guidance.
+**Action:** Always implement a visually styled `ListEmptyComponent` using consistent styles (`emptyContainer`, `emptyText`, `emptySubtext`) with a descriptive icon and an action-oriented subtitle.
