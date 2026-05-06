@@ -17,3 +17,7 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+## 2024-05-06 - Defensive Storage Parsing
+**Vulnerability:** Persistent Denial of Service (DoS) via malformed local backup/storage data.
+**Learning:** `JSON.parse` returning valid but unexpected types (e.g., an Object `{}` instead of an Array `[]`) bypasses `try...catch` syntax checks but crashes the app later when array methods (like `.map` or `.filter`) are called. This can be exploited by restoring a corrupted backup file, creating a crash loop on startup.
+**Prevention:** When reading from persistent storage or external backups, always validate the exact type (e.g., `Array.isArray(data)`) after `JSON.parse` before storing it in application state.

@@ -31,18 +31,32 @@ export const StorageProvider = ({ children }) => {
                 const read = await AsyncStorage.getItem('readChapters');
                 const sett = await AsyncStorage.getItem('settings');
 
-                if (favs) setFavorites(JSON.parse(favs));
-                if (read) setReadChapters(JSON.parse(read));
+                if (favs) {
+                    try {
+                        const parsedFavs = JSON.parse(favs);
+                        if (Array.isArray(parsedFavs)) setFavorites(parsedFavs);
+                    } catch (err) { console.error("Error parsing favorites", err); }
+                }
+                if (read) {
+                    try {
+                        const parsedRead = JSON.parse(read);
+                        if (parsedRead && typeof parsedRead === 'object' && !Array.isArray(parsedRead)) setReadChapters(parsedRead);
+                    } catch (err) { console.error("Error parsing readChapters", err); }
+                }
                 if (sett) {
-                    const parsedSettings = JSON.parse(sett);
-                    // Migration: si readerFontSize n'existe pas mais fontSize oui
-                    if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
-                        parsedSettings.readerFontSize = parsedSettings.fontSize;
-                    }
-                    if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
-                        parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
-                    }
-                    setSettings(parsedSettings);
+                    try {
+                        const parsedSettings = JSON.parse(sett);
+                        if (parsedSettings && typeof parsedSettings === 'object' && !Array.isArray(parsedSettings)) {
+                            // Migration: si readerFontSize n'existe pas mais fontSize oui
+                            if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
+                                parsedSettings.readerFontSize = parsedSettings.fontSize;
+                            }
+                            if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
+                                parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
+                            }
+                            setSettings(parsedSettings);
+                        }
+                    } catch (err) { console.error("Error parsing settings", err); }
                 }
             } catch (e) {
                 console.error("Failed to load local data", e);
@@ -90,27 +104,20 @@ export const StorageProvider = ({ children }) => {
         try {
             setIsLoading(true);
 
-            if (data.favorites) {
+            if (data.favorites && Array.isArray(data.favorites)) {
                 setFavorites(data.favorites);
                 await AsyncStorage.setItem('favorites', JSON.stringify(data.favorites));
             }
-            if (data.readChapters) {
+            if (data.readChapters && typeof data.readChapters === 'object' && !Array.isArray(data.readChapters)) {
                 setReadChapters(data.readChapters);
                 await AsyncStorage.setItem('readChapters', JSON.stringify(data.readChapters));
             }
-            if (data.settings) {
+            if (data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)) {
                 setSettings(data.settings);
                 await AsyncStorage.setItem('settings', JSON.stringify(data.settings));
             }
 
             // Re-sync backup file immediately to be sure
-            const dataToSave = {
-                favorites: data.favorites || favorites,
-                readChapters: data.readChapters || readChapters,
-                settings: data.settings || settings,
-                timestamp: Date.now(),
-                version: 1
-            };
             // Force backup ? Maybe not needed if useEffect triggers, but useEffect might depend on state change.
             // State change above WILL trigger useEffect independently.
 
