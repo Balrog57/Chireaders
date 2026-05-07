@@ -14,3 +14,6 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+## 2024-05-07 - Screen Reader Invisibility for onLongPress
+**Learning:** Secondary actions triggered by onLongPress on React Native interactable components (like TouchableOpacity) are invisible to screen readers (VoiceOver/TalkBack).
+**Action:** Always explicitly describe the secondary action in the element's accessibilityHint to ensure full discoverability and accessibility.
