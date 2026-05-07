@@ -146,8 +146,12 @@ const LibraryScreen = () => {
     };
 
     // Real-time search update
+    // ⚡ Bolt: Debounce search to prevent JS thread blocking on massive lists
     useEffect(() => {
-        performSearch(searchQuery);
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -254,6 +258,11 @@ const LibraryScreen = () => {
                             <Text style={{ color: theme.text }}>Aucun résultat.</Text>
                         </View>
                     }
+                    // ⚡ Bolt: Memory and layout calculation optimizations for massive lists
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                 />
             )}
         </SafeAreaView>

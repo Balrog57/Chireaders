@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2026-05-18 - FlatList Virtualization and Search Debouncing
+**Learning:** Massive in-memory scraped datasets in React Native can cause severe performance issues (JS thread blocking and layout calculation times) if search input is processed synchronously and lists are not fully virtualized.
+**Action:** Always debounce local search filtering (e.g., 300ms `setTimeout` in `useEffect`) and implement `FlatList` virtualization props (`initialNumToRender`, `maxToRenderPerBatch`, `windowSize`, `removeClippedSubviews`) to control memory usage.
