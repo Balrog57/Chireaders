@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2025-05-07 - Insecure JSON parsing from AsyncStorage
+**Vulnerability:** Deserializing stored data from `AsyncStorage` directly with `JSON.parse()` without validation.
+**Learning:** Missing try/catch blocks and explicit type validation (e.g., `Array.isArray()`) on parsing results can lead to unhandled runtime errors, causing the application to crash if stored data becomes corrupted or formatted incorrectly.
+**Prevention:** Always implement defensive storage parsing by wrapping `JSON.parse` in try-catch blocks and verifying data types before using them in application logic. Default to safe initial states on failure.
