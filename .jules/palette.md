@@ -14,3 +14,7 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+
+## 2025-05-24 - Avoid string concatenation for React Native translucent colors
+**Learning:** String concatenation for color hexes (like `theme.text + '80'`) can cause runtime crashes and leads to inconsistent contrast across light/dark themes.
+**Action:** Always use semantic theme tokens (e.g., `theme.textSecondary`) for elements like `placeholderTextColor` to ensure reliable accessibility and stability.

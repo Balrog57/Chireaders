@@ -197,7 +197,7 @@ const LibraryScreen = () => {
                     <TextInput
                         style={[styles.searchInput, { color: theme.text }]}
                         placeholder="Rechercher..."
-                        placeholderTextColor={theme.text + '80'}
+                        placeholderTextColor={theme.textSecondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         onSubmitEditing={handleSearchSubmit}
