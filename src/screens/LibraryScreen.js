@@ -146,8 +146,12 @@ const LibraryScreen = () => {
     };
 
     // Real-time search update
+    // Added debouncing to prevent JS thread blocking during typing
     useEffect(() => {
-        performSearch(searchQuery);
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -241,6 +245,10 @@ const LibraryScreen = () => {
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
                     contentContainerStyle={styles.listContent}
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
