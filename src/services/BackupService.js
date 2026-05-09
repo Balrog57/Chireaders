@@ -142,8 +142,13 @@ const BackupService = {
             for (const fileUri of files) {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
-                    const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    try {
+                        const content = await StorageAccessFramework.readAsStringAsync(fileUri);
+                        return JSON.parse(content);
+                    } catch (e) {
+                        console.error("[Sentinel] Failed to parse backup content", e);
+                        return null;
+                    }
                 }
             }
 

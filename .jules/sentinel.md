@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-09 - Defensive AsyncStorage Parsing
+**Vulnerability:** Calling JSON.parse directly on values retrieved from AsyncStorage without type validation and granular try-catch blocks. If parsing failed, it caused unhandled TypeErrors or cascading data loss (e.g., wiping other state variables).
+**Learning:** Incomplete error handling for asynchronous storage parsing allows corrupted persistent data to crash the JS thread or inadvertently delete user settings/history.
+**Prevention:** Always wrap JSON.parse in try-catch blocks during storage retrieval and validate the resulting data types (like Array.isArray) before mutating application state. Default to safe initial states on failure.
