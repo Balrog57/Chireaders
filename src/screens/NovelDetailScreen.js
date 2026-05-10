@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image'; // Optimized image component for better caching and performance
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     // Image, // Replaced by expo-image
@@ -34,13 +34,11 @@ const NovelDetailScreen = () => {
 
     // Storage
     const {
-        isFavorite,
         addFavorite,
         removeFavorite,
-        favorites, // Add favorites to context
+        favoritesMap,
         updateFavoriteLatestChapter,
         toggleFavoriteNotification,
-        isChapterRead,
         getLastChapterRead,
         markChapterAsRead,
         markChapterAsUnread,
@@ -58,13 +56,13 @@ const NovelDetailScreen = () => {
     // State for notification (local only for UI, synced with context)
     const [notifyEnabled, setNotifyEnabled] = useState(true);
 
-    useEffect(() => {
-        checkFavorite();
-        loadDetails();
-    }, [favorites]); // Add favorites dependency to react to changes
+    const readChaptersSet = useMemo(() => {
+        const chapters = readChapters[url] || [];
+        return new Set(chapters.map(chapter => chapter.url));
+    }, [readChapters, url]);
 
-    const checkFavorite = async () => {
-        const fav = favorites.find(f => f.url === url);
+    const checkFavorite = useCallback(() => {
+        const fav = favoritesMap.get(url);
         if (fav) {
             setIsFav(true);
             setNotifyEnabled(fav.notificationsEnabled !== false);
@@ -72,25 +70,35 @@ const NovelDetailScreen = () => {
             setIsFav(false);
             setNotifyEnabled(true); // Default for new
         }
-    };
+    }, [favoritesMap, url]);
 
-    const loadDetails = async () => {
+    const loadDetails = useCallback(async () => {
         try {
+            setLoading(true);
             const data = await ChiReadsScraper.getNovelDetails(url);
             setDetails(data);
-
-            // If favorite, update latest known chapter silently
-            if (isFavorite(url) && data.chapters.length > 0) {
-                const latest = data.chapters[data.chapters.length - 1];
-                updateFavoriteLatestChapter(url, latest.url);
-            }
 
         } catch (error) {
             console.error('Error loading details:', error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [url]);
+
+    useEffect(() => {
+        loadDetails();
+    }, [loadDetails]);
+
+    useEffect(() => {
+        checkFavorite();
+    }, [checkFavorite]);
+
+    useEffect(() => {
+        if (favoritesMap.has(url) && details?.chapters?.length > 0) {
+            const latest = details.chapters[details.chapters.length - 1];
+            updateFavoriteLatestChapter(url, latest.url);
+        }
+    }, [details, favoritesMap, updateFavoriteLatestChapter, url]);
 
     const toggleFavorite = async () => {
         // Haptic feedback for better UX
@@ -142,7 +150,7 @@ const NovelDetailScreen = () => {
 
     // Manual toggle logic
     const handleChapterLongPress = (chapter) => {
-        const isRead = isChapterRead(url, chapter.url);
+        const isRead = readChaptersSet.has(chapter.url);
         if (isRead) {
             markChapterAsUnread(url, chapter.url);
             ToastAndroid.show('Marqué comme non lu', ToastAndroid.SHORT);
@@ -155,7 +163,7 @@ const NovelDetailScreen = () => {
     const handleGroupLongPress = (bucket) => {
         const chapters = bucket.chapters;
         // Check if ALL chapters in this bucket are read
-        const allRead = chapters.every(ch => isChapterRead(url, ch.url));
+        const allRead = chapters.every(ch => readChaptersSet.has(ch.url));
 
         if (allRead) {
             // Mark all as Unread
@@ -323,13 +331,16 @@ const NovelDetailScreen = () => {
                         const displayBuckets = reversed ? [...buckets].reverse() : buckets;
 
                         const renderChapter = (chapter, idx) => {
-                            const isRead = isChapterRead(url, chapter.url);
+                            const isRead = readChaptersSet.has(chapter.url);
                             return (
                                 <TouchableOpacity
                                     key={chapter.url + idx}
                                     style={[styles.chapterItem, { borderBottomColor: theme.border }]}
                                     onPress={() => handleChapterPress(chapter)}
                                     onLongPress={() => handleChapterLongPress(chapter)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={isRead ? `${chapter.title}, lu` : chapter.title}
+                                    accessibilityHint="Appuyez pour lire, maintenez pour marquer comme lu ou non lu"
                                 >
                                     <Text style={[
                                         styles.chapterTitle,
@@ -370,7 +381,7 @@ const NovelDetailScreen = () => {
                                                 delayLongPress={500}
                                                 accessibilityRole="button"
                                                 accessibilityState={{ expanded: isExpanded }}
-                                                accessibilityHint="Double-tap pour afficher ou masquer les chapitres de ce groupe"
+                                                accessibilityHint="Double-tap pour afficher ou masquer, maintenez pour marquer tout le groupe comme lu ou non lu"
                                             >
                                                 <Text style={[styles.accordionTitle, { color: theme.text }]}>
                                                     Chapitres {bucket.start} - {bucket.end}

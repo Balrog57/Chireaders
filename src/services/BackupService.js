@@ -6,6 +6,19 @@ import { isMatchingFile } from '../utils/FileHelper.mjs';
 const BACKUP_FILE_NAME = 'chireaders_backup.json';
 const BACKUP_FOLDER_KEY = 'backup_folder_uri';
 
+const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const isValidBackupData = (value) => {
+    if (!isPlainObject(value)) return false;
+
+    const hasKnownKey = 'favorites' in value || 'readChapters' in value || 'settings' in value;
+    if (!hasKnownKey) return false;
+
+    return (!('favorites' in value) || Array.isArray(value.favorites)) &&
+        (!('readChapters' in value) || isPlainObject(value.readChapters)) &&
+        (!('settings' in value) || isPlainObject(value.settings));
+};
+
 /*
  * BackupService handles automatic backup to a user-selected folder using SAF.
  */
@@ -143,7 +156,16 @@ const BackupService = {
                 if (isMatchingFile(fileUri, BACKUP_FILE_NAME)) {
                     console.log("Backup file found:", fileUri);
                     const content = await StorageAccessFramework.readAsStringAsync(fileUri);
-                    return JSON.parse(content);
+                    try {
+                        const parsed = JSON.parse(content);
+                        if (isValidBackupData(parsed)) {
+                            return parsed;
+                        }
+                        console.error("[Security] Invalid backup data schema");
+                    } catch (e) {
+                        console.error("Failed to parse backup content", e);
+                    }
+                    return null;
                 }
             }
 
@@ -224,7 +246,12 @@ const BackupService = {
         const content = await this.readFile('chireaders_library_cache.json');
         if (content) {
             try {
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+                console.error("[Security] Invalid library cache schema");
+                return null;
             } catch (e) {
                 console.error("Failed to parse library cache", e);
                 return null;

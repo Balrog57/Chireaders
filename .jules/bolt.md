@@ -12,3 +12,7 @@
 ## 2026-03-08 - Pre-computing Search Strings for Large Lists
 **Learning:** For searching or filtering large lists (e.g., thousands of items), computing string manipulations (like removing accents using NFD normalization and converting to lowercase) inside `.filter()` on every keystroke blocks the JS thread and hurts search responsiveness significantly.
 **Action:** Always pre-compute and store normalized search strings directly on data objects (e.g., `_normalizedTitle`) during the initial load, cache saving/restoration, or mapping phase to achieve O(1) attribute access during actual `.filter()` operations.
+
+## 2026-05-10 - Consolidated List and Context Performance
+**Learning:** Large React Native lists suffer when search filters run on every keystroke, `FlatList` renders without virtualization constraints, or render loops repeatedly call O(N) context helpers.
+**Action:** Debounce local search, set explicit `FlatList` virtualization props, memoize local `Set`/`Map` lookup structures for list renders, expose shared context maps for O(1) access, and keep expensive context-derived datasets lazy so consumers compute them only when needed.

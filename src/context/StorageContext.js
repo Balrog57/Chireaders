@@ -4,6 +4,69 @@ import BackupService from '../services/BackupService';
 
 export const StorageContext = createContext();
 
+const DEFAULT_SETTINGS = {
+    darkMode: false,
+    themeMode: 'light',
+    readerFontSize: 18,
+    notifications: {
+        enabled: true,
+        checkInterval: 3600000 // 1 heure en ms
+    }
+};
+
+const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const parseStoredJson = (value, fallback, validator, label) => {
+    if (!value) return fallback;
+
+    try {
+        const parsed = JSON.parse(value);
+        if (validator(parsed)) {
+            return parsed;
+        }
+        console.error(`[Storage] Invalid ${label} schema`);
+    } catch (e) {
+        console.error(`[Storage] Failed to parse ${label}`, e);
+    }
+
+    return fallback;
+};
+
+const normalizeSettings = (value) => {
+    if (!isPlainObject(value)) return null;
+
+    const parsedSettings = { ...DEFAULT_SETTINGS, ...value };
+    if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
+        parsedSettings.readerFontSize = parsedSettings.fontSize;
+    }
+    if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
+        parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
+    }
+
+    return parsedSettings;
+};
+
+const normalizeBackupData = (data) => {
+    if (!isPlainObject(data)) return null;
+
+    const normalized = {};
+    if ('favorites' in data) {
+        if (!Array.isArray(data.favorites)) return null;
+        normalized.favorites = data.favorites;
+    }
+    if ('readChapters' in data) {
+        if (!isPlainObject(data.readChapters)) return null;
+        normalized.readChapters = data.readChapters;
+    }
+    if ('settings' in data) {
+        const settings = normalizeSettings(data.settings);
+        if (!settings) return null;
+        normalized.settings = settings;
+    }
+
+    return Object.keys(normalized).length > 0 ? normalized : null;
+};
+
 export const StorageProvider = ({ children }) => {
     // Structure des données:
     // favorites: [{ url, title, slug, dateAdded, lastVisited, lastChapterRead: { url, title, date } }]
@@ -12,15 +75,7 @@ export const StorageProvider = ({ children }) => {
 
     const [favorites, setFavorites] = useState([]);
     const [readChapters, setReadChapters] = useState({});
-    const [settings, setSettings] = useState({
-        darkMode: false,
-        themeMode: 'light',
-        readerFontSize: 18,
-        notifications: {
-            enabled: true,
-            checkInterval: 3600000 // 1 heure en ms
-        }
-    });
+    const [settings, setSettings] = useState(DEFAULT_SETTINGS);
     const [isLoading, setIsLoading] = useState(true);
 
     // Charger les données au démarrage
@@ -31,19 +86,11 @@ export const StorageProvider = ({ children }) => {
                 const read = await AsyncStorage.getItem('readChapters');
                 const sett = await AsyncStorage.getItem('settings');
 
-                if (favs) setFavorites(JSON.parse(favs));
-                if (read) setReadChapters(JSON.parse(read));
-                if (sett) {
-                    const parsedSettings = JSON.parse(sett);
-                    // Migration: si readerFontSize n'existe pas mais fontSize oui
-                    if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
-                        parsedSettings.readerFontSize = parsedSettings.fontSize;
-                    }
-                    if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
-                        parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
-                    }
-                    setSettings(parsedSettings);
-                }
+                setFavorites(parseStoredJson(favs, [], Array.isArray, 'favorites'));
+                setReadChapters(parseStoredJson(read, {}, isPlainObject, 'readChapters'));
+
+                const parsedSettings = parseStoredJson(sett, DEFAULT_SETTINGS, isPlainObject, 'settings');
+                setSettings(normalizeSettings(parsedSettings) || DEFAULT_SETTINGS);
             } catch (e) {
                 console.error("Failed to load local data", e);
             } finally {
@@ -85,43 +132,46 @@ export const StorageProvider = ({ children }) => {
      * @param {Object} data - The full backup object
      */
     const reloadData = useCallback(async (data) => {
-        if (!data) return;
+        const normalized = normalizeBackupData(data);
+        if (!normalized) {
+            console.error("Failed to reload data: invalid backup schema");
+            return;
+        }
 
         try {
             setIsLoading(true);
 
-            if (data.favorites) {
-                setFavorites(data.favorites);
-                await AsyncStorage.setItem('favorites', JSON.stringify(data.favorites));
+            if (normalized.favorites) {
+                setFavorites(normalized.favorites);
+                await AsyncStorage.setItem('favorites', JSON.stringify(normalized.favorites));
             }
-            if (data.readChapters) {
-                setReadChapters(data.readChapters);
-                await AsyncStorage.setItem('readChapters', JSON.stringify(data.readChapters));
+            if (normalized.readChapters) {
+                setReadChapters(normalized.readChapters);
+                await AsyncStorage.setItem('readChapters', JSON.stringify(normalized.readChapters));
             }
-            if (data.settings) {
-                setSettings(data.settings);
-                await AsyncStorage.setItem('settings', JSON.stringify(data.settings));
+            if (normalized.settings) {
+                setSettings(normalized.settings);
+                await AsyncStorage.setItem('settings', JSON.stringify(normalized.settings));
             }
-
-            // Re-sync backup file immediately to be sure
-            const dataToSave = {
-                favorites: data.favorites || favorites,
-                readChapters: data.readChapters || readChapters,
-                settings: data.settings || settings,
-                timestamp: Date.now(),
-                version: 1
-            };
-            // Force backup ? Maybe not needed if useEffect triggers, but useEffect might depend on state change.
-            // State change above WILL trigger useEffect independently.
 
         } catch (e) {
             console.error("Failed to reload data", e);
         } finally {
             setIsLoading(false);
         }
-    }, [favorites, readChapters, settings]);
+    }, []);
 
     // ===== FAVORIS =====
+
+    const favoritesMap = useMemo(() => {
+        const map = new Map();
+        favorites.forEach(favorite => {
+            if (favorite?.url) {
+                map.set(favorite.url, favorite);
+            }
+        });
+        return map;
+    }, [favorites]);
 
     /**
      * Ajouter une série aux favoris
@@ -163,8 +213,8 @@ export const StorageProvider = ({ children }) => {
      * @returns {boolean}
      */
     const isFavorite = useCallback((url) => {
-        return favorites.some(f => f.url === url);
-    }, [favorites]);
+        return favoritesMap.has(url);
+    }, [favoritesMap]);
 
     /**
      * Toggle favori (ancienne fonction pour compatibilité)
@@ -437,19 +487,12 @@ export const StorageProvider = ({ children }) => {
     }, [readChapters]);
 
     /**
-     * Obtenir tout l'historique de lecture (tous chapitres, triés par date)
-     * ⚡ Bolt: Memoize the computed dataset instead of providing a computation function
-     * to prevent re-computing on every consumer render when context updates.
+     * Obtenir tout l'historique de lecture (tous chapitres, triés par date).
+     * Calcul paresseux: les consommateurs le mémorisent localement quand nécessaire.
      * @returns {Array} Liste de tous les chapitres lus
      */
-    const allHistory = useMemo(() => {
+    const getAllHistory = useCallback(() => {
         const allChapters = [];
-
-        // ⚡ Bolt: Pré-calculer une Map des favoris pour réduire la complexité de O(N*M) à O(N+M)
-        const favoritesMap = new Map();
-        for (let i = 0; i < favorites.length; i++) {
-            favoritesMap.set(favorites[i].url, favorites[i]);
-        }
 
         Object.keys(readChapters).forEach(seriesUrl => {
             const favorite = favoritesMap.get(seriesUrl);
@@ -464,7 +507,7 @@ export const StorageProvider = ({ children }) => {
 
         // Trier par date décroissante (plus récent en premier)
         return allChapters.sort((a, b) => b.dateRead - a.dateRead);
-    }, [readChapters, favorites]);
+    }, [readChapters, favoritesMap]);
 
     // ===== SETTINGS =====
 
@@ -512,6 +555,7 @@ export const StorageProvider = ({ children }) => {
         <StorageContext.Provider value={{
             // État
             favorites,
+            favoritesMap,
             readChapters,
             settings,
             isLoading,
@@ -532,7 +576,7 @@ export const StorageProvider = ({ children }) => {
             getSeriesProgress,
             getLastChapterRead,
             isChapterRead,
-            allHistory,
+            getAllHistory,
             toggleChapterRead, // compatibilité
 
             // Settings

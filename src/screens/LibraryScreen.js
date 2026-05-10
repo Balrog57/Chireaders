@@ -147,7 +147,11 @@ const LibraryScreen = () => {
 
     // Real-time search update
     useEffect(() => {
-        performSearch(searchQuery);
+        const timeoutId = setTimeout(() => {
+            performSearch(searchQuery);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, performSearch]);
 
     const handleLoadMore = () => {
@@ -197,14 +201,14 @@ const LibraryScreen = () => {
                     <TextInput
                         style={[styles.searchInput, { color: theme.text }]}
                         placeholder="Rechercher..."
-                        placeholderTextColor={theme.text + '80'}
+                        placeholderTextColor={theme.textSecondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         onSubmitEditing={handleSearchSubmit}
                         returnKeyType="search"
                         accessibilityLabel="Champ de recherche"
                     />
-                    {searchQuery.length > 0 && (
+                    {searchQuery?.length > 0 && (
                         <TouchableOpacity
                             onPress={() => setSearchQuery('')}
                             style={styles.clearButton}
@@ -239,6 +243,10 @@ const LibraryScreen = () => {
                     numColumns={3}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
+                    initialNumToRender={12}
+                    maxToRenderPerBatch={12}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     ListFooterComponent={renderFooter}
                     contentContainerStyle={styles.listContent}
                     refreshControl={
@@ -250,8 +258,12 @@ const LibraryScreen = () => {
                         />
                     }
                     ListEmptyComponent={
-                        <View style={styles.centerContainer}>
-                            <Text style={{ color: theme.text }}>Aucun résultat.</Text>
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="book-outline" size={64} color={theme.textSecondary} />
+                            <Text style={[styles.emptyText, { color: theme.text }]}>Aucun résultat</Text>
+                            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
+                                {isSearching ? "Essayez avec d'autres mots-clés" : "La bibliothèque est vide"}
+                            </Text>
                         </View>
                     }
                 />
@@ -283,6 +295,7 @@ const styles = StyleSheet.create({
     },
     listContent: {
         padding: 10,
+        flexGrow: 1,
     },
     itemContainer: {
         flex: 1 / 3,
@@ -349,6 +362,23 @@ const styles = StyleSheet.create({
     clearButton: {
         padding: 5,
         marginRight: 5,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 40,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginTop: 15,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    emptySubtext: {
+        fontSize: 14,
+        textAlign: 'center',
     },
 });
 

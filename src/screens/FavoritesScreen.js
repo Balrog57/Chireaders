@@ -18,8 +18,7 @@ const FavoritesScreen = ({ navigation }) => {
         favorites,
         removeFavorite,
         getSeriesProgress,
-        toggleFavoriteNotification,
-        settings
+        toggleFavoriteNotification
     } = useContext(StorageContext);
 
     // const theme = settings.darkMode ? styles.dark : styles.light; // Replaced by global theme context
@@ -55,6 +54,9 @@ const FavoritesScreen = ({ navigation }) => {
             <TouchableOpacity
                 style={[styles.favoriteCard, { backgroundColor: theme.card }]}
                 onPress={() => handleFavoritePress(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title}, ${progress.length} chapitre${progress.length > 1 ? 's' : ''} lu${progress.length > 1 ? 's' : ''}, ajouté le ${new Date(item.dateAdded).toLocaleDateString('fr-FR')}`}
+                accessibilityHint="Ouvre les détails de cette série"
             >
                 {/* En-tête avec titre et bouton supprimer */}
                 <View style={styles.favoriteHeader}>
