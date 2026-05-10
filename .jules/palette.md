@@ -14,3 +14,6 @@
 
 ## États Dynamiques
 - Utiliser `accessibilityState={{ checked: isActive }}` pour les interrupteurs ou favoris (notifications).
+## 2024-05-24 - Empty States Guidelines
+**Learning:** In list views (`FlatList` like Library, Favorites, History), plain unstyled text for empty states (e.g., "Aucun résultat.") causes user frustration and looks like an error state. Providing a visually styled component with an icon, title, and action-oriented subtitle significantly improves contextual guidance and the overall polished feel.
+**Action:** Always implement a styled `ListEmptyComponent` using consistent styles (`emptyContainer`, `emptyText`, `emptySubtext`) with a descriptive icon and contextual subtext.
