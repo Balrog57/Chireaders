@@ -31,18 +31,41 @@ export const StorageProvider = ({ children }) => {
                 const read = await AsyncStorage.getItem('readChapters');
                 const sett = await AsyncStorage.getItem('settings');
 
-                if (favs) setFavorites(JSON.parse(favs));
-                if (read) setReadChapters(JSON.parse(read));
+                // 🛡️ Sentinel: Defensive Storage Parsing
+                if (favs) {
+                    try {
+                        const parsedFavs = JSON.parse(favs);
+                        setFavorites(Array.isArray(parsedFavs) ? parsedFavs : []);
+                    } catch (e) {
+                        console.error("Invalid favorites JSON", e);
+                        setFavorites([]);
+                    }
+                }
+                if (read) {
+                    try {
+                        const parsedRead = JSON.parse(read);
+                        setReadChapters(parsedRead && typeof parsedRead === 'object' && !Array.isArray(parsedRead) ? parsedRead : {});
+                    } catch (e) {
+                        console.error("Invalid readChapters JSON", e);
+                        setReadChapters({});
+                    }
+                }
                 if (sett) {
-                    const parsedSettings = JSON.parse(sett);
-                    // Migration: si readerFontSize n'existe pas mais fontSize oui
-                    if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
-                        parsedSettings.readerFontSize = parsedSettings.fontSize;
+                    try {
+                        const parsedSettings = JSON.parse(sett);
+                        if (parsedSettings && typeof parsedSettings === 'object' && !Array.isArray(parsedSettings)) {
+                            // Migration: si readerFontSize n'existe pas mais fontSize oui
+                            if (!parsedSettings.readerFontSize && parsedSettings.fontSize) {
+                                parsedSettings.readerFontSize = parsedSettings.fontSize;
+                            }
+                            if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
+                                parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
+                            }
+                            setSettings(parsedSettings);
+                        }
+                    } catch (e) {
+                        console.error("Invalid settings JSON", e);
                     }
-                    if (!parsedSettings.themeMode && parsedSettings.darkMode !== undefined) {
-                        parsedSettings.themeMode = parsedSettings.darkMode ? 'dark' : 'light';
-                    }
-                    setSettings(parsedSettings);
                 }
             } catch (e) {
                 console.error("Failed to load local data", e);

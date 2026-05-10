@@ -17,3 +17,8 @@
   const sourceUrl = event.nativeEvent.url;
   if (!isValidChiReadsUrl(sourceUrl)) return;
   ```
+
+## 2024-05-10 - Defensive Storage Parsing
+**Vulnerability:** AsyncStorage items were parsed using `JSON.parse()` without try-catch blocks or type validation, which could crash the app or corrupt state if the persistent data was modified, corrupted, or of an unexpected type.
+**Learning:** Persisted client-side data should always be treated as untrusted input. Unhandled exceptions in parsing block subsequent initialization steps and can lead to a broken application state (DoS).
+**Prevention:** Always wrap `JSON.parse` in try-catch blocks when reading from local storage, and explicitly validate the type (e.g., `Array.isArray()`) before assigning it to application state, providing safe defaults upon failure.
