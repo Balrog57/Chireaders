@@ -36,8 +36,9 @@ TaskManager.defineTask(TASK_NAME, async () => {
         const updates = new Map();
 
         // 2. Scan each favorite
-        // We run these sequentially or in limited parallel to avoid overwhelming resources/network
-        for (const fav of favoritesToScan) {
+        // We run these in parallel to significantly reduce total execution time,
+        // which is critical for staying within background task execution limits.
+        await Promise.all(favoritesToScan.map(async (fav) => {
             try {
                 // Get latest details (lightweight scrape if possible, but getNovelDetails scans chapters)
                 const details = await ChiReadsScraper.getNovelDetails(fav.url);
@@ -71,7 +72,7 @@ TaskManager.defineTask(TASK_NAME, async () => {
             } catch (err) {
                 console.error(`[BackgroundFetch] Error checking ${fav.title}:`, err);
             }
-        }
+        }));
 
         // 3. Save updates if any
         if (updates.size > 0) {

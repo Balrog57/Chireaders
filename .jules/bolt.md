@@ -16,3 +16,7 @@
 ## 2026-05-10 - Consolidated List and Context Performance
 **Learning:** Large React Native lists suffer when search filters run on every keystroke, `FlatList` renders without virtualization constraints, or render loops repeatedly call O(N) context helpers.
 **Action:** Debounce local search, set explicit `FlatList` virtualization props, memoize local `Set`/`Map` lookup structures for list renders, expose shared context maps for O(1) access, and keep expensive context-derived datasets lazy so consumers compute them only when needed.
+
+## 2026-10-24 - Parallelize Network Requests in Background Tasks
+**Learning:** Background fetch tasks have strict execution time limits. A sequential `for...of` loop over many network requests can exceed this limit, causing the OS to kill the task prematurely.
+**Action:** Use `Promise.all` with `.map` to execute independent network requests concurrently within background tasks to significantly reduce total execution time.
