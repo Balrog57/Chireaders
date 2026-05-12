@@ -19,7 +19,7 @@ import ChiReadsScraper from '../services/ChiReadsScraper';
 
 const LibraryScreen = () => {
     const navigation = useNavigation();
-    const { theme } = useTheme();
+    const { theme, isDarkMode } = useTheme();
     const { saveLibraryCache, loadLibraryCache } = useContext(StorageContext);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -207,6 +207,8 @@ const LibraryScreen = () => {
                         onSubmitEditing={handleSearchSubmit}
                         returnKeyType="search"
                         accessibilityLabel="Champ de recherche"
+                        clearButtonMode="while-editing"
+                        keyboardAppearance={isDarkMode ? 'dark' : 'light'}
                     />
                     {searchQuery?.length > 0 && (
                         <TouchableOpacity
