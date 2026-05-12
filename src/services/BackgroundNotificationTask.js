@@ -24,7 +24,13 @@ TaskManager.defineTask(TASK_NAME, async () => {
         const favsJson = await AsyncStorage.getItem('favorites');
         if (!favsJson) return BackgroundFetch.BackgroundFetchResult.NoData;
 
-        const favorites = JSON.parse(favsJson);
+        let favorites = [];
+        try {
+            const parsed = JSON.parse(favsJson);
+            if (Array.isArray(parsed)) favorites = parsed;
+        } catch (e) {
+            console.error('[BackgroundFetch] Invalid favorites JSON schema', e);
+        }
         const favoritesToScan = favorites.filter(f => f.notificationsEnabled !== false); // Default to true if undefined
 
         if (favoritesToScan.length === 0) {
@@ -80,7 +86,15 @@ TaskManager.defineTask(TASK_NAME, async () => {
             // This prevents overwriting user actions (like deleting a favorite) that happened
             // while the background task was running.
             const freshFavsJson = await AsyncStorage.getItem('favorites');
-            const freshFavorites = freshFavsJson ? JSON.parse(freshFavsJson) : [];
+            let freshFavorites = [];
+            if (freshFavsJson) {
+                try {
+                    const parsed = JSON.parse(freshFavsJson);
+                    if (Array.isArray(parsed)) freshFavorites = parsed;
+                } catch (e) {
+                    console.error('[BackgroundFetch] Invalid fresh favorites JSON schema', e);
+                }
+            }
 
             let hasChanges = false;
             const mergedFavorites = freshFavorites.map(freshFav => {
