@@ -109,6 +109,13 @@ const HistoryScreen = ({ navigation }) => {
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
                 contentContainerStyle={styles.listContent}
+                // ⚡ Bolt: Virtualization Optimization
+                // Reduces initial render time and limits background memory usage
+                // by unmounting components outside the viewport.
+                initialNumToRender={15}
+                maxToRenderPerBatch={15}
+                windowSize={5}
+                removeClippedSubviews={true}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="time-outline" size={64} color="#ccc" />
