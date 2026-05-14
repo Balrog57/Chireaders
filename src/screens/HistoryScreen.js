@@ -108,6 +108,10 @@ const HistoryScreen = ({ navigation }) => {
                 data={history}
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
+                initialNumToRender={15}
+                maxToRenderPerBatch={15}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
