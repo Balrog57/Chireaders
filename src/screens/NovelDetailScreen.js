@@ -210,6 +210,9 @@ const NovelDetailScreen = () => {
                             <TouchableOpacity
                                 style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
                                 onPress={handleResume}
+                                accessibilityRole="button"
+                                accessibilityLabel="Reprendre la lecture"
+                                accessibilityHint="Ouvre le dernier chapitre lu"
                             >
                                 <Ionicons name="play" size={20} color="#fff" />
                                 <Text style={styles.resumeButtonText}>Reprendre</Text>
