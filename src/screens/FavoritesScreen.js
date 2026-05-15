@@ -132,6 +132,12 @@ const FavoritesScreen = ({ navigation }) => {
                 data={favorites}
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
+                // Performance optimizations: Minimize background memory usage and initial render time for potentially large favorites lists.
+                // Reduces memory footprint significantly by unmounting offscreen items.
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>

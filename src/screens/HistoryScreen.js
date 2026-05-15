@@ -108,6 +108,12 @@ const HistoryScreen = ({ navigation }) => {
                 data={history}
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
+                // Performance optimizations: Minimize background memory usage and initial render time for potentially large history lists.
+                // Reduces memory footprint significantly by unmounting offscreen items.
+                initialNumToRender={15}
+                maxToRenderPerBatch={15}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
