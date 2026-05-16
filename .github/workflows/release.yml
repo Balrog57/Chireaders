@@ -36,16 +36,24 @@ jobs:
         run: npx expo prebuild --platform android --no-install
 
       - name: Build APK (Release)
+        env:
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd android
+          # Use secret if available, otherwise generate a random temp password
+          if [ -n "$KEYSTORE_PASS" ]; then
+            PASS="$KEYSTORE_PASS"
+          else
+            PASS=$(openssl rand -base64 32)
+          fi
           # Generate a temporary keystore for signing
-          keytool -genkeypair -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=ChiReaders, OU=App, O=Org, L=City, S=State, C=US"
+          keytool -genkeypair -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "$PASS" -keypass "$PASS" -dname "CN=ChiReaders, OU=App, O=Org, L=City, S=State, C=US"
           # Build Release APK with signing config passed via command line properties
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=$(pwd)/my-release-key.keystore \
-            -Pandroid.injected.signing.store.<SET_VIA_SECRET> \
+            -Pandroid.injected.signing.store.password="$PASS" \
             -Pandroid.injected.signing.key.alias=my-key-alias \
-            -Pandroid.injected.signing.key.<SET_VIA_SECRET>
+            -Pandroid.injected.signing.key.password="$PASS"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
