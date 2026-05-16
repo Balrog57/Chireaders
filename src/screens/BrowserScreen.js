@@ -42,7 +42,7 @@ const INJECTED_JAVASCRIPT = `
               // Ajouter l'indicateur de chapitre lu
               const indicator = document.createElement('span');
               indicator.className = 'read-indicator';
-              indicator.innerHTML = ' ✓';
+              indicator.textContent = ' ✓';
               indicator.style.cssText = \`
                 color: #4CAF50 !important;
                 font-weight: bold !important;
