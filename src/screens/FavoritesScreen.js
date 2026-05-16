@@ -127,11 +127,23 @@ const FavoritesScreen = ({ navigation }) => {
             </View>
 
             {/* Liste des favoris */}
+            {/*
+              ⚡ Bolt Performance Optimization:
+              Added explicit virtualization props to reduce memory overhead and speed up initial render.
+              - initialNumToRender/maxToRenderPerBatch: Prevents trying to render hundreds of items at startup.
+              - windowSize=5: Reduces the memory footprint significantly from the default 21 screens.
+              - removeClippedSubviews: Unmounts components that fall outside the viewport.
+              Expected Impact: Stabilizes memory usage during fast scrolling and significantly decreases TTI for large libraries.
+            */}
             <FlatList
                 style={{ flex: 1 }}
                 data={favorites}
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>

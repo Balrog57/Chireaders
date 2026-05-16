@@ -104,10 +104,21 @@ const HistoryScreen = ({ navigation }) => {
             </View>
 
             {/* Liste de l'historique */}
+            {/*
+              ⚡ Bolt Performance Optimization:
+              Virtualization props restrict DOM/Native view nodes held in memory, maintaining smooth 60fps scrolling.
+              - initialNumToRender/maxToRenderPerBatch limit batch processing size.
+              - windowSize limits off-screen buffers.
+              Expected Impact: Drastically lowers background RAM consumption for power users with massive read histories.
+            */}
             <FlatList
                 data={history}
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
+                initialNumToRender={15}
+                maxToRenderPerBatch={15}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
