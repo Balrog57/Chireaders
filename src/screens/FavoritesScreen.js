@@ -132,6 +132,10 @@ const FavoritesScreen = ({ navigation }) => {
                 data={favorites}
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
+                initialNumToRender={15}
+                maxToRenderPerBatch={15}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
