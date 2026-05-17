@@ -42,7 +42,7 @@ const INJECTED_JAVASCRIPT = `
               // Ajouter l'indicateur de chapitre lu
               const indicator = document.createElement('span');
               indicator.className = 'read-indicator';
-              indicator.innerHTML = ' ✓';
+              indicator.textContent = ' ✓';
               indicator.style.cssText = \`
                 color: #4CAF50 !important;
                 font-weight: bold !important;
@@ -335,7 +335,14 @@ const BrowserScreen = ({ route }) => {
         }
 
         const lowerUrl = url.toLowerCase();
-        const urlScheme = lowerUrl.split(':')[0] + ':';
+        let urlScheme = '';
+        try {
+            urlScheme = new URL(url.trim()).protocol;
+        } catch (_e) {
+            console.warn(`[Sentinel] Invalid URL format blocked: ${url}`);
+            return false;
+        }
+
         const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
         const externalSchemes = ['mailto:', 'tel:'];
         
