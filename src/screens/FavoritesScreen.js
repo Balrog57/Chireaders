@@ -127,11 +127,16 @@ const FavoritesScreen = ({ navigation }) => {
             </View>
 
             {/* Liste des favoris */}
+            {/* ⚡ Bolt: Virtualization limits initial render and memory usage for long lists */}
             <FlatList
                 style={{ flex: 1 }}
                 data={favorites}
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
+                initialNumToRender={12}
+                maxToRenderPerBatch={12}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
