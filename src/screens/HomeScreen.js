@@ -161,6 +161,7 @@ const HomeScreen = () => {
                         accessibilityLabel="Rejoindre le Discord"
                         accessibilityRole="button"
                         accessibilityHint="Ouvre l'invitation Discord dans le navigateur"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <FontAwesome5 name="discord" size={24} color={themeMode === 'dark' ? "#7289da" : "#5865F2"} />
                     </TouchableOpacity>
@@ -172,6 +173,7 @@ const HomeScreen = () => {
                         accessibilityLabel="Visiter le site web"
                         accessibilityRole="button"
                         accessibilityHint="Ouvre chireads.com dans le navigateur"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <FontAwesome5 name="globe" size={22} color={theme.text} />
                     </TouchableOpacity>
@@ -182,6 +184,7 @@ const HomeScreen = () => {
                         accessibilityLabel="Paramètres"
                         accessibilityRole="button"
                         accessibilityHint="Ouvre l'écran des paramètres"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <Ionicons name="settings-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
@@ -193,6 +196,7 @@ const HomeScreen = () => {
                         accessibilityLabel={getThemeLabel()}
                         accessibilityRole="button"
                         accessibilityHint="Change le thème de l'application"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <Ionicons name={getThemeIcon()} size={24} color={theme.text} />
                     </TouchableOpacity>

@@ -274,6 +274,7 @@ const ReaderScreen = () => {
                                 accessibilityLabel="Fermer la liste des chapitres"
                                 accessibilityRole="button"
                                 accessibilityHint="Ferme la fenêtre modale"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
                                 <Ionicons name="close" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
@@ -333,6 +334,7 @@ const ReaderScreen = () => {
                                 accessibilityLabel="Fermer les paramètres"
                                 accessibilityRole="button"
                                 accessibilityHint="Ferme la fenêtre modale"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
                                 <Ionicons name="close" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
@@ -365,6 +367,7 @@ const ReaderScreen = () => {
                                 accessibilityLabel="Diminuer la taille du texte"
                                 accessibilityRole="button"
                                 accessibilityHint="Réduit la taille de la police"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
                                 <Ionicons name="remove" size={24} color={currentTheme.text} />
                             </TouchableOpacity>
@@ -374,6 +377,7 @@ const ReaderScreen = () => {
                                 accessibilityLabel="Augmenter la taille du texte"
                                 accessibilityRole="button"
                                 accessibilityHint="Augmente la taille de la police"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
                                 <Ionicons name="add" size={24} color={currentTheme.text} />
                             </TouchableOpacity>

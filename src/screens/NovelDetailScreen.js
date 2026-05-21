@@ -297,6 +297,7 @@ const NovelDetailScreen = () => {
                     accessibilityLabel="Retour"
                     accessibilityRole="button"
                     accessibilityHint="Retourner à l'écran précédent"
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>

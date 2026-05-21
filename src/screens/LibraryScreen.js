@@ -215,6 +215,7 @@ const LibraryScreen = () => {
                             accessibilityLabel="Effacer la recherche"
                             accessibilityRole="button"
                             accessibilityHint="Efface le texte de la recherche"
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
                             <Ionicons name="close-circle" size={20} color={theme.text} style={{ opacity: 0.5 }} />
                         </TouchableOpacity>
@@ -225,6 +226,7 @@ const LibraryScreen = () => {
                         accessibilityLabel="Lancer la recherche"
                         accessibilityRole="button"
                         accessibilityHint="Lance la recherche avec le texte saisi"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <Ionicons name="search" size={20} color={theme.text} />
                     </TouchableOpacity>
