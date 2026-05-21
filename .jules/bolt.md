@@ -16,3 +16,7 @@
 ## 2026-05-10 - Consolidated List and Context Performance
 **Learning:** Large React Native lists suffer when search filters run on every keystroke, `FlatList` renders without virtualization constraints, or render loops repeatedly call O(N) context helpers.
 **Action:** Debounce local search, set explicit `FlatList` virtualization props, memoize local `Set`/`Map` lookup structures for list renders, expose shared context maps for O(1) access, and keep expensive context-derived datasets lazy so consumers compute them only when needed.
+## 2024-05-21 - React Native JSX Comments
+
+**Learning:** When adding explanatory comments directly inside a JSX component's property list (e.g., between props in `<FlatList ... />`), using JSX block comments (`{/* comment */}`) causes syntax and linter errors.
+**Action:** Always use standard JS line comments (`// comment`) instead of JSX block comments when adding comments between props in a JSX component.

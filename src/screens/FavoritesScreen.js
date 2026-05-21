@@ -132,6 +132,11 @@ const FavoritesScreen = ({ navigation }) => {
                 data={favorites}
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
+                // ⚡ Bolt: Virtualization pour optimiser la mémoire et les performances des longues listes
+                initialNumToRender={12}
+                maxToRenderPerBatch={12}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>

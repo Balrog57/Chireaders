@@ -108,6 +108,11 @@ const HistoryScreen = ({ navigation }) => {
                 data={history}
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
+                // ⚡ Bolt: Virtualization pour optimiser la mémoire et les performances des longues listes
+                initialNumToRender={12}
+                maxToRenderPerBatch={12}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
