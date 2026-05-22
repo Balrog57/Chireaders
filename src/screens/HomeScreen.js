@@ -158,6 +158,7 @@ const HomeScreen = () => {
                     <TouchableOpacity
                         onPress={() => openLink('https://discordapp.com/invite/mMDsVAa')}
                         style={styles.iconButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         accessibilityLabel="Rejoindre le Discord"
                         accessibilityRole="button"
                         accessibilityHint="Ouvre l'invitation Discord dans le navigateur"
@@ -169,6 +170,7 @@ const HomeScreen = () => {
                     <TouchableOpacity
                         onPress={() => openLink('https://chireads.com/')}
                         style={styles.iconButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         accessibilityLabel="Visiter le site web"
                         accessibilityRole="button"
                         accessibilityHint="Ouvre chireads.com dans le navigateur"
@@ -179,6 +181,7 @@ const HomeScreen = () => {
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Settings')}
                         style={styles.iconButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         accessibilityLabel="Paramètres"
                         accessibilityRole="button"
                         accessibilityHint="Ouvre l'écran des paramètres"
@@ -190,6 +193,7 @@ const HomeScreen = () => {
                     <TouchableOpacity
                         onPress={toggleTheme}
                         style={styles.iconButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         accessibilityLabel={getThemeLabel()}
                         accessibilityRole="button"
                         accessibilityHint="Change le thème de l'application"
