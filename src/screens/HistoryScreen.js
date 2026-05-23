@@ -109,6 +109,10 @@ const HistoryScreen = ({ navigation }) => {
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
                 contentContainerStyle={styles.listContent}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="time-outline" size={64} color="#ccc" />
