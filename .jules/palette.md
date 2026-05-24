@@ -19,3 +19,7 @@
 - **Problème** : Un texte seul pour un état vide manque de contexte, et les actions `onLongPress` ne sont pas découvrables par les lecteurs d'écran.
 - **Solution** : Utiliser des états vides structurés avec icône, titre et sous-texte contextualisé, et décrire les actions secondaires dans `accessibilityHint`.
 - **Règle** : Les cartes complexes doivent porter un `accessibilityLabel` agrégé, les champs doivent utiliser des tokens de thème sémantiques comme `theme.textSecondary`, et les boutons de récupération doivent avoir rôle, label et hint explicites.
+
+## 2026-05-10 - Éléments Interactifs Conditionnels
+**Learning:** Les éléments interactifs rendus conditionnellement (comme les boutons d'action qui n'apparaissent que lorsqu'une progression de lecture existe) sont souvent oubliés lors des audits d'accessibilité. Sans attributs explicites, les lecteurs d'écran peuvent ne pas annoncer correctement leur fonction lorsqu'ils apparaissent.
+**Action:** Toujours s'assurer d'inclure `accessibilityRole`, `accessibilityLabel` et `accessibilityHint` sur les boutons conditionnels pour fournir une découvrabilité totale aux lecteurs d'écran.
