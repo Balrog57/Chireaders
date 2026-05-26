@@ -212,6 +212,7 @@ const LibraryScreen = () => {
                         <TouchableOpacity
                             onPress={() => setSearchQuery('')}
                             style={styles.clearButton}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             accessibilityLabel="Effacer la recherche"
                             accessibilityRole="button"
                             accessibilityHint="Efface le texte de la recherche"
@@ -222,6 +223,7 @@ const LibraryScreen = () => {
                     <TouchableOpacity
                         onPress={handleSearchSubmit}
                         style={styles.searchButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         accessibilityLabel="Lancer la recherche"
                         accessibilityRole="button"
                         accessibilityHint="Lance la recherche avec le texte saisi"
