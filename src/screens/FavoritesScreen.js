@@ -133,6 +133,11 @@ const FavoritesScreen = ({ navigation }) => {
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
                 contentContainerStyle={styles.listContent}
+                // Performance optimization for long lists
+                initialNumToRender={12}
+                maxToRenderPerBatch={12}
+                windowSize={5}
+                removeClippedSubviews={true}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="heart-outline" size={64} color="#ccc" />
