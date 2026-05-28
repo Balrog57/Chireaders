@@ -104,10 +104,17 @@ const HistoryScreen = ({ navigation }) => {
             </View>
 
             {/* Liste de l'historique */}
+            {/* ⚡ Bolt Optimization: Added FlatList virtualization props.
+                Reduces initial render time and lowers memory footprint by
+                limiting rendered off-screen items when history grows large. */}
             <FlatList
                 data={history}
                 renderItem={renderHistoryItem}
                 keyExtractor={(item, index) => `${item.url}-${index}`}
+                initialNumToRender={15}
+                maxToRenderPerBatch={15}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>

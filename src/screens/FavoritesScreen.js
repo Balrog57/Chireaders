@@ -127,11 +127,18 @@ const FavoritesScreen = ({ navigation }) => {
             </View>
 
             {/* Liste des favoris */}
+            {/* ⚡ Bolt Optimization: Added FlatList virtualization props.
+                Reduces initial render time and lowers memory footprint by
+                limiting rendered off-screen items when favorites grow large. */}
             <FlatList
                 style={{ flex: 1 }}
                 data={favorites}
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
