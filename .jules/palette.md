@@ -19,3 +19,6 @@
 - **Problème** : Un texte seul pour un état vide manque de contexte, et les actions `onLongPress` ne sont pas découvrables par les lecteurs d'écran.
 - **Solution** : Utiliser des états vides structurés avec icône, titre et sous-texte contextualisé, et décrire les actions secondaires dans `accessibilityHint`.
 - **Règle** : Les cartes complexes doivent porter un `accessibilityLabel` agrégé, les champs doivent utiliser des tokens de thème sémantiques comme `theme.textSecondary`, et les boutons de récupération doivent avoir rôle, label et hint explicites.
+## 2026-05-15 - Touch Targets for Small Icons
+**Learning:** Icon-only buttons (like those in headers or lists) often fall below the recommended 44x44px touch target size, causing accessibility issues and missed taps.
+**Action:** Always apply `hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}` to `TouchableOpacity` components containing only small icons to increase their interactive area without changing the visual layout.
