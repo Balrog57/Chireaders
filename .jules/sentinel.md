@@ -22,3 +22,8 @@
 - **Problème** : Les données de stockage local, sauvegardes SAF et caches JSON sont modifiables ou corruptibles, et les schémas d'URL WebView sont insensibles à la casse.
 - **Solution** : Encadrer chaque `JSON.parse` exposé par un `try/catch`, valider explicitement la forme attendue avant d'assigner l'état, et normaliser les schémas d'URL avec `toLowerCase()` avant toute comparaison.
 - **Règle** : Les sauvegardes restaurées doivent contenir au moins une clé connue avec le bon type (`favorites`, `readChapters`, `settings`), les caches de bibliothèque doivent rester des tableaux, et les protocoles non autorisés doivent être bloqués.
+
+## 2026-05-11 - DOM XSS in WebView Injected JS
+**Vulnerability:** Use of `innerHTML` for static text assignment in WebView injected JavaScript.
+**Learning:** Even static assignments (`indicator.innerHTML = ' ✓'`) create dormant DOM-based XSS vulnerabilities that could be exploited if the code is later refactored to use dynamic, untrusted input.
+**Prevention:** Always use `textContent` over `innerHTML` when assigning text strings to DOM elements in injected JavaScript environments.
