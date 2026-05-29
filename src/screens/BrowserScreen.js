@@ -335,7 +335,13 @@ const BrowserScreen = ({ route }) => {
         }
 
         const lowerUrl = url.toLowerCase();
-        const urlScheme = lowerUrl.split(':')[0] + ':';
+        let urlScheme = '';
+        try {
+            urlScheme = new URL(url.trim()).protocol;
+        } catch (e) {
+            // Fallback for malformed URLs
+            urlScheme = lowerUrl.split(':')[0] + ':';
+        }
         const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
         const externalSchemes = ['mailto:', 'tel:'];
         

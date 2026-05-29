@@ -22,3 +22,8 @@
 - **Problème** : Les données de stockage local, sauvegardes SAF et caches JSON sont modifiables ou corruptibles, et les schémas d'URL WebView sont insensibles à la casse.
 - **Solution** : Encadrer chaque `JSON.parse` exposé par un `try/catch`, valider explicitement la forme attendue avant d'assigner l'état, et normaliser les schémas d'URL avec `toLowerCase()` avant toute comparaison.
 - **Règle** : Les sauvegardes restaurées doivent contenir au moins une clé connue avec le bon type (`favorites`, `readChapters`, `settings`), les caches de bibliothèque doivent rester des tableaux, et les protocoles non autorisés doivent être bloqués.
+
+## 2026-05-11 - Robust URL Scheme Validation
+**Vulnerability:** Relying on manual string manipulation (e.g., `url.split(':')[0]`) for URL scheme extraction allows bypasses via malformed inputs like leading spaces (` javascript:alert(1) `).
+**Learning:** The URL constructor `new URL(url.trim()).protocol` is the only robust way to extract the true scheme as interpreted by the browser engine.
+**Prevention:** Always use the standard `URL` constructor to extract and validate URL protocols instead of writing custom parsing logic.
