@@ -7,6 +7,18 @@ import ChiReadsScraper from './ChiReadsScraper';
 
 const TASK_NAME = 'CHECK_NEW_CHAPTERS';
 
+const parseFavorites = (json) => {
+    if (!json) return [];
+
+    try {
+        const parsed = JSON.parse(json);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.error('[BackgroundFetch] Invalid favorites JSON:', error);
+        return [];
+    }
+};
+
 // Configure notification channel ONLY if not in Expo Go (SDK 53+ drops remote push support in dev)
 if (Constants.appOwnership !== 'expo') {
     Notifications.setNotificationHandler({
@@ -24,7 +36,7 @@ TaskManager.defineTask(TASK_NAME, async () => {
         const favsJson = await AsyncStorage.getItem('favorites');
         if (!favsJson) return BackgroundFetch.BackgroundFetchResult.NoData;
 
-        const favorites = JSON.parse(favsJson);
+        const favorites = parseFavorites(favsJson);
         const favoritesToScan = favorites.filter(f => f.notificationsEnabled !== false); // Default to true if undefined
 
         if (favoritesToScan.length === 0) {
@@ -36,8 +48,8 @@ TaskManager.defineTask(TASK_NAME, async () => {
         const updates = new Map();
 
         // 2. Scan each favorite
-        // We run these sequentially or in limited parallel to avoid overwhelming resources/network
-        for (const fav of favoritesToScan) {
+        // Parallel network scans keep the task within mobile background execution limits.
+        await Promise.all(favoritesToScan.map(async (fav) => {
             try {
                 // Get latest details (lightweight scrape if possible, but getNovelDetails scans chapters)
                 const details = await ChiReadsScraper.getNovelDetails(fav.url);
@@ -71,7 +83,7 @@ TaskManager.defineTask(TASK_NAME, async () => {
             } catch (err) {
                 console.error(`[BackgroundFetch] Error checking ${fav.title}:`, err);
             }
-        }
+        }));
 
         // 3. Save updates if any
         if (updates.size > 0) {
@@ -80,7 +92,7 @@ TaskManager.defineTask(TASK_NAME, async () => {
             // This prevents overwriting user actions (like deleting a favorite) that happened
             // while the background task was running.
             const freshFavsJson = await AsyncStorage.getItem('favorites');
-            const freshFavorites = freshFavsJson ? JSON.parse(freshFavsJson) : [];
+            const freshFavorites = parseFavorites(freshFavsJson);
 
             let hasChanges = false;
             const mergedFavorites = freshFavorites.map(freshFav => {

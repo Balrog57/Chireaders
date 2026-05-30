@@ -210,6 +210,9 @@ const NovelDetailScreen = () => {
                             <TouchableOpacity
                                 style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
                                 onPress={handleResume}
+                                accessibilityRole="button"
+                                accessibilityLabel="Reprendre la lecture"
+                                accessibilityHint="Reprend la lecture au dernier chapitre lu"
                             >
                                 <Ionicons name="play" size={20} color="#fff" />
                                 <Text style={styles.resumeButtonText}>Reprendre</Text>
@@ -268,9 +271,26 @@ const NovelDetailScreen = () => {
 
     }, [details]); // Only re-run when details change
 
+    const renderNavBar = () => (
+        <View style={[styles.navBar, { borderBottomColor: theme.border }]}>
+            <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="Retour"
+                accessibilityRole="button"
+                accessibilityHint="Retourner à l'écran précédent"
+            >
+                <Ionicons name="arrow-back" size={24} color={theme.text} />
+            </TouchableOpacity>
+            <Text style={[styles.navTitle, { color: theme.text }]} numberOfLines={1}>{details?.title || initialTitle}</Text>
+        </View>
+    );
+
     if (loading) {
         return (
-            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
+                {renderNavBar()}
                 <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={theme.tint} />
                 </View>
@@ -280,9 +300,23 @@ const NovelDetailScreen = () => {
 
     if (!details) {
         return (
-            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
+                {renderNavBar()}
                 <View style={styles.centerContainer}>
-                    <Text style={{ color: theme.text }}>Erreur de chargement ou livre non trouvé.</Text>
+                    <Ionicons name="cloud-offline-outline" size={64} color={theme.textSecondary || '#aaa'} />
+                    <Text style={[styles.errorTitle, { color: theme.text }]}>Erreur de chargement</Text>
+                    <Text style={[styles.errorText, { color: theme.textSecondary || '#aaa' }]}>
+                        Impossible de charger les détails du roman.
+                    </Text>
+                    <TouchableOpacity
+                        style={[styles.retryButton, { backgroundColor: theme.tint }]}
+                        onPress={loadDetails}
+                        accessibilityRole="button"
+                        accessibilityLabel="Réessayer de charger"
+                        accessibilityHint="Relance le chargement des détails du roman"
+                    >
+                        <Text style={styles.retryButtonText}>Réessayer</Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         );
@@ -290,18 +324,7 @@ const NovelDetailScreen = () => {
 
     return (
         <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
-            <View style={[styles.navBar, { borderBottomColor: theme.border }]}>
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.backButton}
-                    accessibilityLabel="Retour"
-                    accessibilityRole="button"
-                    accessibilityHint="Retourner à l'écran précédent"
-                >
-                    <Ionicons name="arrow-back" size={24} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={[styles.navTitle, { color: theme.text }]} numberOfLines={1}>{details.title}</Text>
-            </View>
+            {renderNavBar()}
 
             <ScrollView contentContainerStyle={styles.scrollContent} style={{ flex: 1 }}>
                 {renderHeader()}
@@ -414,6 +437,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: 24,
     },
     navBar: {
         flexDirection: 'row',
@@ -544,6 +568,28 @@ const styles = StyleSheet.create({
     chapterTitle: {
         fontSize: 14,
         flex: 1,
+    },
+    errorTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 15,
+        textAlign: 'center',
+    },
+    errorText: {
+        fontSize: 14,
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    retryButton: {
+        marginTop: 20,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
 });
 

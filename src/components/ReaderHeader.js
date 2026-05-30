@@ -54,6 +54,7 @@ const ReaderHeader = ({ visible, title, onBack, onSettings, theme }) => {
                 <TouchableOpacity
                     onPress={onBack}
                     style={styles.button}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     accessibilityLabel="Retour"
                     accessibilityRole="button"
                     accessibilityHint="Retourner à l'écran précédent"
@@ -68,6 +69,7 @@ const ReaderHeader = ({ visible, title, onBack, onSettings, theme }) => {
                 <TouchableOpacity
                     onPress={onSettings}
                     style={styles.button}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     accessibilityLabel="Paramètres"
                     accessibilityRole="button"
                     accessibilityHint="Ouvrir les paramètres de lecture"

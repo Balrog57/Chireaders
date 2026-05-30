@@ -160,6 +160,7 @@ const SettingsScreen = ({ navigation }) => {
                 <TouchableOpacity 
                     onPress={() => navigation.goBack()} 
                     style={styles.backButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     accessibilityLabel="Retour"
                     accessibilityRole="button"
                     accessibilityHint="Retourne à l'écran précédent"

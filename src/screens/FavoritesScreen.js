@@ -71,6 +71,7 @@ const FavoritesScreen = ({ navigation }) => {
                             accessibilityRole="button"
                             accessibilityHint="Active ou désactive les notifications pour cette série"
                             accessibilityState={{ checked: item.notificationsEnabled }}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
                             <Ionicons
                                 name={item.notificationsEnabled ? "notifications" : "notifications-off-outline"}
@@ -84,6 +85,7 @@ const FavoritesScreen = ({ navigation }) => {
                             accessibilityLabel="Retirer des favoris"
                             accessibilityRole="button"
                             accessibilityHint="Supprime cette série de votre liste de favoris"
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
                             <Ionicons name="trash-outline" size={22} color="#e91e63" />
                         </TouchableOpacity>
@@ -133,6 +135,10 @@ const FavoritesScreen = ({ navigation }) => {
                 renderItem={renderFavoriteItem}
                 keyExtractor={(item) => item.url}
                 contentContainerStyle={styles.listContent}
+                initialNumToRender={15}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="heart-outline" size={64} color="#ccc" />

@@ -42,7 +42,7 @@ const INJECTED_JAVASCRIPT = `
               // Ajouter l'indicateur de chapitre lu
               const indicator = document.createElement('span');
               indicator.className = 'read-indicator';
-              indicator.innerHTML = ' ✓';
+              indicator.textContent = ' ✓';
               indicator.style.cssText = \`
                 color: #4CAF50 !important;
                 font-weight: bold !important;
@@ -334,8 +334,16 @@ const BrowserScreen = ({ route }) => {
             return false;
         }
 
-        const lowerUrl = url.toLowerCase();
-        const urlScheme = lowerUrl.split(':')[0] + ':';
+        const trimmedUrl = url.trim();
+        const lowerUrl = trimmedUrl.toLowerCase();
+        let urlScheme = '';
+        try {
+            urlScheme = new URL(trimmedUrl).protocol.toLowerCase();
+        } catch (_error) {
+            console.warn(`[Sentinel] Blocking malformed URL: ${url}`);
+            return false;
+        }
+
         const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
         const externalSchemes = ['mailto:', 'tel:'];
         
@@ -344,15 +352,15 @@ const BrowserScreen = ({ route }) => {
             console.warn(`[Sentinel] Blocking potentially dangerous URI scheme: ${urlScheme}`);
             // Ouvrir dans le navigateur système si c'est un lien externe légitime (ex: mailto, tel)
             if (externalSchemes.includes(urlScheme)) {
-                Linking.openURL(url).catch(() => {});
+                Linking.openURL(trimmedUrl).catch(() => {});
             }
             return false;
         }
 
         // Si ce n'est pas le domaine principal, on ouvre dans le navigateur système
         if (!isValidChiReadsUrl(url) && lowerUrl !== 'about:blank' && !lowerUrl.startsWith('data:')) {
-            console.log(`[Sentinel] External link detected, opening in system browser: ${url}`);
-            Linking.openURL(url).catch(() => {});
+            console.log(`[Sentinel] External link detected, opening in system browser: ${trimmedUrl}`);
+            Linking.openURL(trimmedUrl).catch(() => {});
             return false;
         }
 
