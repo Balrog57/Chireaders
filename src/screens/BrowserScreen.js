@@ -334,8 +334,15 @@ const BrowserScreen = ({ route }) => {
             return false;
         }
 
+        let urlScheme;
+        try {
+            urlScheme = new URL(url.trim()).protocol;
+        } catch (e) {
+            console.warn(`[Sentinel] Blocking malformed URL: ${url}`);
+            return false;
+        }
+
         const lowerUrl = url.toLowerCase();
-        const urlScheme = lowerUrl.split(':')[0] + ':';
         const allowedSchemes = ['http:', 'https:', 'about:', 'data:'];
         const externalSchemes = ['mailto:', 'tel:'];
         
