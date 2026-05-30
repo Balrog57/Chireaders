@@ -16,3 +16,6 @@
 ## 2026-05-10 - Consolidated List and Context Performance
 **Learning:** Large React Native lists suffer when search filters run on every keystroke, `FlatList` renders without virtualization constraints, or render loops repeatedly call O(N) context helpers.
 **Action:** Debounce local search, set explicit `FlatList` virtualization props, memoize local `Set`/`Map` lookup structures for list renders, expose shared context maps for O(1) access, and keep expensive context-derived datasets lazy so consumers compute them only when needed.
+## 2026-05-30 - Optimize FlatList Rendering Performance
+**Learning:** React Native's `FlatList` component, when used to render long lists of complex items (like in `HistoryScreen` or `FavoritesScreen`), will attempt to render all items at once and keep them in memory if explicit virtualization constraints are not provided. This blocks the main thread during initial load and consumes significant memory as lists grow.
+**Action:** Always provide virtualization properties (`initialNumToRender`, `maxToRenderPerBatch`, `windowSize`, `removeClippedSubviews={true}`) to `FlatList` components intended for large datasets to unmount off-screen items and stream renders in batches.
