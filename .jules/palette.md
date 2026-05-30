@@ -19,3 +19,6 @@
 - **Problème** : Un texte seul pour un état vide manque de contexte, et les actions `onLongPress` ne sont pas découvrables par les lecteurs d'écran.
 - **Solution** : Utiliser des états vides structurés avec icône, titre et sous-texte contextualisé, et décrire les actions secondaires dans `accessibilityHint`.
 - **Règle** : Les cartes complexes doivent porter un `accessibilityLabel` agrégé, les champs doivent utiliser des tokens de thème sémantiques comme `theme.textSecondary`, et les boutons de récupération doivent avoir rôle, label et hint explicites.
+## 2025-05-30 - Add hitSlop to small icon buttons
+**Learning:** React Native TouchableOpacity components containing only small icons often fall short of the recommended 44x44px touch target size, making them difficult to tap, particularly for users with motor difficulties.
+**Action:** Always apply `hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}` to small interactive elements like header icons to increase the touchable area without altering the visual layout.
