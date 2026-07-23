@@ -225,17 +225,25 @@ const ChiReadsScraper = {
             const response = await client.get(safeNovelUrl);
             const $ = cheerio.load(response.data);
 
-            const title = $('.inform-title').text().trim();
-            const image = getSafeImageUrl($('.inform-product img').attr('src'));
-            const author = $('.inform-inform-data h6').text().trim();
-            let description = $('.inform-txt-show span').text().trim();
+            // Nouveau thème chireads-refresh (avec fallback sur l'ancien thème)
+            const title = $('.refresh-detail-title').first().text().trim() || $('.inform-title').text().trim();
+            const image = getSafeImageUrl($('.refresh-detail-cover img').attr('src')) || getSafeImageUrl($('.inform-product img').attr('src'));
 
+            let author = '';
+            $('.refresh-detail-meta > div').each((i, el) => {
+                const dt = $(el).find('dt').text().trim();
+                if (dt === 'Auteur') { author = $(el).find('dd').text().trim(); return false; }
+            });
+            if (!author) author = $('.inform-inform-data h6').text().trim();
+
+            let description = $('.refresh-detail-summary-content').text().trim();
             if (!description) {
-                description = $('.inform-txt-show').text().trim();
+                description = $('.inform-txt-show span').text().trim();
+                if (!description) description = $('.inform-txt-show').text().trim();
             }
 
             let chapters = [];
-            let chapterLinks = $('.chapitre li a, .volume-content li a, .chapitre-table li a, .segment-content li a');
+            let chapterLinks = $('.refresh-detail-chapter-list li a, .chapitre li a, .volume-content li a, .chapitre-table li a, .segment-content li a');
 
             const extractChapterNumber = (title) => {
                 const keywordMatch = title.match(/(?:chapitre|ch|chapter|no|épisode|volume)\.?\s*(\d+(\.\d+)?)/i);
@@ -311,9 +319,21 @@ const ChiReadsScraper = {
                 if (text) paragraphs.push(text);
             });
 
-            const navLinks = $('.article-function').first().find('a');
-            let prevUrlRaw = navLinks.eq(0).attr('href');
-            let nextUrlRaw = navLinks.eq(2).attr('href');
+            // Navigation prev/next : nouveau thème utilise .chapter-nav-previous / .chapter-nav-next
+            // (l'ancien eq(0)/eq(2) est cassé car "previous" peut être un <span> désactivé)
+            let prevUrlRaw = null;
+            let nextUrlRaw = null;
+
+            const navTop = $('.article-function-top').first();
+            if (navTop.length > 0) {
+                prevUrlRaw = navTop.find('.chapter-nav-previous').attr('href');
+                nextUrlRaw = navTop.find('.chapter-nav-next').attr('href');
+            } else {
+                // Fallback ancien thème
+                const navLinks = $('.article-function').first().find('a');
+                prevUrlRaw = navLinks.eq(0).attr('href');
+                nextUrlRaw = navLinks.eq(2).attr('href');
+            }
 
             if (prevUrlRaw === '#') prevUrlRaw = null;
 
