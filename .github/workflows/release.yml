@@ -37,23 +37,22 @@ jobs:
 
       - name: Build APK (Release)
         env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd android
-          # Use secret if available, otherwise generate a random temp password
-          if [ -n "$KEYSTORE_PASS" ]; then
-            PASS="$KEYSTORE_PASS"
-          else
-            PASS=$(openssl rand -base64 32)
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASS" ]; then
+            echo "::error::Missing KEYSTORE_BASE64 or KEYSTORE_PASSWORD secret. Build aborted to avoid generating an ephemeral keystore that would break updates (different signature)."
+            exit 1
           fi
-          # Generate a temporary keystore for signing
-          keytool -genkeypair -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "$PASS" -keypass "$PASS" -dname "CN=ChiReaders, OU=App, O=Org, L=City, S=State, C=US"
+          # Decode the persistent keystore from the secret
+          echo "$KEYSTORE_BASE64" | base64 -d > my-release-key.keystore
           # Build Release APK with signing config passed via command line properties
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=$(pwd)/my-release-key.keystore \
-            -Pandroid.injected.signing.store.password="$PASS" \
-            -Pandroid.injected.signing.key.alias=my-key-alias \
-            -Pandroid.injected.signing.key.password="$PASS"
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASS" \
+            -Pandroid.injected.signing.key.alias=chireaders-key \
+            -Pandroid.injected.signing.key.password="$KEYSTORE_PASS"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
