@@ -234,7 +234,7 @@ const ChiReadsScraper = {
             $('.refresh-detail-meta > div').each((i, el) => {
                 meta[$(el).find('dt').text().trim()] = $(el).find('dd').text().trim();
             });
-            let author = meta['Auteur'] || meta['Traducteur'] || '';
+            let author = meta['Auteur'] || meta['Traducteur'] || meta['Fantrad'] || '';
             if (!author) author = $('.inform-inform-data h6').text().trim();
 
             let description = $('.refresh-detail-summary-content').text().trim();
@@ -256,7 +256,7 @@ const ChiReadsScraper = {
                 return -1;
             };
 
-            const parseChapters = (links, volume) => {
+            const parseChapters = (links) => {
                 const list = [];
                 links.each((i, elem) => {
                     const link = $(elem);
@@ -269,28 +269,42 @@ const ChiReadsScraper = {
                             url: safeChapterUrl,
                             date: '',
                             number: extractChapterNumber(chapterTitle),
-                            volume // titre complet du tome, ou null
+                            volume: null // renseigné plus bas si les blocs sont de vrais tomes
                         });
                     }
                 });
                 return list;
             };
 
-            // Thème chireads-refresh: un bloc par tome, la numérotation repart à 1 dans chaque tome.
-            // On garde l'ordre du site (tome par tome) au lieu d'un tri global par numéro.
-            const volumes = [];
+            // Thème chireads-refresh: la page est découpée en blocs (.refresh-detail-segment).
+            // Ce sont de vrais tomes (la numérotation repart à 1, ou titres « Tome N ») ou de simples
+            // paquets de chapitres (« Chapitres 1 à 30 », numérotation continue).
+            let volumes = [];
             $('.refresh-detail-segment').each((i, seg) => {
                 const volumeTitle = $(seg).find('.refresh-detail-segment-toggle > span').first().text().trim() || `Tome ${i + 1}`;
-                const volumeChapters = parseChapters($(seg).find('.refresh-detail-chapter-list li a'), volumeTitle);
+                const volumeChapters = parseChapters($(seg).find('.refresh-detail-chapter-list li a'));
                 if (volumeChapters.length > 0) volumes.push({ title: volumeTitle, chapters: volumeChapters });
             });
 
+            let prevLast = null;
+            let numberingRestarts = false;
+            volumes.forEach(v => {
+                const numbers = v.chapters.map(c => c.number).filter(n => n !== -1);
+                if (numbers.length === 0) return;
+                if (prevLast !== null && numbers[0] <= prevLast) numberingRestarts = true;
+                prevLast = numbers[numbers.length - 1];
+            });
+            const titledAsTomes = volumes.length > 1 && volumes.every(v => /^(tome|volume|vol\.?)\s*\d+/i.test(v.title));
+
             let chapters;
-            if (volumes.length > 0) {
+            if (volumes.length > 0 && (numberingRestarts || titledAsTomes)) {
+                // Vrais tomes: on garde l'ordre du site (tome par tome), pas de tri global par numéro
+                volumes.forEach(v => v.chapters.forEach(c => { c.volume = v.title; }));
                 chapters = volumes.flatMap(v => v.chapters);
             } else {
-                // Repli: ancien thème / liste unique
-                chapters = parseChapters($('.refresh-detail-chapter-list li a, .chapitre li a, .volume-content li a, .chapitre-table li a, .segment-content li a'), null);
+                // Liste simple (paquets, ancien thème, ou pas de blocs): tri par numéro comme avant
+                volumes = [];
+                chapters = parseChapters($('.refresh-detail-chapter-list li a, .chapitre li a, .volume-content li a, .chapitre-table li a, .segment-content li a'));
                 chapters.sort((a, b) => (a.number !== -1 && b.number !== -1 ? a.number - b.number : 0));
             }
 
