@@ -243,9 +243,6 @@ const ChiReadsScraper = {
                 if (!description) description = $('.inform-txt-show').text().trim();
             }
 
-            let chapters = [];
-            let chapterLinks = $('.refresh-detail-chapter-list li a, .chapitre li a, .volume-content li a, .chapitre-table li a, .segment-content li a');
-
             const extractChapterNumber = (title) => {
                 const keywordMatch = title.match(/(?:chapitre|ch|chapter|no|épisode|volume)\.?\s*(\d+(\.\d+)?)/i);
                 if (keywordMatch) return parseFloat(keywordMatch[1]);
@@ -259,35 +256,51 @@ const ChiReadsScraper = {
                 return -1;
             };
 
-            chapterLinks.each((i, elem) => {
-                const link = $(elem);
-                const chapterTitle = link.text().trim();
-                const rawChapterUrl = link.attr('href');
-                const safeChapterUrl = getSafeUrl(rawChapterUrl);
+            const parseChapters = (links, volume) => {
+                const list = [];
+                links.each((i, elem) => {
+                    const link = $(elem);
+                    const chapterTitle = link.text().trim();
+                    const safeChapterUrl = getSafeUrl(link.attr('href'));
 
-                if (chapterTitle && safeChapterUrl) {
-                    chapters.push({
-                        title: chapterTitle,
-                        url: safeChapterUrl,
-                        date: '',
-                        number: extractChapterNumber(chapterTitle)
-                    });
-                }
+                    if (chapterTitle && safeChapterUrl) {
+                        list.push({
+                            title: chapterTitle,
+                            url: safeChapterUrl,
+                            date: '',
+                            number: extractChapterNumber(chapterTitle),
+                            volume // titre complet du tome, ou null
+                        });
+                    }
+                });
+                return list;
+            };
+
+            // Thème chireads-refresh: un bloc par tome, la numérotation repart à 1 dans chaque tome.
+            // On garde l'ordre du site (tome par tome) au lieu d'un tri global par numéro.
+            const volumes = [];
+            $('.refresh-detail-segment').each((i, seg) => {
+                const volumeTitle = $(seg).find('.refresh-detail-segment-toggle > span').first().text().trim() || `Tome ${i + 1}`;
+                const volumeChapters = parseChapters($(seg).find('.refresh-detail-chapter-list li a'), volumeTitle);
+                if (volumeChapters.length > 0) volumes.push({ title: volumeTitle, chapters: volumeChapters });
             });
 
-            chapters.sort((a, b) => {
-                const numA = a.number;
-                const numB = b.number;
-                if (numA !== -1 && numB !== -1) return numA - numB;
-                return 0;
-            });
+            let chapters;
+            if (volumes.length > 0) {
+                chapters = volumes.flatMap(v => v.chapters);
+            } else {
+                // Repli: ancien thème / liste unique
+                chapters = parseChapters($('.refresh-detail-chapter-list li a, .chapitre li a, .volume-content li a, .chapitre-table li a, .segment-content li a'), null);
+                chapters.sort((a, b) => (a.number !== -1 && b.number !== -1 ? a.number - b.number : 0));
+            }
 
             return {
                 title,
                 image,
                 author,
                 description,
-                chapters
+                chapters,
+                volumes
             };
         } catch (error) {
             console.error('Error scraping details:', error.message);

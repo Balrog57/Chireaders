@@ -242,59 +242,37 @@ const NovelDetailScreen = () => {
         );
     };
 
-    // Optimized Bucketing Logic with useMemo
+    // Groupes de 50 chapitres, tome par tome (la numérotation repart à 1 dans chaque tome)
     const { unnumbered, buckets } = useMemo(() => {
         if (!details || !details.chapters) return { unnumbered: [], buckets: [] };
 
-        const unnumberedChaps = [];
-        const numberedChaps = [];
+        const CHUNK_SIZE = 50;
+        const groups = details.volumes?.length ? details.volumes : [{ title: null, chapters: details.chapters }];
+        const resultBuckets = [];
 
-        // 1. Single Pass Separation (O(N))
-        details.chapters.forEach(c => {
-            if (c.number === -1) {
-                unnumberedChaps.push(c);
-            } else {
-                numberedChaps.push(c);
+        groups.forEach((volume, v) => {
+            const numbered = volume.chapters.filter(c => c.number !== -1);
+            for (let i = 0; i < numbered.length; i += CHUNK_SIZE) {
+                const chunk = numbered.slice(i, i + CHUNK_SIZE);
+                resultBuckets.push({
+                    key: `${v}-${i}`,
+                    volume: volume.title,
+                    start: chunk[0].number,
+                    end: chunk[chunk.length - 1].number,
+                    chapters: chunk
+                });
             }
         });
 
-        // 2. Sort Numbered (Fastest possible sort)
-        numberedChaps.sort((a, b) => a.number - b.number);
-
-        // 3. Single Pass Bucketing (O(N))
-        const CHUNK_SIZE = 50;
-        const resultBuckets = [];
-
-        if (numberedChaps.length > 0) {
-            let currentBucket = null;
-
-            numberedChaps.forEach(chapter => {
-                const bucketIndex = Math.floor((chapter.number - 1) / CHUNK_SIZE);
-                const startRange = bucketIndex * CHUNK_SIZE + 1;
-
-                if (!currentBucket || currentBucket.start !== startRange) {
-                    const endRange = (bucketIndex + 1) * CHUNK_SIZE;
-                    currentBucket = {
-                        start: startRange,
-                        end: endRange,
-                        chapters: []
-                    };
-                    resultBuckets.push(currentBucket);
-                }
-                currentBucket.chapters.push(chapter);
-            });
-        }
-
-        return { unnumbered: unnumberedChaps, buckets: resultBuckets };
-
-    }, [details]); // Only re-run when details change
+        return { unnumbered: details.chapters.filter(c => c.number === -1), buckets: resultBuckets };
+    }, [details]);
 
     // Déplie le groupe du dernier chapitre lu (sinon le premier) une fois les groupes calculés
     useEffect(() => {
         if (buckets.length === 0) return;
         const lastUrl = getLastChapterRead(url)?.url;
         const bucket = buckets.find(b => b.chapters.some(c => c.url === lastUrl)) || buckets[0];
-        setCurrentTab(bucket.start);
+        setCurrentTab(bucket.key);
     }, [buckets]);
 
     const renderNavBar = () => (
@@ -418,14 +396,17 @@ const NovelDetailScreen = () => {
 
                                 {/* Numbered Buckets */}
                                 {displayBuckets.map((bucket, bucketIdx) => {
-                                    const isExpanded = currentTab === bucket.start;
+                                    const isExpanded = currentTab === bucket.key;
                                     const content = reversed ? [...bucket.chapters].reverse() : bucket.chapters;
 
                                     return (
-                                        <View key={bucket.start} style={styles.accordionContainer}>
+                                        <View key={bucket.key} style={styles.accordionContainer}>
+                                            {bucket.volume && bucket.volume !== displayBuckets[bucketIdx - 1]?.volume && (
+                                                <Text style={[styles.volumeTitle, { color: theme.tint }]}>{bucket.volume}</Text>
+                                            )}
                                             <TouchableOpacity
                                                 style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
-                                                onPress={() => setCurrentTab(isExpanded ? null : bucket.start)}
+                                                onPress={() => setCurrentTab(isExpanded ? null : bucket.key)}
                                                 onLongPress={() => handleGroupLongPress(bucket)}
                                                 delayLongPress={500}
                                                 accessibilityRole="button"
@@ -569,6 +550,13 @@ const styles = StyleSheet.create({
     },
     chapterList: {
         paddingBottom: 20,
+    },
+    volumeTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        paddingHorizontal: 15,
+        paddingTop: 16,
+        paddingBottom: 6,
     },
     accordionContainer: {
         marginBottom: 5,

@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
     Modal,
+    ScrollView,
     StatusBar,
     StyleSheet,
     Text,
@@ -45,7 +46,8 @@ const THEMES = {
     }
 };
 
-const CHAPTER_ROW_HEIGHT = 48;
+const CHAPTER_ROW_HEIGHT = 56;
+const shortVolume = (title) => title.split(/[:\-–]/)[0].trim(); // « Tome 2: Titre » -> « Tome 2 »
 
 const ReaderScreen = () => {
     const route = useRoute();
@@ -222,10 +224,21 @@ const ReaderScreen = () => {
 
     const currentIndex = chapterList.findIndex(c => c.url === currentUrl);
 
+    // Tomes: la numérotation repart à 1 dans chaque tome, le saut se fait dans le tome choisi
     const chapterListRef = useRef(null);
-    const jumpToChapterNumber = (text) => {
-        const index = chapterList.findIndex(c => c.number === parseFloat(text));
+    const [jumpVolume, setJumpVolume] = useState(null);
+    const volumes = useMemo(() => [...new Set(chapterList.map(c => c.volume).filter(Boolean))], [chapterList]);
+    const activeVolume = jumpVolume ?? chapterList[currentIndex]?.volume ?? null;
+
+    const scrollChapterList = (index) => {
         if (index >= 0) chapterListRef.current?.scrollToIndex({ index, animated: false });
+    };
+    const jumpToChapterNumber = (text) => {
+        scrollChapterList(chapterList.findIndex(c => c.number === parseFloat(text) && (!activeVolume || c.volume === activeVolume)));
+    };
+    const jumpToVolume = (volume) => {
+        setJumpVolume(volume);
+        scrollChapterList(chapterList.findIndex(c => c.volume === volume));
     };
 
     if (loading) {
@@ -348,6 +361,23 @@ const ReaderScreen = () => {
                             />
                         )}
 
+                        {volumes.length > 1 && (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, flexShrink: 0, marginBottom: 8 }}>
+                                {volumes.map(v => (
+                                    <TouchableOpacity
+                                        key={v}
+                                        onPress={() => jumpToVolume(v)}
+                                        style={[styles.volumeChip, { borderColor: v === activeVolume ? '#e91e63' : currentTheme.text + '40' }]}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`Aller au ${v}`}
+                                        accessibilityState={{ selected: v === activeVolume }}
+                                    >
+                                        <Text style={{ color: v === activeVolume ? '#e91e63' : currentTheme.text }}>{shortVolume(v)}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        )}
+
                         {chapterList.length > 0 ? (
                             <FlatList
                                 ref={chapterListRef}
@@ -364,9 +394,12 @@ const ReaderScreen = () => {
                                         accessibilityState={{ selected: item.url === currentUrl }}
                                         accessibilityHint={item.url === currentUrl ? "Chapitre actuel" : "Lire ce chapitre"}
                                     >
-                                        <Text style={{ color: item.url === currentUrl ? '#e91e63' : currentTheme.text, fontWeight: item.url === currentUrl ? 'bold' : 'normal' }}>
+                                        <Text numberOfLines={1} style={{ color: item.url === currentUrl ? '#e91e63' : currentTheme.text, fontWeight: item.url === currentUrl ? 'bold' : 'normal' }}>
                                             {item.title}
                                         </Text>
+                                        {volumes.length > 1 && item.volume && (
+                                            <Text style={{ color: currentTheme.text + '80', fontSize: 12 }}>{shortVolume(item.volume)}</Text>
+                                        )}
                                     </TouchableOpacity>
                                 )}
                                 initialNumToRender={20}
@@ -484,6 +517,13 @@ const styles = StyleSheet.create({
     paragraph: {
         marginBottom: 15,
         textAlign: 'justify',
+    },
+    volumeChip: {
+        borderWidth: 1,
+        borderRadius: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        marginRight: 8,
     },
     jumpInput: {
         borderWidth: 1,
