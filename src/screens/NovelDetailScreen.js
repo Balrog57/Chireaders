@@ -51,7 +51,7 @@ const NovelDetailScreen = () => {
     const [details, setDetails] = useState(null);
     const [isFav, setIsFav] = useState(false);
     const [reversed, setReversed] = useState(false);
-    const [currentTab, setCurrentTab] = useState(0);
+    const [currentTab, setCurrentTab] = useState(null); // `start` du groupe de chapitres déplié
 
     // State for notification (local only for UI, synced with context)
     const [notifyEnabled, setNotifyEnabled] = useState(true);
@@ -140,6 +140,10 @@ const NovelDetailScreen = () => {
         }
     };
 
+    const lastRead = getLastChapterRead(url);
+    const lastReadNumber = details?.chapters?.find(c => c.url === lastRead?.url)?.number;
+    const firstChapter = details?.chapters?.[0];
+
     const handleChapterPress = (chapter) => {
         navigation.navigate('Reader', {
             url: chapter.url,
@@ -206,7 +210,19 @@ const NovelDetailScreen = () => {
                             </Text>
                         </TouchableOpacity>
 
-                        {getLastChapterRead(url) && (
+                        {!lastRead && firstChapter && (
+                            <TouchableOpacity
+                                style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
+                                onPress={() => handleChapterPress(firstChapter)}
+                                accessibilityRole="button"
+                                accessibilityLabel="Commencer la lecture"
+                            >
+                                <Ionicons name="play" size={20} color="#fff" />
+                                <Text style={styles.resumeButtonText}>Commencer la lecture</Text>
+                            </TouchableOpacity>
+                        )}
+
+                        {lastRead && (
                             <TouchableOpacity
                                 style={[styles.resumeButton, { backgroundColor: theme.tint, marginLeft: isFav ? 10 : 0 }]}
                                 onPress={handleResume}
@@ -215,7 +231,9 @@ const NovelDetailScreen = () => {
                                 accessibilityHint="Reprend la lecture au dernier chapitre lu"
                             >
                                 <Ionicons name="play" size={20} color="#fff" />
-                                <Text style={styles.resumeButtonText}>Reprendre</Text>
+                                <Text style={styles.resumeButtonText}>
+                                    {lastReadNumber > 0 ? `Reprendre ch. ${lastReadNumber}` : 'Reprendre'}
+                                </Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -270,6 +288,14 @@ const NovelDetailScreen = () => {
         return { unnumbered: unnumberedChaps, buckets: resultBuckets };
 
     }, [details]); // Only re-run when details change
+
+    // Déplie le groupe du dernier chapitre lu (sinon le premier) une fois les groupes calculés
+    useEffect(() => {
+        if (buckets.length === 0) return;
+        const lastUrl = getLastChapterRead(url)?.url;
+        const bucket = buckets.find(b => b.chapters.some(c => c.url === lastUrl)) || buckets[0];
+        setCurrentTab(bucket.start);
+    }, [buckets]);
 
     const renderNavBar = () => (
         <View style={[styles.navBar, { borderBottomColor: theme.border }]}>
@@ -392,14 +418,14 @@ const NovelDetailScreen = () => {
 
                                 {/* Numbered Buckets */}
                                 {displayBuckets.map((bucket, bucketIdx) => {
-                                    const isExpanded = currentTab === bucketIdx;
+                                    const isExpanded = currentTab === bucket.start;
                                     const content = reversed ? [...bucket.chapters].reverse() : bucket.chapters;
 
                                     return (
                                         <View key={bucket.start} style={styles.accordionContainer}>
                                             <TouchableOpacity
                                                 style={[styles.accordionHeader, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
-                                                onPress={() => setCurrentTab(isExpanded ? -1 : bucketIdx)}
+                                                onPress={() => setCurrentTab(isExpanded ? null : bucket.start)}
                                                 onLongPress={() => handleGroupLongPress(bucket)}
                                                 delayLongPress={500}
                                                 accessibilityRole="button"

@@ -229,11 +229,12 @@ const ChiReadsScraper = {
             const title = $('.refresh-detail-title').first().text().trim() || $('.inform-title').text().trim();
             const image = getSafeImageUrl($('.refresh-detail-cover img').attr('src')) || getSafeImageUrl($('.inform-product img').attr('src'));
 
-            let author = '';
+            // Repli sur le traducteur quand le site n'affiche pas de ligne « Auteur »
+            const meta = {};
             $('.refresh-detail-meta > div').each((i, el) => {
-                const dt = $(el).find('dt').text().trim();
-                if (dt === 'Auteur') { author = $(el).find('dd').text().trim(); return false; }
+                meta[$(el).find('dt').text().trim()] = $(el).find('dd').text().trim();
             });
+            let author = meta['Auteur'] || meta['Traducteur'] || '';
             if (!author) author = $('.inform-inform-data h6').text().trim();
 
             let description = $('.refresh-detail-summary-content').text().trim();
@@ -352,42 +353,6 @@ const ChiReadsScraper = {
         } catch (error) {
             console.error('Error scraping chapter:', error.message);
             return null;
-        }
-    },
-
-    /**
-     * Recherche de livres
-     * @param {string} query
-     */
-    search: async (query) => {
-        try {
-            const searchUrl = `/?s=${encodeURIComponent(query)}`;
-            const response = await client.get(searchUrl);
-            const $ = cheerio.load(response.data);
-            const books = [];
-
-            $('.news-list li, .search-list li, .main-col li').each((i, elem) => {
-                const titleElem = $(elem).find('.news-list-tit h5 a, h2 a, h3 a, .entry-title a').first();
-                const title = titleElem.text().trim();
-                const rawUrl = titleElem.attr('href') || $(elem).find('a').first().attr('href');
-                const image = getSafeImageUrl($(elem).find('img').first().attr('src'));
-                const description = $(elem).find('.news-list-txt, .entry-content').text().trim();
-
-                const safeUrl = getSafeUrl(rawUrl);
-
-                if (title && safeUrl && !safeUrl.includes('/chapitre-')) {
-                    books.push({ title, url: safeUrl, image, description });
-                }
-            });
-
-            const filteredBooks = books.filter(book =>
-                book.title.toLowerCase().includes(query.toLowerCase())
-            );
-
-            return filteredBooks;
-        } catch (error) {
-            console.error('Error searching:', error.message);
-            return [];
         }
     },
 

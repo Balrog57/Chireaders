@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
@@ -8,6 +9,7 @@ import {
     StatusBar,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
@@ -43,6 +45,8 @@ const THEMES = {
     }
 };
 
+const CHAPTER_ROW_HEIGHT = 48;
+
 const ReaderScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
@@ -64,6 +68,29 @@ const ReaderScreen = () => {
     const [headerVisible, setHeaderVisible] = useState(true);
 
     const flatListRef = useRef(null);
+
+    // Position de lecture: dernier paragraphe visible, mémorisé par roman
+    const posKey = `readerPos:${novelUrl || initialUrl}`;
+    const pendingIndex = useRef(null);
+    const saveTimer = useRef(null);
+    const currentUrlRef = useRef(currentUrl);
+    currentUrlRef.current = currentUrl;
+
+    const onViewableItemsChanged = useRef(({ viewableItems }) => {
+        const index = viewableItems[0]?.index;
+        if (index == null) return;
+        // Restauration en cours: on n'écrase pas la position tant qu'on n'est pas arrivé
+        if (pendingIndex.current != null) {
+            if (index < pendingIndex.current - 1) return;
+            pendingIndex.current = null;
+        }
+        clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+            AsyncStorage.setItem(posKey, JSON.stringify({ url: currentUrlRef.current, index })).catch(() => {});
+        }, 500);
+    }).current;
+
+    useEffect(() => () => clearTimeout(saveTimer.current), []);
 
     useEffect(() => {
         loadChapter(currentUrl);
@@ -90,11 +117,12 @@ const ReaderScreen = () => {
     const [chapterList, setChapterList] = useState([]);
     const [showChapterList, setShowChapterList] = useState(false);
 
+    // La fiche complète du roman est lourde: on ne la charge qu'à l'ouverture de la liste
     useEffect(() => {
-        if (novelUrl) {
+        if (novelUrl && showChapterList && chapterList.length === 0) {
             fetchChapterList();
         }
-    }, [novelUrl]);
+    }, [novelUrl, showChapterList]);
 
     const fetchChapterList = async () => {
         try {
@@ -114,15 +142,14 @@ const ReaderScreen = () => {
             const data = await ChiReadsScraper.getChapterContent(url);
             setChapter(data);
 
+            const saved = JSON.parse(await AsyncStorage.getItem(posKey) || 'null');
+            pendingIndex.current = saved?.url === url && saved.index > 0 ? saved.index : null;
+
             if (novelUrl) {
                 markChapterAsRead(novelUrl, {
                     url: url,
                     title: data.title
                 });
-            }
-
-            if (flatListRef.current) {
-                flatListRef.current.scrollToOffset({ offset: 0, animated: false });
             }
         } catch (error) {
             console.error('Error loading chapter:', error);
@@ -173,8 +200,33 @@ const ReaderScreen = () => {
     ), [chapter?.title, currentTheme]);
 
     const renderFooterComponent = useCallback(() => (
-        <View style={{ height: 100 }} />
-    ), []);
+        chapter?.nextUrl ? (
+            <TouchableOpacity
+                style={styles.nextButton}
+                onPress={() => navigateChapter(chapter.nextUrl)}
+                accessibilityRole="button"
+                accessibilityLabel="Chapitre suivant"
+            >
+                <Text style={styles.nextButtonText}>Chapitre suivant</Text>
+                <Ionicons name="chevron-forward" size={20} color="#fff" />
+            </TouchableOpacity>
+        ) : <View style={{ height: 100 }} />
+    ), [chapter?.nextUrl]);
+
+    const restorePosition = () => {
+        const index = pendingIndex.current;
+        if (index == null) return;
+        // Réessayé à chaque agrandissement du contenu jusqu'à ce que le paragraphe soit visible
+        flatListRef.current?.scrollToIndex({ index: Math.min(index, chapter.content.length - 1), animated: false });
+    };
+
+    const currentIndex = chapterList.findIndex(c => c.url === currentUrl);
+
+    const chapterListRef = useRef(null);
+    const jumpToChapterNumber = (text) => {
+        const index = chapterList.findIndex(c => c.number === parseFloat(text));
+        if (index >= 0) chapterListRef.current?.scrollToIndex({ index, animated: false });
+    };
 
     if (loading) {
         return (
@@ -229,6 +281,11 @@ const ReaderScreen = () => {
                         }
                     ]}
                     style={{ flex: 1 }}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onContentSizeChange={restorePosition}
+                    onScrollToIndexFailed={({ index, averageItemLength }) => {
+                        flatListRef.current?.scrollToOffset({ offset: index * (averageItemLength || 120), animated: false });
+                    }}
                     initialNumToRender={10}
                     maxToRenderPerBatch={10}
                     windowSize={5}
@@ -280,14 +337,28 @@ const ReaderScreen = () => {
                             </TouchableOpacity>
                         </View>
 
+                        {chapterList.length > 0 && (
+                            <TextInput
+                                style={[styles.jumpInput, { color: currentTheme.text, borderColor: currentTheme.text + '40' }]}
+                                placeholder="Aller au chapitre n°"
+                                placeholderTextColor={currentTheme.text + '80'}
+                                keyboardType="numeric"
+                                returnKeyType="go"
+                                onSubmitEditing={(e) => jumpToChapterNumber(e.nativeEvent.text)}
+                            />
+                        )}
+
                         {chapterList.length > 0 ? (
                             <FlatList
+                                ref={chapterListRef}
                                 data={chapterList}
                                 keyExtractor={(item) => item.url}
+                                getItemLayout={(_, index) => ({ length: CHAPTER_ROW_HEIGHT, offset: CHAPTER_ROW_HEIGHT * index, index })}
+                                initialScrollIndex={Math.max(currentIndex, 0)}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
-                                        style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: currentTheme.text + '20' }}
-                                        onPress={() => loadChapter(item.url)}
+                                        style={{ height: CHAPTER_ROW_HEIGHT, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: currentTheme.text + '20' }}
+                                        onPress={() => { setShowChapterList(false); navigateChapter(item.url); }}
                                         accessibilityRole="button"
                                         accessibilityLabel={`Chapitre: ${item.title}`}
                                         accessibilityState={{ selected: item.url === currentUrl }}
@@ -413,6 +484,28 @@ const styles = StyleSheet.create({
     paragraph: {
         marginBottom: 15,
         textAlign: 'justify',
+    },
+    jumpInput: {
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        marginBottom: 8,
+    },
+    nextButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#e91e63',
+        borderRadius: 10,
+        paddingVertical: 14,
+        marginVertical: 30,
+    },
+    nextButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginRight: 4,
     },
     // Modal
     modalOverlay: {
