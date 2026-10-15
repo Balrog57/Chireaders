@@ -286,13 +286,17 @@ const ChiReadsScraper = {
                 if (volumeChapters.length > 0) volumes.push({ title: volumeTitle, chapters: volumeChapters });
             });
 
-            let prevLast = null;
+            // Redémarrage = le bloc commence avant le début du précédent ou à moins de la moitié de sa fin.
+            // (Un simple chevauchement d'un chapitre entre deux paquets ne compte pas.)
+            let prev = null;
             let numberingRestarts = false;
             volumes.forEach(v => {
                 const numbers = v.chapters.map(c => c.number).filter(n => n !== -1);
                 if (numbers.length === 0) return;
-                if (prevLast !== null && numbers[0] <= prevLast) numberingRestarts = true;
-                prevLast = numbers[numbers.length - 1];
+                const first = numbers[0];
+                const last = numbers[numbers.length - 1];
+                if (prev && (first <= prev.first || first < prev.last / 2)) numberingRestarts = true;
+                prev = { first, last };
             });
             const titledAsTomes = volumes.length > 1 && volumes.every(v => /^(tome|volume|vol\.?)\s*\d+/i.test(v.title));
 
